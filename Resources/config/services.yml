@@ -1,0 +1,4 @@
+services:
+#    chaplean_tests.example:
+#        class: Chaplean\Bundle\TestsBundle\Example
+#        arguments: [@service_id, "plain_value", %parameter%]
