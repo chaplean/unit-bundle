@@ -23,5 +23,10 @@
         "liip/functional-test-bundle": "~1.0",
         "doctrine/doctrine-fixtures-bundle": "~2.2"
 	},
+	"autoload": {
+		"psr-0": {
+			"Chaplean\\Bundle\\TestsBundle": ""
+		}
+	},
 	"target-dir" : "Chaplean/Bundle/TestsBundle"
 }
