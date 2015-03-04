@@ -7,7 +7,7 @@
  * @since     0.1.0
  */
 
-namespace Chaplean\Bundle\TestsBundle\Test;
+namespace Chaplean\Bundle\UnitBundle\Test;
 
 class SeleniumTest extends \PHPUnit_Extensions_Selenium2TestCase
 {

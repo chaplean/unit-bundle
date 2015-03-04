@@ -1,6 +1,6 @@
 <?php
 
-namespace Chaplean\Bundle\TestsBundle\DependencyInjection;
+namespace Chaplean\Bundle\UnitBundle\DependencyInjection;
 
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
