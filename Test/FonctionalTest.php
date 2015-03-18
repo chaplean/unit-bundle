@@ -1,6 +1,6 @@
 <?php
 /**
- * SeleniumTest.
+ * FunctionalTest.
  *
  * @author    Valentin - Chaplean <valentin@chaplean.com>
  * @copyright 2014 - 2015 Chaplean (http://www.chaplean.com)
@@ -9,7 +9,7 @@
 
 namespace Chaplean\Bundle\UnitBundle\Test;
 
-class SeleniumTest extends \PHPUnit_Extensions_Selenium2TestCase
+class FunctionalTest extends \PHPUnit_Extensions_Selenium2TestCase
 {
     protected $baseUrl;
 
