@@ -16,7 +16,7 @@
 		"doctrine/orm": "~2.2,>=2.2.3,<2.5",
         "doctrine/doctrine-fixtures-bundle": "2.2.*",
         "phpunit/phpunit-selenium": "1.4.*",
-        "edysanchez/selenium-server": "2.*",
+        "edysanchez/selenium-server": "2.42.1",
         "liip/functional-test-bundle": "~1.0"
 	},
 	"require-dev": {
