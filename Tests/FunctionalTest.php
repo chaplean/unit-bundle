@@ -7,7 +7,7 @@
  * @since     0.1.0
  */
 
-namespace Chaplean\Bundle\UnitBundle\Test;
+namespace Chaplean\Bundle\UnitBundle\Tests;
 
 class FunctionalTest extends \PHPUnit_Extensions_Selenium2TestCase
 {
