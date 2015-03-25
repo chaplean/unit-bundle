@@ -29,7 +29,7 @@ class FunctionalTest extends \PHPUnit_Extensions_Selenium2TestCase
 
         $this->baseUrl = $container->getParameter('base_url_selenium');
 
-        $this->setBrowser('firefox');
+        $this->setBrowser('chrome');
         $this->setBrowserUrl($this->baseUrl);
     }
 }
