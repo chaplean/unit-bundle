@@ -9,6 +9,8 @@
 
 namespace Chaplean\Bundle\UnitBundle\Tests;
 
-class LogicalTest
+use Liip\FunctionalTestBundle\Test\WebTestCase;
+
+class LogicalTest extends WebTestCase
 {
 }
