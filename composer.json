@@ -29,5 +29,5 @@
 		}
 	},
 	"target-dir" : "Chaplean/Bundle/UnitBundle",
-    "bin": ["bin/selenium-server.jar", "bin/chromedriver"]
+    "bin": ["bin/chromedriver"]
 }
