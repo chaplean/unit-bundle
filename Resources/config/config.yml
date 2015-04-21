@@ -1,3 +1,6 @@
+chaplean_unit:
+    cache_sqlite_db: true
+    
 doctrine:
     dbal:
         default_connection: default
@@ -5,6 +8,3 @@ doctrine:
             default:
                 driver:   pdo_sqlite
                 path:     %kernel.cache_dir%/test.db
-
-#liip_functional_test:
-#    cache_sqlite_db: true
