@@ -12,6 +12,7 @@ use Doctrine\Common\DataFixtures\Loader;
 use Doctrine\Common\DataFixtures\ProxyReferenceRepository;
 use Doctrine\Common\DataFixtures\Purger\ORMPurger;
 use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\ORM\Tools\SchemaTool;
 use Doctrine\DBAL\Driver\PDOSqlite\Driver as SqliteDriver;
 
@@ -38,9 +39,13 @@ class ChapleanContext extends MinkContext implements KernelAwareContext
     private $dataFixtures = array();
 
     /**
-     * Click on element with css
+     *  Click on element with css
      *
      * @When /^(?:|I )click on "(?P<element>(?:[^"]|\\")*)"$/
+     *
+     * @param string $element
+     *
+     * @return void
      */
     public function iClickOn($element)
     {
@@ -50,10 +55,13 @@ class ChapleanContext extends MinkContext implements KernelAwareContext
     }
 
     /**
-     *
      * Wait some milliseconds
      *
      * @When /^(?:|I )wait (?P<time>(?:[^"]|\\")*) millisec$/
+     *
+     * @param integer $time
+     *
+     * @return void
      */
     public function iWait($time)
     {
@@ -61,31 +69,87 @@ class ChapleanContext extends MinkContext implements KernelAwareContext
     }
 
     /**
+     * Load fixture with datafixtures added, otherwise empty database
+     *
+     * @Given /^I load database$/
+     *
+     * @return void
+     */
+    public function iLoadDatabase()
+    {
+        $this->loadFixtures($this->dataFixtures);
+    }
+
+    /**
+     * Add datfixture
+     *
+     * @Given /^I add datafixture "(?P<datafixture>(?:[^"]|\\")*)"$/
+     *
+     * @param string $datafixture
+     *
+     * @return void
+     */
+    public function iAddDatafixture($datafixture)
+    {
+        $this->dataFixtures[] = $datafixture;
+    }
+
+    /**
+     * Load default datafixture
+     *
+     * @Given /^I load all default datafixture "(?P<namespace>(?:[^"]|\\")*)"$/
+     *
+     * @param string $namespace
+     *
+     * @return void
+     */
+    public function iLoadAllDefaultDatafixture($namespace)
+    {
+        $container = $this->getContainer();
+
+        /** @var EntityManager $em */
+        $em = $container->get('doctrine')->getManager();
+
+        $listTables = $em->getMetadataFactory()->getAllMetadata();
+        $datafixtures = array();
+
+        /** @var ClassMetadata $table */
+        foreach ($listTables as $table) {
+            $class = new \ReflectionClass($table->getName());
+            $datafixtures[] = $namespace . '\\DataFixtures\\Liip\\Load' . $class->getShortName() . 'Data';
+        }
+
+        $this->loadFixtures($datafixtures);
+        exit;
+    }
+
+    /**
      * Checks, that current page PATH is not equal to specified.
      *
      * @Then /^(?:|I )should not be on "(?P<page>[^"]+)"$/
+     *
+     * @param string $page
+     *
+     * @return void
      */
     public function assertPageAddressIsNot($page)
     {
         $this->assertSession()->addressNotEquals($this->locatePath($page));
     }
 
-
     /**
-     * @Given /^I load database$/
+     * Checks that passed Element has passed Class.
+     *
+     * @Then /^the element "(?P<element>(?:[^"]|\\")*)" has class "(?P<class>(?:[^"]|\\")*)"$/
+     *
+     * @param string $element
+     * @param string $class
+     *
+     * @return void
      */
-    public function iLoadDatabase()
+    public function assertElementHasClass($element, $class)
     {
-
-        $this->loadFixtures($this->dataFixtures);
-    }
-
-    /**
-     * @Given /^I add datafixture "(?P<datafixture>(?:[^"]|\\")*)"$/
-     */
-    public function iAddDatafixture($datafixture)
-    {
-        $this->dataFixtures[] = $datafixture;
+        $this->assertElementOnPage($element . '.' . $class);
     }
 
     /**
