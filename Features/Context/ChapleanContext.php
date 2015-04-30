@@ -120,7 +120,6 @@ class ChapleanContext extends MinkContext implements KernelAwareContext
         }
 
         $this->loadFixtures($datafixtures);
-        exit;
     }
 
     /**
