@@ -1,6 +1,6 @@
 <?php
 
-namespace ChapleanStaff\Bundle\FrontBundle\Features\Context;
+namespace Chaplean\Bundle\UnitBundle\Features\Context;
 
 use Behat\MinkExtension\Context\MinkContext;
 use Behat\Symfony2Extension\Context\KernelAwareContext;
