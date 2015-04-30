@@ -19,7 +19,6 @@ use Doctrine\Common\Persistence\ObjectManager;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Tools\SchemaTool;
 use Symfony\Component\DependencyInjection\Container;
-
 use Doctrine\DBAL\Driver\PDOSqlite\Driver as SqliteDriver;
 
 
