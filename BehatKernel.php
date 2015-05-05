@@ -16,7 +16,7 @@ class BehatKernel extends AppKernel
      */
     public function getLogDir()
     {
-        return $this->rootDir.'/../var/logs/'.$this->environment;
+        return $this->rootDir.'/../../../../../../var/logs/'.$this->environment;
     }
 
     /**
@@ -24,6 +24,6 @@ class BehatKernel extends AppKernel
      */
     public function getCacheDir()
     {
-        return $this->rootDir.'/../var/cache/'.$this->environment;
+        return $this->rootDir.'/../../../../../../var/cache/'.$this->environment;
     }
 }
