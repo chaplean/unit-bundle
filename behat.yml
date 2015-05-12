@@ -2,7 +2,7 @@ default:
     extensions:
         Behat\Symfony2Extension:
             kernel:
-                path: app/BehatKernel.php
+                path: vendor/chaplean/unit-bundle/Chaplean/Bundle/UnitBundle/BehatKernel.php
                 class: BehatKernel
         Behat\MinkExtension:
             base_url: %base_url_selenium%
