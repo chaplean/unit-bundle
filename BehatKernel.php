@@ -11,6 +11,14 @@ include 'app/AppKernel.php';
  */
 class BehatKernel extends AppKernel
 {
+    public function __construct($environment, $debug)
+    {
+        parent::__construct($environment, $debug);
+
+        $r = new \ReflectionObject(new AppKernel($environment, $debug));
+        $this->rootDir = str_replace('\\', '/', dirname($r->getFileName()));
+    }
+
     /**
      * @return string
      */
