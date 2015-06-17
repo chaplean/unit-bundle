@@ -50,8 +50,14 @@ class ChapleanContext extends MinkContext implements KernelAwareContext
     public function iClickOn($element)
     {
         $page = $this->getSession()->getPage();
+        $element = $page->find('css', $element);
 
-        $page->find('css', $element)->click();
+        if (!empty($element)) {
+            $element->click();
+        } else {
+            var_dump($page->getContent(), error_get_last());
+            exit;
+        }
     }
 
     /**
