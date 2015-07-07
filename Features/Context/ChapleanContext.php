@@ -39,6 +39,20 @@ class ChapleanContext extends MinkContext implements KernelAwareContext
     private $dataFixtures = array();
 
     /**
+     * Fills in form field with specified element.
+     *
+     * @When /^(?:|I )fill in "(?P<field>(?:[^"]|\\")*)" element with "(?P<value>(?:[^"]|\\")*)"$/
+     */
+    public function fillFieldElement($field, $value)
+    {
+        $field = $this->fixStepArgument($field);
+        $value = $this->fixStepArgument($value);
+        $page = $this->getSession()->getPage();
+        $node = $page->find('css', $field);
+        $node->setValue($value);
+    }
+
+    /**
      *  Click on element with css
      *
      * @When /^(?:|I )click on "(?P<element>(?:[^"]|\\")*)"$/
@@ -58,6 +72,43 @@ class ChapleanContext extends MinkContext implements KernelAwareContext
             var_dump($page->getContent(), error_get_last());
             exit;
         }
+    }
+
+    /**
+     *  Click on link
+     *
+     * @When /^(?:|I )click on link "(?P<link>(?:[^"]|\\")*)"$/
+     *
+     * @param string $link
+     *
+     * @return void
+     */
+    public function iClickOnLink($link)
+    {
+        $page = $this->getSession()->getPage();
+        $element = $page->findLink($link);
+
+        if (!empty($element)) {
+            $element->click();
+        } else {
+            var_dump($page->getContent(), error_get_last());
+            exit;
+        }
+    }
+
+    /**
+     *  Focus an iframe
+     *
+     * @When /^(?:|I )focus the iframe "(?P<iframe>(?:[^"]|\\")*)"$/
+     *
+     * @param string $iframe
+     *
+     * @return void
+     */
+    public function iFocusIframe($iframe)
+    {
+        $session =  $this->getSession();
+        $session->switchToIFrame($iframe);
     }
 
     /**
