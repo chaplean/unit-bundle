@@ -146,7 +146,9 @@ class FunctionalTest extends \PHPUnit_Extensions_Selenium2TestCase
         $loader = new Loader(self::$container);
 
         foreach ($classNames as $className) {
-            $this->loadFixtureClass($loader, $className);
+            if (class_exists($className)) {
+                $this->loadFixtureClass($loader, $className);
+            }
         }
 
         $executor->execute($loader->getFixtures(), true);
