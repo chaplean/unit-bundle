@@ -284,7 +284,9 @@ class ChapleanContext extends MinkContext implements KernelAwareContext
         $loader = new Loader($container);
 
         foreach ($classNames as $className) {
-            $this->loadFixtureClass($loader, $className);
+            if (class_exists($className)) {
+                $this->loadFixtureClass($loader, $className);
+            }
         }
 
         $executor->execute($loader->getFixtures(), true);
