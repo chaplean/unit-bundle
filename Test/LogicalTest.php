@@ -7,7 +7,7 @@
  * @since     0.1.0
  */
 
-namespace Chaplean\Bundle\UnitBundle\Tests;
+namespace Chaplean\Bundle\UnitBundle\Test;
 
 use Chaplean\Bundle\UnitBundle\Utility\FixtureUtility;
 use Doctrine\ORM\EntityManager;
