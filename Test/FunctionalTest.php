@@ -1,6 +1,6 @@
 <?php
 
-namespace Chaplean\Bundle\UnitBundle\Tests;
+namespace Chaplean\Bundle\UnitBundle\Test;
 
 use Chaplean\Bundle\UnitBundle\Utility\FixtureUtility;
 use Doctrine\Common\DataFixtures\Executor\ORMExecutor;
