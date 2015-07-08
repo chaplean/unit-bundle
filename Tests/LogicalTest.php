@@ -18,7 +18,7 @@ class LogicalTest extends WebTestCase
     /**
      * @var EntityManager
      */
-    private $em;
+    protected $em;
 
     /**
      * Construct
