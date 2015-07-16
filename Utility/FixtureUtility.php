@@ -39,8 +39,8 @@ class FixtureUtility
      */
     private static function loadContainer()
     {
-        require_once 'app/AppKernel.php';
-        $kernel = new \AppKernel('test', true);
+        require_once 'vendor/chaplean/unit-bundle/Chaplean/Bundle/UnitBundle/BehatKernel.php';
+        $kernel = new \BehatKernel('test', true);
         $kernel->boot();
 
         self::$container = $kernel->getContainer();
