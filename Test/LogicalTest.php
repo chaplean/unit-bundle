@@ -36,6 +36,6 @@ class LogicalTest extends WebTestCase
      */
     public static function loadStaticFixtures(array $classNames, $omName = null)
     {
-        FixtureUtility::loadFixtures($classNames, $omName);
+        FixtureUtility::loadFixtures($classNames, 'logical', $omName);
     }
 }

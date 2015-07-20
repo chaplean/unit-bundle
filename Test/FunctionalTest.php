@@ -62,7 +62,7 @@ class FunctionalTest extends \PHPUnit_Extensions_Selenium2TestCase
      */
     public function loadFixtures(array $classNames, $omName = null)
     {
-        FixtureUtility::loadFixtures($classNames, $omName);
+        FixtureUtility::loadFixtures($classNames, 'functional', $omName);
     }
 
     /**
@@ -75,6 +75,6 @@ class FunctionalTest extends \PHPUnit_Extensions_Selenium2TestCase
      */
     public function loadStaticFixtures(array $classNames, $omName = null)
     {
-        FixtureUtility::loadFixtures($classNames, $omName);
+        FixtureUtility::loadFixtures($classNames, 'functional', $omName);
     }
 }
