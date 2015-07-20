@@ -37,10 +37,22 @@ class FixtureUtility
      *
      * @return void
      */
-    private static function loadContainer()
+    private static function loadContainer($typeTest)
     {
-        require_once 'vendor/chaplean/unit-bundle/Chaplean/Bundle/UnitBundle/BehatKernel.php';
-        $kernel = new \BehatKernel('test', true);
+        switch ($typeTest) {
+            case 'behat':
+                require_once 'vendor/chaplean/unit-bundle/Chaplean/Bundle/UnitBundle/BehatKernel.php';
+                $kernelClass = '\BehatKernel';
+                break;
+
+            case 'functional':
+            case 'logical':
+            default:
+                require_once 'app/AppKernel.php';
+                $kernelClass = '\AppKernel';
+        }
+
+        $kernel = new $kernelClass('test', true);
         $kernel->boot();
 
         self::$container = $kernel->getContainer();
@@ -49,14 +61,15 @@ class FixtureUtility
     /**
      * Load data fixture
      *
-     * @param array $classNames List of fully qualified class names of fixtures to load
-     * @param null  $omName The name of object manager to use
+     * @param array  $classNames List of fully qualified class names of fixtures to load
+     * @param string $typeTest Name of type test (logical, functional or behat)
+     * @param null   $omName The name of object manager to use
      *
      * @return ORMExecutor
      */
-    public static function loadFixtures(array $classNames, $omName = null)
+    public static function loadFixtures(array $classNames, $typeTest, $omName = null)
     {
-        self::loadContainer();
+        self::loadContainer($typeTest);
 
         /** @var Registry $registry */
         $registry = self::$container->get('doctrine');
