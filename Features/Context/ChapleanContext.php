@@ -135,7 +135,7 @@ class ChapleanContext extends MinkContext implements KernelAwareContext
      */
     public function iLoadDatabase()
     {
-        FixtureUtility::loadFixtures($this->dataFixtures);
+        FixtureUtility::loadFixtures($this->dataFixtures, 'behat');
     }
 
     /**
@@ -180,7 +180,7 @@ class ChapleanContext extends MinkContext implements KernelAwareContext
             }
         }
 
-        FixtureUtility::loadFixtures($datafixtures);
+        FixtureUtility::loadFixtures($datafixtures, 'behat');
     }
 
     /**
