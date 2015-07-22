@@ -198,6 +198,7 @@ class FixtureUtility
 
         // re enable check foreign key
         $registry->getManager()->getConnection()->query(sprintf('SET FOREIGN_KEY_CHECKS=0'));
+        $registry->getManager()->getConnection()->close();
         return $executor;
     }
 
