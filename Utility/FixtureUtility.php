@@ -75,15 +75,15 @@ class FixtureUtility
      * Depends on the doctrine data-fixtures library being available in the
      * class path.
      *
-     * @param array $classNames List of fully qualified class names of fixtures to load
-     * @param string $typeTest   Name of type test (logical, functional or behat)
-     * @param string $omName The name of object manager to use
-     * @param string $registryName The service id of manager registry to use
-     * @param int $purgeMode Sets the ORM purge mode
+     * @param array   $classNames   List of fully qualified class names of fixtures to load
+     * @param string  $typeTest     Name of type test (logical, functional or behat)
+     * @param string  $omName       The name of object manager to use
+     * @param string  $registryName The service id of manager registry to use
+     * @param integer $purgeMode    Sets the ORM purge mode
      *
      * @return ORMExecutor
      */
-    public static function loadFixtures(array $classNames, $typeTest, $omName = null, $omName = null, $registryName = 'doctrine', $purgeMode = ORMPurger::PURGE_MODE_TRUNCATE)
+    public static function loadFixtures(array $classNames, $typeTest, $omName = null, $registryName = 'doctrine', $purgeMode = ORMPurger::PURGE_MODE_TRUNCATE)
     {
         self::loadContainer($typeTest);
         $registry = self::$container->get($registryName);

@@ -65,7 +65,7 @@ class FunctionalTest extends \PHPUnit_Extensions_Selenium2TestCase
      */
     public function loadFixtures(array $classNames, $omName = null, $registryName = 'doctrine', $purgeMode = ORMPurger::PURGE_MODE_TRUNCATE)
     {
-        FixtureUtility::loadFixtures($classNames, 'functional', $omName, $registryName, $purgeMode);
+        return FixtureUtility::loadFixtures($classNames, 'functional', $omName, $registryName, $purgeMode);
     }
 
     /**
@@ -80,6 +80,6 @@ class FunctionalTest extends \PHPUnit_Extensions_Selenium2TestCase
      */
     public function loadStaticFixtures(array $classNames, $omName = null, $registryName = 'doctrine', $purgeMode = ORMPurger::PURGE_MODE_TRUNCATE)
     {
-        FixtureUtility::loadFixtures($classNames, 'functional', $omName, $registryName, $purgeMode);
+        return FixtureUtility::loadFixtures($classNames, 'functional', $omName, $registryName, $purgeMode);
     }
 }
