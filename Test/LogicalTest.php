@@ -10,6 +10,7 @@
 namespace Chaplean\Bundle\UnitBundle\Test;
 
 use Chaplean\Bundle\UnitBundle\Utility\FixtureUtility;
+use Doctrine\Common\DataFixtures\Executor\ORMExecutor;
 use Doctrine\Common\DataFixtures\Purger\ORMPurger;
 use Doctrine\Common\DataFixtures\ReferenceRepository;
 use Doctrine\ORM\EntityManager;
@@ -36,20 +37,28 @@ class LogicalTest extends WebTestCase
     }
 
     /**
-     * @param array   $classNames List of fully qualified class names of fixtures to load
-     * @param string  $omName     The name of object manager to use
+     * @param array   $classNames   List of fully qualified class names of fixtures to load
+     * @param string  $omName       The name of object manager to use
      * @param string  $registryName The service id of manager registry to use
-     * @param integer $purgeMode Sets the ORM purge mode
+     * @param integer $purgeMode    Sets the ORM purge mode
      *
-     * @return void
+     * @return ORMExecutor
      */
     public static function loadStaticFixtures(array $classNames, $omName = null, $registryName = 'doctrine', $purgeMode = ORMPurger::PURGE_MODE_TRUNCATE)
     {
-        FixtureUtility::loadFixtures($classNames, 'logical', $omName, $registryName, $purgeMode);
+        return FixtureUtility::loadFixtures($classNames, 'logical', $omName, $registryName, $purgeMode);
     }
 
+    /**
+     * @param array   $classNames   List of fully qualified class names of fixtures to load
+     * @param string  $omName       The name of object manager to use
+     * @param string  $registryName The service id of manager registry to use
+     * @param integer $purgeMode    Sets the ORM purge mode
+     *
+     * @return ORMExecutor
+     */
     public function loadFixtures(array $classNames, $omName = null, $registryName = 'doctrine', $purgeMode = ORMPurger::PURGE_MODE_TRUNCATE)
     {
-        FixtureUtility::loadFixtures($classNames, 'logical', $omName, $registryName, $purgeMode);
+        return FixtureUtility::loadFixtures($classNames, 'logical', $omName, $registryName, $purgeMode);
     }
 }
