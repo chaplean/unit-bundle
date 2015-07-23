@@ -147,9 +147,9 @@ class FixtureUtility
             } elseif ($driver instanceof MySqlDriver) {
                 unset($params['dbname']);
 
-                if ($params['port'] != '8889') {
-                    throw new Exception('Port invalid require: 8889, actual: ' . $params['port']);
-                }
+//                if ($params['port'] != '8889') {
+//                    throw new Exception('Port invalid require: 8889, actual: ' . $params['port']);
+//                }
 
                 $tmpConnection = DriverManager::getConnection($params);
                 $shouldNotCreateDatabase = in_array($name, $tmpConnection->getSchemaManager()->listDatabases());
