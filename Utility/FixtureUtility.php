@@ -2,24 +2,26 @@
 
 namespace Chaplean\Bundle\UnitBundle\Utility;
 
-use Doctrine\Bundle\DoctrineBundle\Registry;
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 use Doctrine\Common\DataFixtures\Executor\ORMExecutor;
 use Doctrine\Common\DataFixtures\Loader;
 use Doctrine\Common\DataFixtures\ProxyReferenceRepository;
 use Doctrine\Common\DataFixtures\Purger\ORMPurger;
 use Doctrine\Common\Persistence\ManagerRegistry;
-use Doctrine\ORM\EntityManager;
+use Doctrine\Common\Persistence\ObjectManager;
+use Doctrine\DBAL\DriverManager;
 use Doctrine\ORM\Tools\SchemaTool;
+use Symfony\Component\Config\Definition\Exception\Exception;
 use Symfony\Component\DependencyInjection\Container;
 use Doctrine\DBAL\Driver\PDOSqlite\Driver as SqliteDriver;
+use Doctrine\DBAL\Driver\PDOMySql\Driver as MySqlDriver;
 
 /**
  * FixtureUtility.php.
  *
  * @author    Valentin - Chaplean <valentin@chaplean.com>
  * @copyright 2014 - 2015 Chaplean (http://www.chaplean.com)
- * @since     1.1.9
+ * @since     1.2.0
  */
 class FixtureUtility
 {
@@ -49,7 +51,7 @@ class FixtureUtility
             case 'functional':
             case 'logical':
             default:
-                require_once 'app/AppKernel.php';
+//                require_once 'app/AppKernel.php';
                 $kernelClass = '\AppKernel';
         }
 
@@ -83,13 +85,10 @@ class FixtureUtility
      *
      * @return ORMExecutor
      */
-    public static function loadFixtures(array $classNames, $typeTest, $omName = null, $registryName = 'doctrine', $purgeMode = ORMPurger::PURGE_MODE_TRUNCATE)
+    public static function loadFixtures(array $classNames, $typeTest, $omName = null, $registryName = 'doctrine', $purgeMode = ORMPurger::PURGE_MODE_DELETE)
     {
         self::loadContainer($typeTest);
         $registry = self::$container->get($registryName);
-
-        // disable check foreign key
-        $registry->getManager()->getConnection()->query(sprintf('SET FOREIGN_KEY_CHECKS=0'));
 
         if ($registry instanceof ManagerRegistry) {
             $om = $registry->getManager($omName);
@@ -109,36 +108,24 @@ class FixtureUtility
             $cacheDriver->deleteAll();
         }
 
+        $connection = $om->getConnection();
+        $driver = $connection->getDriver();
         if ('ORM' === $type) {
-            $connection = $om->getConnection();
-            if ($connection->getDriver() instanceof SqliteDriver) {
-                $params = $connection->getParams();
-                if (isset($params['master'])) {
-                    $params = $params['master'];
-                }
+            $params = $connection->getParams();
+            if (isset($params['master'])) {
+                $params = $params['master'];
+            }
 
-                $name = isset($params['path']) ? $params['path'] : (isset($params['dbname']) ? $params['dbname'] : false);
-                if (!$name) {
-                    throw new \InvalidArgumentException(
-                        "Connection does not contain a 'path' or 'dbname' parameter and cannot be dropped."
-                    );
-                }
+            $name = isset($params['path']) ? $params['path'] : (isset($params['dbname']) ? $params['dbname'] : false);
+            if (!$name) {
+                throw new \InvalidArgumentException(
+                    "Connection does not contain a 'path' or 'dbname' parameter and cannot be dropped."
+                );
+            }
 
-                if (!isset(self::$cachedMetadatas[$omName])) {
-                    self::$cachedMetadatas[$omName] = $om->getMetadataFactory()->getAllMetadata();
-                    usort(
-                        self::$cachedMetadatas[$omName],
-                        function ($a, $b) {
-                            return strcmp($a->name, $b->name);
-                        }
-                    );
-                }
-                $metadatas = self::$cachedMetadatas[$omName];
-
+            if ($driver instanceof SqliteDriver) {
                 if (self::$container->getParameter('liip_functional_test.cache_sqlite_db')) {
-                    $backup = self::$container->getParameter('kernel.cache_dir') . '/test_' . md5(
-                            serialize($metadatas) . serialize($classNames)
-                        ) . '.db';
+                    $backup = self::$container->getParameter('kernel.cache_dir') . '/test_' . md5(serialize(self::$cachedMetadatas[$omName]) . serialize($classNames)) . '.db';
                     if (file_exists($backup) && file_exists($backup . '.ser') && self::isBackupUpToDate($classNames, $backup)) {
                         $om->flush();
                         $om->clear();
@@ -153,15 +140,27 @@ class FixtureUtility
                     }
                 }
 
-                // TODO: handle case when using persistent connections. Fail loudly?
-                $schemaTool = new SchemaTool($om);
-                $schemaTool->dropDatabase($name);
-                if (!empty($metadatas)) {
-                    $schemaTool->createSchema($metadatas);
-                }
+                self::createSchemaDatabase($omName, $om, $name);
 
                 $executor = new $executorClass($om);
                 $executor->setReferenceRepository($referenceRepository);
+            } elseif ($driver instanceof MySqlDriver) {
+                unset($params['dbname']);
+
+                if ($params['port'] != '8889') {
+                    throw new Exception('Port invalid require: 8889, actual: ' . $params['port']);
+                }
+
+                $tmpConnection = DriverManager::getConnection($params);
+                $shouldNotCreateDatabase = in_array($name, $tmpConnection->getSchemaManager()->listDatabases());
+
+                if (!$shouldNotCreateDatabase) {
+                    $tmpConnection->getSchemaManager()->createDatabase($name);
+                }
+
+                self::createSchemaDatabase($omName, $om, $name);
+
+                $connection->query(sprintf('SET FOREIGN_KEY_CHECKS=0'));
             }
         }
 
@@ -196,10 +195,43 @@ class FixtureUtility
             copy($name, $backup);
         }
 
-        // re enable check foreign key
-        $registry->getManager()->getConnection()->query(sprintf('SET FOREIGN_KEY_CHECKS=0'));
-        $registry->getManager()->getConnection()->close();
+        if ($driver instanceof MySqlDriver) {
+            // re enable check foreign key
+            $connection->query(sprintf('SET FOREIGN_KEY_CHECKS=0'));
+            $connection->close();
+        }
+
         return $executor;
+    }
+
+    /**
+     * Create schema database
+     *
+     * @param string        $omName
+     * @param ObjectManager $om
+     * @param string        $name
+     *
+     * @return void
+     * @throws \Doctrine\ORM\Tools\ToolsException
+     */
+    private static function createSchemaDatabase($omName, $om, $name)
+    {
+        if (!isset(self::$cachedMetadatas[$omName])) {
+            self::$cachedMetadatas[$omName] = $om->getMetadataFactory()->getAllMetadata();
+            usort(
+                self::$cachedMetadatas[$omName],
+                function ($a, $b) {
+                    return strcmp($a->name, $b->name);
+                }
+            );
+        }
+        $metadatas = self::$cachedMetadatas[$omName];
+
+        $schemaTool = new SchemaTool($om);
+        $schemaTool->dropDatabase($name);
+        if (!empty($metadatas)) {
+            $schemaTool->createSchema($metadatas);
+        }
     }
 
     /**
