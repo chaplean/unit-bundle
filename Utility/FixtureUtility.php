@@ -11,6 +11,7 @@ use Doctrine\Common\Persistence\ManagerRegistry;
 use Doctrine\Common\Persistence\ObjectManager;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\ORM\Tools\SchemaTool;
+use MyProject\Proxies\__CG__\stdClass;
 use Symfony\Component\DependencyInjection\Container;
 use Doctrine\DBAL\Driver\PDOSqlite\Driver as SqliteDriver;
 use Doctrine\DBAL\Driver\PDOMySql\Driver as MySqlDriver;
@@ -24,18 +25,24 @@ use Doctrine\DBAL\Driver\PDOMySql\Driver as MySqlDriver;
  */
 class FixtureUtility
 {
+    const BEHAT_KERNEL = '\BehatKernel';
+    const DEFAULT_KERNEL = '\AppKernel';
+
     /**
      * @var array
      */
-    static $cachedMetadatas = array();
+    private static $cachedMetadatas = array();
 
     /**
      * @var Container
      */
     private static $container;
 
+
     /**
      * Load container
+     *
+     * @param string $typeTest Define a type of test (logical, functionnal or behat)
      *
      * @return void
      */
@@ -44,17 +51,19 @@ class FixtureUtility
         switch ($typeTest) {
             case 'behat':
                 require_once 'vendor/chaplean/unit-bundle/Chaplean/Bundle/UnitBundle/BehatKernel.php';
-                $kernelClass = '\BehatKernel';
+                $kernelClass = FixtureUtility::BEHAT_KERNEL;
+                $kernel = new $kernelClass('behat', true);
                 break;
 
             case 'functional':
             case 'logical':
             default:
 //                require_once 'app/AppKernel.php';
-                $kernelClass = '\AppKernel';
+                $kernelClass = FixtureUtility::DEFAULT_KERNEL;
+                $kernel = new $kernelClass('test', true);
+                break;
         }
 
-        $kernel = new $kernelClass('test', true);
         $kernel->boot();
 
         self::$container = $kernel->getContainer();
