@@ -4,6 +4,7 @@ namespace Chaplean\Bundle\UnitBundle\Test;
 
 use Chaplean\Bundle\UnitBundle\Utility\FixtureUtility;
 use Doctrine\Common\DataFixtures\Executor\ORMExecutor;
+use Doctrine\Common\DataFixtures\Purger\ORMPurger;
 use Doctrine\ORM\EntityManager;
 use Symfony\Component\DependencyInjection\Container;
 
@@ -37,7 +38,6 @@ class FunctionalTest extends \PHPUnit_Extensions_Selenium2TestCase
      */
     protected $baseUrl;
 
-
     /**
      * SetUp default for test selenium
      *
@@ -55,26 +55,30 @@ class FunctionalTest extends \PHPUnit_Extensions_Selenium2TestCase
     /**
      * Load data fixture
      *
-     * @param array  $classNames List of fully qualified class names of fixtures to load
-     * @param string $omName     The name of object manager to use
+     * @param array   $classNames List of fully qualified class names of fixtures to load
+     * @param string  $omName     The name of object manager to use
+     * @param string  $registryName The service id of manager registry to use
+     * @param integer $purgeMode Sets the ORM purge mode
      *
      * @return ORMExecutor
      */
-    public function loadFixtures(array $classNames, $omName = null)
+    public function loadFixtures(array $classNames, $omName = null, $registryName = 'doctrine', $purgeMode = ORMPurger::PURGE_MODE_TRUNCATE)
     {
-        FixtureUtility::loadFixtures($classNames, $omName);
+        return FixtureUtility::loadFixtures($classNames, 'functional', $omName, $registryName, $purgeMode);
     }
 
     /**
      * Load static data fixture
      *
-     * @param array  $classNames List of fully qualified class names of fixtures to load
-     * @param string $omName     The name of object manager to use
+     * @param array   $classNames List of fully qualified class names of fixtures to load
+     * @param string  $omName     The name of object manager to use
+     * @param string  $registryName The service id of manager registry to use
+     * @param integer $purgeMode Sets the ORM purge mode
      *
      * @return ORMExecutor
      */
-    public function loadStaticFixtures(array $classNames, $omName = null)
+    public function loadStaticFixtures(array $classNames, $omName = null, $registryName = 'doctrine', $purgeMode = ORMPurger::PURGE_MODE_TRUNCATE)
     {
-        FixtureUtility::loadFixtures($classNames, $omName);
+        return FixtureUtility::loadFixtures($classNames, 'functional', $omName, $registryName, $purgeMode);
     }
 }
