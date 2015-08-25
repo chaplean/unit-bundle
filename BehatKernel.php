@@ -11,6 +11,10 @@ include 'app/AppKernel.php';
  */
 class BehatKernel extends AppKernel
 {
+    /**
+     * @param string $environment
+     * @param bool   $debug
+     */
     public function __construct($environment, $debug)
     {
         parent::__construct($environment, $debug);

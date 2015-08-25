@@ -1,11 +1,4 @@
 <?php
-/**
- * LogicalTest.
- *
- * @author    Matthias - Chaplean <matthias@chaplean.com>
- * @copyright 2014 - 2015 Chaplean (http://www.chaplean.com)
- * @since     0.1.0
- */
 
 namespace Chaplean\Bundle\UnitBundle\Test;
 
@@ -16,6 +9,13 @@ use Doctrine\Common\DataFixtures\ReferenceRepository;
 use Doctrine\ORM\EntityManager;
 use Liip\FunctionalTestBundle\Test\WebTestCase;
 
+/**
+ * LogicalTest.
+ *
+ * @author    Matthias - Chaplean <matthias@chaplean.com>
+ * @copyright 2014 - 2015 Chaplean (http://www.chaplean.com)
+ * @since     0.1.0
+ */
 class LogicalTest extends WebTestCase
 {
     /**
@@ -30,10 +30,18 @@ class LogicalTest extends WebTestCase
 
     /**
      * Construct
+     *
+     * @param string $name
+     * @param array  $data
+     * @param string $dataName
      */
-    public function __construct()
+    public function __construct($name = null, array $data = array(), $dataName = '')
     {
-        $this->em = $this->getContainer()->get('doctrine')->getManager();
+        parent::__construct($name, $data, $dataName);
+
+        $this->em = $this->getContainer()
+            ->get('doctrine')
+            ->getManager();
     }
 
     /**

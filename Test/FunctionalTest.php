@@ -38,7 +38,6 @@ class FunctionalTest extends \PHPUnit_Extensions_Selenium2TestCase
      */
     protected $baseUrl;
 
-
     /**
      * SetUp default for test selenium
      *

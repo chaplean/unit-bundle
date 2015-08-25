@@ -2,20 +2,15 @@
 
 namespace Chaplean\Bundle\UnitBundle\Features\Context;
 
+use Behat\Mink\Element\NodeElement;
 use Behat\MinkExtension\Context\MinkContext;
 use Behat\Symfony2Extension\Context\KernelAwareContext;
 use Behat\Symfony2Extension\Context\KernelDictionary;
 use Chaplean\Bundle\UnitBundle\Utility\FixtureUtility;
-use Doctrine\Bundle\DoctrineBundle\Registry;
-use Doctrine\Common\DataFixtures\DependentFixtureInterface;
-use Doctrine\Common\DataFixtures\Executor\ORMExecutor;
-use Doctrine\Common\DataFixtures\Loader;
-use Doctrine\Common\DataFixtures\ProxyReferenceRepository;
-use Doctrine\Common\DataFixtures\Purger\ORMPurger;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Mapping\ClassMetadata;
-use Doctrine\ORM\Tools\SchemaTool;
-use Doctrine\DBAL\Driver\PDOSqlite\Driver as SqliteDriver;
+use Symfony\Component\Config\Definition\Exception\Exception;
+use Symfony\Component\Finder\Finder;
 
 /**
  * Class FeatureContext.
@@ -32,25 +27,143 @@ class ChapleanContext extends MinkContext implements KernelAwareContext
     /**
      * @var array
      */
-    private static $cachedMetadatas = array();
+    private $dataFixtures = array();
 
     /**
-     * @var array
+     * Checks that passed Element has passed Class.
+     *
+     * @Then /^the element "(?P<element>(?:[^"]|\\")*)" has class "(?P<class>(?:[^"]|\\")*)"$/
+     *
+     * @param string $element
+     * @param string $class
+     *
+     * @return void
      */
-    private $dataFixtures = array();
+    public function assertElementHasClass($element, $class)
+    {
+        $this->assertElementOnPage($element . '.' . $class);
+    }
+
+    /**
+     * Checks that a CSS element is NOT visible in the page
+     *
+     * @Then /^(?:|I )should not see a visible "(?P<element>[^"]*)" element$/
+     *
+     * @param string  $element Searched element
+     *
+     * @return void
+     * @throws \Exception
+     */
+    public function assertNotVisibleElement($element)
+    {
+        $this->assertVisibleElements(0, $element);
+    }
+
+    /**
+     * Checks, that current page PATH is not equal to specified.
+     *
+     * @Then /^(?:|I )should not be on "(?P<page>[^"]+)"$/
+     *
+     * @param string $page
+     *
+     * @return void
+     */
+    public function assertPageAddressIsNot($page)
+    {
+        $this->assertSession()
+            ->addressNotEquals($this->locatePath($page));
+    }
+
+    /**
+     * Checks that (?P<num>\d+) CSS elements are visible in the page
+     *
+     * @Then /^(?:|I )should see (?P<num>\d+) visibles? "(?P<element>[^"]*)" elements?$/
+     *
+     * @param integer $num     Number of search element
+     * @param string  $element Searched element
+     *
+     * @return void
+     * @throws \Exception
+     */
+    public function assertVisibleElements($num, $element)
+    {
+        $session = $this->getSession();
+        $nodes = $session->getPage()->findAll('css', $element);
+
+        $nbVisibles = 0;
+
+        try {
+            /** @var NodeElement $node */
+            foreach ($nodes as $node) {
+                if ($node->isVisible()) {
+                    $nbVisibles++;
+                }
+            }
+        } catch (\Exception $e) {
+            // Empty 'cause no need to do anything
+        }
+
+        if ($nbVisibles != $num) {
+            throw new \Exception($num . ' element(s) ' . $element . ' not visible.');
+        }
+    }
+
+    /**
+     * Checks that 1 CSS element is visible in the page
+     *
+     * @Then /^(?:|I )should see a visible "(?P<element>[^"]*)" element$/
+     *
+     * @param string  $element Searched element
+     *
+     * @return void
+     * @throws \Exception
+     */
+    public function assertVisibleElement($element)
+    {
+        $this->assertVisibleElements(1, $element);
+    }
 
     /**
      * Fills in form field with specified element.
      *
      * @When /^(?:|I )fill in "(?P<field>(?:[^"]|\\")*)" element with "(?P<value>(?:[^"]|\\")*)"$/
+     *
+     * @param $field
+     * @param $value
+     *
+     * @return void
      */
     public function fillFieldElement($field, $value)
     {
         $field = $this->fixStepArgument($field);
         $value = $this->fixStepArgument($value);
-        $page = $this->getSession()->getPage();
+        $page = $this->getSession()
+            ->getPage();
+
         $node = $page->find('css', $field);
         $node->setValue($value);
+    }
+
+    /**
+     * @return string
+     */
+    protected function getSpoolDir()
+    {
+        return $this->getContainer()->getParameter('swiftmailer.spool.default.file.path');
+    }
+
+    /**
+     * Add datfixture
+     *
+     * @Given /^I add datafixture "(?P<datafixture>(?:[^"]|\\")*)"$/
+     *
+     * @param string $datafixture
+     *
+     * @return void
+     */
+    public function iAddDatafixture($datafixture)
+    {
+        $this->dataFixtures[] = $datafixture;
     }
 
     /**
@@ -64,7 +177,8 @@ class ChapleanContext extends MinkContext implements KernelAwareContext
      */
     public function iClickOn($element)
     {
-        $page = $this->getSession()->getPage();
+        $page = $this->getSession()
+            ->getPage();
         $element = $page->find('css', $element);
 
         if (!empty($element)) {
@@ -86,7 +200,8 @@ class ChapleanContext extends MinkContext implements KernelAwareContext
      */
     public function iClickOnLink($link)
     {
-        $page = $this->getSession()->getPage();
+        $page = $this->getSession()
+            ->getPage();
         $element = $page->findLink($link);
 
         if (!empty($element)) {
@@ -108,7 +223,7 @@ class ChapleanContext extends MinkContext implements KernelAwareContext
      */
     public function iFocusIframe($iframe)
     {
-        $session =  $this->getSession();
+        $session = $this->getSession();
         $session->switchToIFrame($iframe);
     }
 
@@ -123,7 +238,28 @@ class ChapleanContext extends MinkContext implements KernelAwareContext
      */
     public function iWait($time)
     {
-        $this->getSession()->wait($time);
+        $this->getSession()
+            ->wait($time);
+    }
+
+    /**
+     * Waiting ajax Angular call
+     *
+     * @When /^(?:|I )wait for Angular$/
+     *
+     * @return void
+     */
+    public function iWaitForAngular()
+    {
+        // Wait for angular to load
+        $this->getSession()->wait(5000, "typeof angular != 'undefined'");
+        // Wait for angular to be testable
+        $this->getSession()->evaluateScript(
+            'angular.getTestability(document.body).whenStable(function() {
+                window.__testable = true;
+            })'
+        );
+        $this->getSession()->wait(5000, 'window.__testable == true');
     }
 
     /**
@@ -136,20 +272,6 @@ class ChapleanContext extends MinkContext implements KernelAwareContext
     public function iLoadDatabase()
     {
         FixtureUtility::loadFixtures($this->dataFixtures, 'behat');
-    }
-
-    /**
-     * Add datfixture
-     *
-     * @Given /^I add datafixture "(?P<datafixture>(?:[^"]|\\")*)"$/
-     *
-     * @param string $datafixture
-     *
-     * @return void
-     */
-    public function iAddDatafixture($datafixture)
-    {
-        $this->dataFixtures[] = $datafixture;
     }
 
     /**
@@ -166,9 +288,11 @@ class ChapleanContext extends MinkContext implements KernelAwareContext
         $container = $this->getContainer();
 
         /** @var EntityManager $em */
-        $em = $container->get('doctrine')->getManager();
+        $em = $container->get('doctrine')
+            ->getManager();
 
-        $listTables = $em->getMetadataFactory()->getAllMetadata();
+        $listTables = $em->getMetadataFactory()
+            ->getAllMetadata();
         $datafixtures = array();
 
         /** @var ClassMetadata $table */
@@ -184,31 +308,36 @@ class ChapleanContext extends MinkContext implements KernelAwareContext
     }
 
     /**
-     * Checks, that current page PATH is not equal to specified.
+     * @Then /^(?:|the )"(?P<type>[^"]+)" mail should be sent to "(?P<email>[^"]+)"$/
      *
-     * @Then /^(?:|I )should not be on "(?P<page>[^"]+)"$/
-     *
-     * @param string $page
+     * @param string $type
+     * @param string $email
      *
      * @return void
      */
-    public function assertPageAddressIsNot($page)
+    public function theMailShouldBeSentTo($type, $email)
     {
-        $this->assertSession()->addressNotEquals($this->locatePath($page));
-    }
+        $spoolDir = $this->getSpoolDir();
 
-    /**
-     * Checks that passed Element has passed Class.
-     *
-     * @Then /^the element "(?P<element>(?:[^"]|\\")*)" has class "(?P<class>(?:[^"]|\\")*)"$/
-     *
-     * @param string $element
-     * @param string $class
-     *
-     * @return void
-     */
-    public function assertElementHasClass($element, $class)
-    {
-        $this->assertElementOnPage($element . '.' . $class);
+        $finder = new Finder();
+
+        // find every files inside the spool dir except hidden files
+        $finder
+            ->in($spoolDir)
+            ->ignoreDotFiles(true)
+            ->files();
+
+
+        foreach ($finder as $file) {
+            $message = unserialize(file_get_contents($file));
+
+            // check the recipients
+            $recipients = array_keys($message->getTo());
+            if (in_array($email, $recipients)) {
+                return;
+            }
+        }
+
+        throw new Exception(sprintf('The "%s" was not sent', $type));
     }
 }

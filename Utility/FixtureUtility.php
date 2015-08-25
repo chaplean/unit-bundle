@@ -2,19 +2,19 @@
 
 namespace Chaplean\Bundle\UnitBundle\Utility;
 
+use Doctrine\Bundle\DoctrineBundle\Registry;
+use Doctrine\Common\Cache\Cache;
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 use Doctrine\Common\DataFixtures\Executor\ORMExecutor;
 use Doctrine\Common\DataFixtures\Loader;
 use Doctrine\Common\DataFixtures\ProxyReferenceRepository;
 use Doctrine\Common\DataFixtures\Purger\ORMPurger;
-use Doctrine\Common\Persistence\ManagerRegistry;
-use Doctrine\Common\Persistence\ObjectManager;
+use Doctrine\DBAL\Driver\PDOMySql\Driver as MySqlDriver;
+use Doctrine\DBAL\Driver\PDOSqlite\Driver as SqliteDriver;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\ORM\Tools\SchemaTool;
-use MyProject\Proxies\__CG__\stdClass;
 use Symfony\Component\DependencyInjection\Container;
-use Doctrine\DBAL\Driver\PDOSqlite\Driver as SqliteDriver;
-use Doctrine\DBAL\Driver\PDOMySql\Driver as MySqlDriver;
+use Symfony\Component\HttpKernel\Kernel;
 
 /**
  * FixtureUtility.php.
@@ -38,7 +38,6 @@ class FixtureUtility
      */
     private static $container;
 
-
     /**
      * Load container
      *
@@ -48,8 +47,12 @@ class FixtureUtility
      */
     private static function loadContainer($typeTest)
     {
+        /** @var Kernel $kernel */
+        $kernel = null;
+
         switch ($typeTest) {
             case 'behat':
+                /** @noinspection PhpIncludeInspection */
                 require_once 'vendor/chaplean/unit-bundle/Chaplean/Bundle/UnitBundle/BehatKernel.php';
                 $kernelClass = FixtureUtility::BEHAT_KERNEL;
                 $kernel = new $kernelClass('behat', true);
@@ -58,7 +61,6 @@ class FixtureUtility
             case 'functional':
             case 'logical':
             default:
-//                require_once 'app/AppKernel.php';
                 $kernelClass = FixtureUtility::DEFAULT_KERNEL;
                 $kernel = new $kernelClass('test', true);
                 break;
@@ -98,7 +100,7 @@ class FixtureUtility
         self::loadContainer($typeTest);
         $registry = self::$container->get($registryName);
 
-        if ($registry instanceof ManagerRegistry) {
+        if ($registry instanceof Registry) {
             $om = $registry->getManager($omName);
             $type = $registry->getName();
         } else {
@@ -109,8 +111,12 @@ class FixtureUtility
         $executorClass = 'PHPCR' === $type && class_exists(
             'Doctrine\Bundle\PHPCRBundle\DataFixtures\PHPCRExecutor'
         ) ? 'Doctrine\Bundle\PHPCRBundle\DataFixtures\PHPCRExecutor' : 'Doctrine\\Common\\DataFixtures\\Executor\\' . $type . 'Executor';
+
         $referenceRepository = new ProxyReferenceRepository($om);
-        $cacheDriver = $om->getMetadataFactory()->getCacheDriver();
+
+        /** @var Cache $cacheDriver */
+        $cacheDriver = $om->getMetadataFactory()
+            ->getCacheDriver();
 
         if ($cacheDriver) {
             $cacheDriver->deleteAll();
@@ -118,6 +124,7 @@ class FixtureUtility
 
         $connection = $om->getConnection();
         $driver = $connection->getDriver();
+
         if ('ORM' === $type) {
             $params = $connection->getParams();
             if (isset($params['master'])) {
@@ -140,7 +147,8 @@ class FixtureUtility
 
                         $executor = new $executorClass($om);
                         $executor->setReferenceRepository($referenceRepository);
-                        $executor->getReferenceRepository()->load($backup);
+                        $executor->getReferenceRepository()
+                            ->load($backup);
 
                         copy($backup, $name);
 
@@ -148,25 +156,24 @@ class FixtureUtility
                     }
                 }
 
-                self::createSchemaDatabase($omName, $om, $name);
+                self::createSchemaDatabase($omName, $om);
 
                 $executor = new $executorClass($om);
                 $executor->setReferenceRepository($referenceRepository);
             } elseif ($driver instanceof MySqlDriver) {
                 unset($params['dbname']);
 
-//                if ($params['port'] != '8889') {
-//                    throw new Exception('Port invalid require: 8889, actual: ' . $params['port']);
-//                }
-
                 $tmpConnection = DriverManager::getConnection($params);
-                $shouldNotCreateDatabase = in_array($name, $tmpConnection->getSchemaManager()->listDatabases());
+                $shouldNotCreateDatabase = in_array($name,
+                                                    $tmpConnection->getSchemaManager()
+                                                        ->listDatabases());
 
                 if (!$shouldNotCreateDatabase) {
-                    $tmpConnection->getSchemaManager()->createDatabase($name);
+                    $tmpConnection->getSchemaManager()
+                        ->createDatabase($name);
                 }
 
-                self::createSchemaDatabase($omName, $om, $name);
+                self::createSchemaDatabase($omName, $om);
 
                 $connection->query(sprintf('SET FOREIGN_KEY_CHECKS=0'));
             }
@@ -199,7 +206,8 @@ class FixtureUtility
         $executor->execute($loader->getFixtures(), true);
 
         if (isset($name) && isset($backup)) {
-            $executor->getReferenceRepository()->save($backup);
+            $executor->getReferenceRepository()
+                ->save($backup);
             copy($name, $backup);
         }
 
@@ -215,17 +223,17 @@ class FixtureUtility
     /**
      * Create schema database
      *
-     * @param string        $omName
-     * @param ObjectManager $om
-     * @param string        $name
+     * @param string                               $omName
+     * @param \Doctrine\ORM\EntityManagerInterface $om
      *
      * @return void
      * @throws \Doctrine\ORM\Tools\ToolsException
      */
-    private static function createSchemaDatabase($omName, $om, $name)
+    private static function createSchemaDatabase($omName, $om)
     {
         if (!isset(self::$cachedMetadatas[$omName])) {
-            self::$cachedMetadatas[$omName] = $om->getMetadataFactory()->getAllMetadata();
+            self::$cachedMetadatas[$omName] = $om->getMetadataFactory()
+                ->getAllMetadata();
             usort(
                 self::$cachedMetadatas[$omName],
                 function ($a, $b) {
@@ -236,7 +244,8 @@ class FixtureUtility
         $metadatas = self::$cachedMetadatas[$omName];
 
         $schemaTool = new SchemaTool($om);
-        $schemaTool->dropDatabase($name);
+        $schemaTool->dropDatabase();
+
         if (!empty($metadatas)) {
             $schemaTool->createSchema($metadatas);
         }
