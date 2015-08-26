@@ -3,7 +3,7 @@ Getting Started With ChapleanUnitBundle
 
 # Prerequisites
 
-This version of the bundle requires Symfony 2.6+.
+This version of the bundle requires Symfony 2.7+.
 
 # Installation
 
@@ -24,7 +24,7 @@ Include ChapleanUnitBundle in `composer.json`
 {
 ...
 "require-dev": {
-        "chaplean/unit-bundle": "1.1.0"
+        "chaplean/unit-bundle": "1.5.*"
         ...
         }
 }
@@ -45,46 +45,11 @@ public function registerBundles()
     // ...
     $bundles[] = new Chaplean\Bundle\UnitBundle\ChapleanUnitBundle();
     $bundles[] = new Liip\FunctionalTestBundle\LiipFunctionalTestBundle();
+    $bundles[] = new Doctrine\Bundle\FixturesBundle\DoctrineFixturesBundle();
 }
 ```
 
-### Step 3: Create a BehatKernel class
-
-#### BehatKernel
-
-``` php
-<?php
-// app/BehatKernel.php
-
-include 'AppKernel.php';
-
-class BehatKernel extends AppKernel
-{
-    public function getLogDir()
-    {
-        return $this->rootDir.'/../var/logs/'.$this->environment;
-    }
-
-    public function getCacheDir()
-    {
-        return $this->rootDir.'/../var/cache/'.$this->environment;
-    }
-}
-
-```
-
-### Step 4: Configure your application's config_test.yml
-
-Add paramter for liip logical test
-
-``` yaml
-# app/config/config_test.yml
-
-liip_functional_test:
-    cache_sqlite_db: true
-```
-
-### Step 5: Create FeatureContext class
+### Step 3: Create FeatureContext class
 
 #### Architecture
 
@@ -118,37 +83,9 @@ class FeatureContext extends ChapleanContext
 }
 
 ```
-### Step 6: Copy behat.yml.dist configuration
+### Step 4: Copy behat.yml.dist configuration
 
-Create behat.yml
-
-``` yaml
-# ./behat.yml
-
-default:
-    suites:
-        test_suite:
-            type: symfony_bundle
-            bundle: <Your bundle>
-    extensions:
-        Behat\Symfony2Extension:
-            kernel:
-                path: app/BehatKernel.php
-                class: BehatKernel
-        Behat\MinkExtension:
-            base_url: <website url>
-            browser_name: Firefox
-            show_cmd: <command browser> %s
-            sessions:
-                default:
-                    selenenium2:
-                        browser: chrome
-```
-
-# Architecture file test
-
-### Structure Behat test
-
+Create behat.yml from behat.yml.dist
 
 # Let's go
 
