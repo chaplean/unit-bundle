@@ -81,4 +81,17 @@ class FunctionalTest extends \PHPUnit_Extensions_Selenium2TestCase
     {
         return FixtureUtility::loadFixtures($classNames, 'functional', $omName, $registryName, $purgeMode);
     }
+
+    /**
+     * Close connection to avoid "Too Many Connection" error
+     *
+     * @return void
+     */
+    public function tearDown()
+    {
+        $this->em->getConnection()
+                 ->close();
+
+        parent::tearDown();
+    }
 }

@@ -40,8 +40,8 @@ class LogicalTest extends WebTestCase
         parent::__construct($name, $data, $dataName);
 
         $this->em = $this->getContainer()
-            ->get('doctrine')
-            ->getManager();
+                         ->get('doctrine')
+                         ->getManager();
     }
 
     /**
@@ -68,5 +68,18 @@ class LogicalTest extends WebTestCase
     public function loadFixtures(array $classNames, $omName = null, $registryName = 'doctrine', $purgeMode = ORMPurger::PURGE_MODE_TRUNCATE)
     {
         return FixtureUtility::loadFixtures($classNames, 'logical', $omName, $registryName, $purgeMode);
+    }
+
+    /**
+     * Close connection to avoid "Too Many Connection" error
+     *
+     * @return void
+     */
+    public function tearDown()
+    {
+        $this->em->getConnection()
+                 ->close();
+
+        parent::tearDown();
     }
 }
