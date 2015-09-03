@@ -8,6 +8,7 @@ use Doctrine\Common\DataFixtures\Purger\ORMPurger;
 use Doctrine\Common\DataFixtures\ReferenceRepository;
 use Doctrine\ORM\EntityManager;
 use Liip\FunctionalTestBundle\Test\WebTestCase;
+use Symfony\Component\DependencyInjection\Container;
 
 /**
  * LogicalTest.
@@ -68,6 +69,16 @@ class LogicalTest extends WebTestCase
     public function loadFixtures(array $classNames, $omName = null, $registryName = 'doctrine', $purgeMode = ORMPurger::PURGE_MODE_TRUNCATE)
     {
         return FixtureUtility::loadFixtures($classNames, 'logical', $omName, $registryName, $purgeMode);
+    }
+
+    /**
+     * Get the container
+     *
+     * @return Container
+     */
+    public static function getStaticContainer()
+    {
+        return FixtureUtility::getContainer('logical');
     }
 
     /**

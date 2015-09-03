@@ -72,6 +72,19 @@ class FixtureUtility
     }
 
     /**
+     * Return the container
+     *
+     * @param string $typeTest Define a type of test (logical, functionnal or behat)
+     *
+     * @return Container
+     */
+    public static function getContainer($typeTest)
+    {
+        self::loadContainer($typeTest);
+        return self::$container;
+    }
+
+    /**
      * Set the database to the provided fixtures.
      *
      * Drops the current database and then loads fixtures using the specified
