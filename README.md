@@ -110,3 +110,20 @@ cf doc Unit test
 ### Run Functional test (behat)
 
 cd doc Unit test
+
+# Run unit test in Bundle !
+
+change a `phpunit.xml.dist`
+
+``` xml
+<phpunit
+    [...]
+    bootstrap                   = "vendor/autoload.php" >
+
+    [...]
+    <php>
+        <server name="KERNEL_DIR" value="vendor/chaplean/unit-bundle/Chaplean/Bundle/UnitBundle/app/" />
+    </php>
+    [...]
+```
+
