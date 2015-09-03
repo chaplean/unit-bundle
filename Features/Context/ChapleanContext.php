@@ -10,6 +10,7 @@ use Chaplean\Bundle\UnitBundle\Utility\FixtureUtility;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Symfony\Component\Config\Definition\Exception\Exception;
+use Symfony\Component\DependencyInjection\Container;
 use Symfony\Component\Finder\Finder;
 
 /**
@@ -150,6 +151,16 @@ class ChapleanContext extends MinkContext implements KernelAwareContext
     protected function getSpoolDir()
     {
         return $this->getContainer()->getParameter('swiftmailer.spool.default.file.path');
+    }
+
+    /**
+     * Get the container
+     *
+     * @return Container
+     */
+    public static function getStaticContainer()
+    {
+        return FixtureUtility::getContainer('behat');
     }
 
     /**

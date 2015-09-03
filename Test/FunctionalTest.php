@@ -83,6 +83,16 @@ class FunctionalTest extends \PHPUnit_Extensions_Selenium2TestCase
     }
 
     /**
+     * Get the container
+     *
+     * @return Container
+     */
+    public static function getStaticContainer()
+    {
+        return FixtureUtility::getContainer('functional');
+    }
+
+    /**
      * Close connection to avoid "Too Many Connection" error
      *
      * @return void
