@@ -90,7 +90,7 @@ class LogicalTest extends WebTestCase
     {
         $this->em->getConnection()
                  ->close();
-
+        
         parent::tearDown();
     }
 }
