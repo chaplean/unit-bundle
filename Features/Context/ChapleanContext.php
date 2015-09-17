@@ -195,8 +195,7 @@ class ChapleanContext extends MinkContext implements KernelAwareContext
         if (!empty($element)) {
             $element->click();
         } else {
-            var_dump($page->getContent(), error_get_last());
-            exit;
+            throw new \Exception(error_get_last() . ' ' . $page->getContent());
         }
     }
 
@@ -218,8 +217,7 @@ class ChapleanContext extends MinkContext implements KernelAwareContext
         if (!empty($element)) {
             $element->click();
         } else {
-            var_dump($page->getContent(), error_get_last());
-            exit;
+            throw new \Exception(error_get_last() . ' ' . $page->getContent());
         }
     }
 
