@@ -3,6 +3,7 @@
 namespace Chaplean\Bundle\UnitBundle\Test;
 
 use Chaplean\Bundle\UnitBundle\Utility\FixtureUtility;
+use Doctrine\Common\Annotations\AnnotationReader;
 use Doctrine\Common\DataFixtures\Executor\ORMExecutor;
 use Doctrine\Common\DataFixtures\Purger\ORMPurger;
 use Doctrine\Common\DataFixtures\ReferenceRepository;
@@ -82,12 +83,38 @@ class LogicalTest extends WebTestCase
     }
 
     /**
-     * Close connection to avoid "Too Many Connection" error
+     * Load empty data fixture to generate the database schema even if no data are given
+     *
+     * @return void
+     */
+    public static function setUpBeforeClass()
+    {
+        self::loadStaticFixtures(array());
+
+        parent::setUpBeforeClass();
+    }
+
+    /**
+     * Start transaction
+     *
+     * @return void
+     */
+    public function setUp()
+    {
+        $this->em->beginTransaction();
+
+        parent::setUp();
+    }
+
+    /**
+     * Close connection to avoid "Too Many Connection" error and rollback transaction
      *
      * @return void
      */
     public function tearDown()
     {
+        $this->em->rollback();
+
         $this->em->getConnection()
                  ->close();
         
