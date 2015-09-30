@@ -31,6 +31,21 @@ class LogicalTest extends WebTestCase
     protected $fixtures;
 
     /**
+     * @var AnnotationReader $annotationReader
+     */
+    protected $annotationReader;
+
+    /**
+     * @var string $annotationClass
+     */
+    private $annotationClass = 'Chaplean\\Bundle\\UnitBundle\\Annotations\\Transaction';
+
+    /**
+     * @var \ReflectionObject
+     */
+    private $reflectionObject;
+
+    /**
      * Construct
      *
      * @param string $name
@@ -44,6 +59,9 @@ class LogicalTest extends WebTestCase
         $this->em = $this->getContainer()
                          ->get('doctrine')
                          ->getManager();
+
+        $this->annotationReader = new AnnotationReader();
+        $this->reflectionObject = new \ReflectionObject($this);
     }
 
     /**

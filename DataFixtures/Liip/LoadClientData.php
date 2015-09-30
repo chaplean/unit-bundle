@@ -1,6 +1,6 @@
 <?php
 /**
- * LoadUserData.php.
+ * LoadClientData.php.
  *
  * @author    Matthias - Chaplean <matthias@chaplean.com>
  * @copyright 2014 - 2015 Chaplean (http://www.chaplean.com)
@@ -13,7 +13,7 @@ use Chaplean\Bundle\UnitBundle\Entity\Client;
 use Doctrine\Common\DataFixtures\AbstractFixture;
 use Doctrine\Common\Persistence\ObjectManager;
 
-class LoadUserData extends AbstractFixture
+class LoadClientData extends AbstractFixture
 {
     /**
      * {@inheritDoc}

@@ -50,7 +50,7 @@ class TransactionTest extends LogicalTest
      */
     public function testDuringTransactionWithFixture()
     {
-        $this->loadPartialFixtures(array('Chaplean\Bundle\UnitBundle\DataFixtures\Liip\LoadUserData'));
+        $this->loadPartialFixtures(array('Chaplean\Bundle\UnitBundle\DataFixtures\Liip\LoadClientData'));
 
         $this->assertCount(1, $this->em->getRepository('ChapleanUnitBundle:Client')->findAll());
         $this->assertTrue($this->em->getConnection()->isTransactionActive());
