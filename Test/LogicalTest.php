@@ -3,6 +3,7 @@
 namespace Chaplean\Bundle\UnitBundle\Test;
 
 use Chaplean\Bundle\UnitBundle\Utility\FixtureUtility;
+use Doctrine\Common\Annotations\AnnotationReader;
 use Doctrine\Common\DataFixtures\Executor\ORMExecutor;
 use Doctrine\Common\DataFixtures\Purger\ORMPurger;
 use Doctrine\Common\DataFixtures\ReferenceRepository;
@@ -30,6 +31,21 @@ class LogicalTest extends WebTestCase
     protected $fixtures;
 
     /**
+     * @var AnnotationReader $annotationReader
+     */
+    protected $annotationReader;
+
+    /**
+     * @var string $annotationClass
+     */
+    private $annotationClass = 'Chaplean\\Bundle\\UnitBundle\\Annotations\\Transaction';
+
+    /**
+     * @var \ReflectionObject
+     */
+    private $reflectionObject;
+
+    /**
      * Construct
      *
      * @param string $name
@@ -43,6 +59,9 @@ class LogicalTest extends WebTestCase
         $this->em = $this->getContainer()
                          ->get('doctrine')
                          ->getManager();
+
+        $this->annotationReader = new AnnotationReader();
+        $this->reflectionObject = new \ReflectionObject($this);
     }
 
     /**
@@ -82,12 +101,38 @@ class LogicalTest extends WebTestCase
     }
 
     /**
-     * Close connection to avoid "Too Many Connection" error
+     * Load empty data fixture to generate the database schema even if no data are given
+     *
+     * @return void
+     */
+    public static function setUpBeforeClass()
+    {
+        self::loadStaticFixtures(array());
+
+        parent::setUpBeforeClass();
+    }
+
+    /**
+     * Start transaction
+     *
+     * @return void
+     */
+    public function setUp()
+    {
+        $this->em->beginTransaction();
+
+        parent::setUp();
+    }
+
+    /**
+     * Close connection to avoid "Too Many Connection" error and rollback transaction
      *
      * @return void
      */
     public function tearDown()
     {
+        $this->em->rollback();
+
         $this->em->getConnection()
                  ->close();
         
