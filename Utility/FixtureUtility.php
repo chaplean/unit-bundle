@@ -30,6 +30,16 @@ class FixtureUtility
     /**
      * @var array
      */
+    private static $loaded;
+
+    /**
+     * @var ProxyReferenceRepository
+     */
+    private static $referenceRepository;
+
+    /**
+     * @var array
+     */
     private static $cachedMetadatas = array();
 
     /**
@@ -92,12 +102,21 @@ class FixtureUtility
      */
     public static function loadPartialFixtures(array $classNames, $entityManager)
     {
-        $registry = self::$container->get('doctrine');
-
         $executor = new ORMExecutor($entityManager);
 
         $loader = self::getFixtureLoader(self::$container, $classNames);
-        $executor->execute($loader->getFixtures(), true);
+
+        $fixtures = array();
+        foreach ($loader->getFixtures() as $fixture) {
+            $fixtureClass = get_class($fixture);
+            if (!in_array($fixtureClass, self::$loaded)) {
+                $fixtures[] = new $fixtureClass();
+            }
+        }
+
+        $executor->setReferenceRepository(self::$referenceRepository);
+        $executor->execute($fixtures, true);
+
 
         return $executor;
     }
@@ -143,7 +162,7 @@ class FixtureUtility
             'Doctrine\Bundle\PHPCRBundle\DataFixtures\PHPCRExecutor'
         ) ? 'Doctrine\Bundle\PHPCRBundle\DataFixtures\PHPCRExecutor' : 'Doctrine\\Common\\DataFixtures\\Executor\\' . $type . 'Executor';
 
-        $referenceRepository = new ProxyReferenceRepository($om);
+        self::$referenceRepository = new ProxyReferenceRepository($om);
 
         $connection = $om->getConnection();
         $driver = $connection->getDriver();
@@ -198,11 +217,15 @@ class FixtureUtility
                 $executor = new $executorClass($om, $purger);
             }
 
-            $executor->setReferenceRepository($referenceRepository);
+            $executor->setReferenceRepository(self::$referenceRepository);
             $executor->purge();
         }
 
         $loader = self::getFixtureLoader(self::$container, $classNames);
+        self::$loaded = array();
+        foreach ($loader->getFixtures() as $fixture) {
+            self::$loaded[] = get_class($fixture);
+        }
 
         $executor->execute($loader->getFixtures(), true);
 
@@ -305,6 +328,7 @@ class FixtureUtility
      *
      * @param Container $container
      * @param array     $classNames
+     * @param bool      $loadDependencies
      *
      * @return Loader
      */
