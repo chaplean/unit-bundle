@@ -81,6 +81,7 @@ class FixtureUtility
     public static function getContainer($typeTest)
     {
         self::loadContainer($typeTest);
+
         return self::$container;
     }
 
@@ -127,10 +128,6 @@ class FixtureUtility
 
         $referenceRepository = new ProxyReferenceRepository($om);
 
-        /** @var Cache $cacheDriver */
-        $cacheDriver = $om->getMetadataFactory()
-            ->getCacheDriver();
-
         if ($cacheDriver) {
             $cacheDriver->deleteAll();
         }
@@ -153,15 +150,16 @@ class FixtureUtility
 
             if ($driver instanceof SqliteDriver) {
                 if (self::$container->getParameter('liip_functional_test.cache_sqlite_db')) {
-                    $backup = self::$container->getParameter('kernel.cache_dir') . '/test_' . md5(serialize(self::$cachedMetadatas[$omName]) . serialize($classNames)) . '.db';
+                    $backup = self::$container->getParameter('kernel.cache_dir') . '/test_' . md5(
+                            serialize(self::$cachedMetadatas[$omName]) . serialize($classNames)
+                        ) . '.db';
                     if (file_exists($backup) && file_exists($backup . '.ser') && self::isBackupUpToDate($classNames, $backup)) {
                         $om->flush();
                         $om->clear();
 
                         $executor = new $executorClass($om);
                         $executor->setReferenceRepository($referenceRepository);
-                        $executor->getReferenceRepository()
-                            ->load($backup);
+                        $executor->getReferenceRepository()->load($backup);
 
                         copy($backup, $name);
 
@@ -177,13 +175,13 @@ class FixtureUtility
                 unset($params['dbname']);
 
                 $tmpConnection = DriverManager::getConnection($params);
-                $shouldNotCreateDatabase = in_array($name,
-                                                    $tmpConnection->getSchemaManager()
-                                                        ->listDatabases());
+                $shouldNotCreateDatabase = in_array(
+                    $name,
+                    $tmpConnection->getSchemaManager()->listDatabases()
+                );
 
                 if (!$shouldNotCreateDatabase) {
-                    $tmpConnection->getSchemaManager()
-                        ->createDatabase($name);
+                    $tmpConnection->getSchemaManager()->createDatabase($name);
                 }
 
                 self::createSchemaDatabase($omName, $om);
@@ -219,8 +217,7 @@ class FixtureUtility
         $executor->execute($loader->getFixtures(), true);
 
         if (isset($name) && isset($backup)) {
-            $executor->getReferenceRepository()
-                ->save($backup);
+            $executor->getReferenceRepository()->save($backup);
             copy($name, $backup);
         }
 
@@ -245,8 +242,7 @@ class FixtureUtility
     private static function createSchemaDatabase($omName, $om)
     {
         if (!isset(self::$cachedMetadatas[$omName])) {
-            self::$cachedMetadatas[$omName] = $om->getMetadataFactory()
-                ->getAllMetadata();
+            self::$cachedMetadatas[$omName] = $om->getMetadataFactory()->getAllMetadata();
             usort(
                 self::$cachedMetadatas[$omName],
                 function ($a, $b) {
