@@ -86,6 +86,16 @@ class LogicalTest extends WebTestCase
     }
 
     /**
+     * @param array $classNames List of fully qualified class names of fixtures to load
+     *
+     * @return ORMExecutor
+     */
+    public function loadPartialFixtures(array $classNames)
+    {
+        return FixtureUtility::loadPartialFixtures($classNames, $this->em);
+    }
+
+    /**
      * Get the container
      *
      * @return Container

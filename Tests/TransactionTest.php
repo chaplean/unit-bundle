@@ -44,4 +44,23 @@ class TransactionTest extends LogicalTest
     {
         $this->assertCount(0, $this->em->getRepository('ChapleanUnitBundle:Client')->findAll());
     }
+
+    /**
+     * @return void
+     */
+    public function testDuringTransactionWithFixture()
+    {
+        $this->loadPartialFixtures(array('Chaplean\Bundle\UnitBundle\DataFixtures\Liip\LoadClientData'));
+
+        $this->assertCount(1, $this->em->getRepository('ChapleanUnitBundle:Client')->findAll());
+        $this->assertTrue($this->em->getConnection()->isTransactionActive());
+    }
+
+    /**
+     * @return void
+     */
+    public function testAfterAnnotationWithoutFixtureFile()
+    {
+        $this->assertCount(0, $this->em->getRepository('ChapleanUnitBundle:Client')->findAll());
+    }
 }
