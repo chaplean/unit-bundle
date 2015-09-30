@@ -3,14 +3,12 @@
 namespace Chaplean\Bundle\UnitBundle\Utility;
 
 use Doctrine\Bundle\DoctrineBundle\Registry;
-use Doctrine\Common\Cache\Cache;
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 use Doctrine\Common\DataFixtures\Executor\ORMExecutor;
 use Doctrine\Common\DataFixtures\Loader;
 use Doctrine\Common\DataFixtures\ProxyReferenceRepository;
 use Doctrine\Common\DataFixtures\Purger\ORMPurger;
 use Doctrine\DBAL\Driver\PDOMySql\Driver as MySqlDriver;
-use Doctrine\DBAL\Driver\PDOSqlite\Driver as SqliteDriver;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Tools\SchemaTool;
@@ -146,13 +144,6 @@ class FixtureUtility
         ) ? 'Doctrine\Bundle\PHPCRBundle\DataFixtures\PHPCRExecutor' : 'Doctrine\\Common\\DataFixtures\\Executor\\' . $type . 'Executor';
 
         $referenceRepository = new ProxyReferenceRepository($om);
-
-        /** @var Cache $cacheDriver */
-        $cacheDriver = $om->getMetadataFactory()->getCacheDriver();
-
-        if ($cacheDriver) {
-            $cacheDriver->deleteAll();
-        }
 
         $connection = $om->getConnection();
         $driver = $connection->getDriver();

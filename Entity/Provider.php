@@ -6,17 +6,17 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
- * Class Client.
+ * Class Provider.
  *
  * @package   Chaplean\Bundle\UnitBundle\Entity
  * @author    Valentin - Chaplean <valentin@chaplean.com>
  * @copyright 2014 - 2015 Chaplean (http://www.chaplean.com)
  * @since     2.0.0
  *
- * @ORM\Table(name="cl_client")
+ * @ORM\Table(name="cl_provider")
  * @ORM\Entity
  */
-class Client
+class Provider
 {
     /**
      * @var integer
@@ -35,16 +35,10 @@ class Client
     private $name;
 
     /**
-     * @var string
-     *
-     * @ORM\Column(type="string", length=10, nullable=false, name="code")
-     */
-    private $code;
-
-    /**
      * @var ArrayCollection
      *
-     * @ORM\OneToMany(targetEntity="Product", mappedBy="client")
+     * @ORM\JoinColumn(name="product_id", referencedColumnName="id", nullable=false)
+     * @ORM\ManyToMany(targetEntity="Product", inversedBy="provider")
      */
     private $product;
 
@@ -56,11 +50,23 @@ class Client
     /**
      * Get id.
      *
-     * @return mixed
+     * @return int
      */
     public function getId()
     {
         return $this->id;
+    }
+
+    /**
+     * Set id.
+     *
+     * @param int $id
+     *
+     * @return void
+     */
+    public function setId($id)
+    {
+        $this->id = $id;
     }
 
     /**
@@ -78,37 +84,11 @@ class Client
      *
      * @param string $name
      *
-     * @return self
+     * @return void
      */
     public function setName($name)
     {
         $this->name = $name;
-
-        return $this;
-    }
-
-    /**
-     * Get code.
-     *
-     * @return string
-     */
-    public function getCode()
-    {
-        return $this->code;
-    }
-
-    /**
-     * Set code.
-     *
-     * @param string $code
-     *
-     * @return self
-     */
-    public function setCode($code)
-    {
-        $this->code = $code;
-
-        return $this;
     }
 
     /**
@@ -122,18 +102,30 @@ class Client
     }
 
     /**
-     * Set product.
+     * Add product.
      *
      * @param ArrayCollection $product
      *
      * @return self
      */
-    public function setProduct($product)
+    public function addProduct($product)
     {
-        $this->product = $product;
+        $this->product->add($product);
 
         return $this;
     }
 
+    /**
+     * Remove product.
+     *
+     * @param ArrayCollection $product
+     *
+     * @return self
+     */
+    public function removeProduct($product)
+    {
+        $this->product->remove($product);
 
+        return $this;
+    }
 }

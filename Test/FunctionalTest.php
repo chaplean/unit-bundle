@@ -15,7 +15,6 @@ use Symfony\Component\DependencyInjection\Container;
  * @copyright 2014 - 2015 Chaplean (http://www.chaplean.com)
  * @since     1.0.0
  */
-
 class FunctionalTest extends \PHPUnit_Extensions_Selenium2TestCase
 {
     /**
@@ -55,10 +54,10 @@ class FunctionalTest extends \PHPUnit_Extensions_Selenium2TestCase
     /**
      * Load data fixture
      *
-     * @param array   $classNames List of fully qualified class names of fixtures to load
-     * @param string  $omName     The name of object manager to use
+     * @param array   $classNames   List of fully qualified class names of fixtures to load
+     * @param string  $omName       The name of object manager to use
      * @param string  $registryName The service id of manager registry to use
-     * @param integer $purgeMode Sets the ORM purge mode
+     * @param integer $purgeMode    Sets the ORM purge mode
      *
      * @return ORMExecutor
      */
@@ -70,10 +69,10 @@ class FunctionalTest extends \PHPUnit_Extensions_Selenium2TestCase
     /**
      * Load static data fixture
      *
-     * @param array   $classNames List of fully qualified class names of fixtures to load
-     * @param string  $omName     The name of object manager to use
+     * @param array   $classNames   List of fully qualified class names of fixtures to load
+     * @param string  $omName       The name of object manager to use
      * @param string  $registryName The service id of manager registry to use
-     * @param integer $purgeMode Sets the ORM purge mode
+     * @param integer $purgeMode    Sets the ORM purge mode
      *
      * @return ORMExecutor
      */
@@ -99,8 +98,7 @@ class FunctionalTest extends \PHPUnit_Extensions_Selenium2TestCase
      */
     public function tearDown()
     {
-        $this->em->getConnection()
-                 ->close();
+        $this->em->getConnection()->close();
 
         parent::tearDown();
     }

@@ -6,17 +6,17 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
- * Class Client.
+ * Class Product.
  *
  * @package   Chaplean\Bundle\UnitBundle\Entity
  * @author    Valentin - Chaplean <valentin@chaplean.com>
  * @copyright 2014 - 2015 Chaplean (http://www.chaplean.com)
  * @since     2.0.0
  *
- * @ORM\Table(name="cl_client")
+ * @ORM\Table(name="cl_product")
  * @ORM\Entity
  */
-class Client
+class Product
 {
     /**
      * @var integer
@@ -35,32 +35,57 @@ class Client
     private $name;
 
     /**
-     * @var string
+     * @var Client
      *
-     * @ORM\Column(type="string", length=10, nullable=false, name="code")
+     * @ORM\JoinColumn(name="client_id", referencedColumnName="id", nullable=false)
+     * @ORM\ManyToOne(targetEntity="Client", inversedBy="client")
      */
-    private $code;
+    private $client;
 
     /**
      * @var ArrayCollection
      *
-     * @ORM\OneToMany(targetEntity="Product", mappedBy="client")
+     * @ORM\ManyToMany(targetEntity="Provider", mappedBy="product")
      */
-    private $product;
+    private $prodiver;
 
     public function __construct()
     {
-        $this->product = new ArrayCollection();
+        $this->prodiver = new ArrayCollection();
     }
 
     /**
      * Get id.
      *
-     * @return mixed
+     * @return int
      */
     public function getId()
     {
         return $this->id;
+    }
+
+    /**
+     * Get client.
+     *
+     * @return Client
+     */
+    public function getClient()
+    {
+        return $this->client;
+    }
+
+    /**
+     * Set client.
+     *
+     * @param Client $client
+     *
+     * @return self
+     */
+    public function setClient($client)
+    {
+        $this->client = $client;
+
+        return $this;
     }
 
     /**
@@ -88,52 +113,26 @@ class Client
     }
 
     /**
-     * Get code.
-     *
-     * @return string
-     */
-    public function getCode()
-    {
-        return $this->code;
-    }
-
-    /**
-     * Set code.
-     *
-     * @param string $code
-     *
-     * @return self
-     */
-    public function setCode($code)
-    {
-        $this->code = $code;
-
-        return $this;
-    }
-
-    /**
-     * Get product.
+     * Get prodiver.
      *
      * @return ArrayCollection
      */
-    public function getProduct()
+    public function getProdiver()
     {
-        return $this->product;
+        return $this->prodiver;
     }
 
     /**
-     * Set product.
+     * Set prodiver.
      *
-     * @param ArrayCollection $product
+     * @param ArrayCollection $prodiver
      *
      * @return self
      */
-    public function setProduct($product)
+    public function setProdiver($prodiver)
     {
-        $this->product = $product;
+        $this->prodiver = $prodiver;
 
         return $this;
     }
-
-
 }
