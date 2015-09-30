@@ -12,6 +12,7 @@ use Doctrine\Common\DataFixtures\Purger\ORMPurger;
 use Doctrine\DBAL\Driver\PDOMySql\Driver as MySqlDriver;
 use Doctrine\DBAL\Driver\PDOSqlite\Driver as SqliteDriver;
 use Doctrine\DBAL\DriverManager;
+use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Tools\SchemaTool;
 use Symfony\Component\DependencyInjection\Container;
 use Symfony\Component\HttpKernel\Kernel;
@@ -81,7 +82,26 @@ class FixtureUtility
     public static function getContainer($typeTest)
     {
         self::loadContainer($typeTest);
+
         return self::$container;
+    }
+
+    /**
+     * @param array         $classNames    List of fully qualified class names of fixtures to load
+     * @param EntityManager $entityManager EntityManager to use
+     *
+     * @return ORMExecutor
+     */
+    public static function loadPartialFixtures(array $classNames, $entityManager)
+    {
+        $registry = self::$container->get('doctrine');
+
+        $executor = new ORMExecutor($entityManager);
+
+        $loader = self::getFixtureLoader(self::$container, $classNames);
+        $executor->execute($loader->getFixtures(), true);
+
+        return $executor;
     }
 
     /**
@@ -128,8 +148,7 @@ class FixtureUtility
         $referenceRepository = new ProxyReferenceRepository($om);
 
         /** @var Cache $cacheDriver */
-        $cacheDriver = $om->getMetadataFactory()
-            ->getCacheDriver();
+        $cacheDriver = $om->getMetadataFactory()->getCacheDriver();
 
         if ($cacheDriver) {
             $cacheDriver->deleteAll();
@@ -151,39 +170,17 @@ class FixtureUtility
                 );
             }
 
-            if ($driver instanceof SqliteDriver) {
-                if (self::$container->getParameter('liip_functional_test.cache_sqlite_db')) {
-                    $backup = self::$container->getParameter('kernel.cache_dir') . '/test_' . md5(serialize(self::$cachedMetadatas[$omName]) . serialize($classNames)) . '.db';
-                    if (file_exists($backup) && file_exists($backup . '.ser') && self::isBackupUpToDate($classNames, $backup)) {
-                        $om->flush();
-                        $om->clear();
-
-                        $executor = new $executorClass($om);
-                        $executor->setReferenceRepository($referenceRepository);
-                        $executor->getReferenceRepository()
-                            ->load($backup);
-
-                        copy($backup, $name);
-
-                        return $executor;
-                    }
-                }
-
-                self::createSchemaDatabase($omName, $om);
-
-                $executor = new $executorClass($om);
-                $executor->setReferenceRepository($referenceRepository);
-            } elseif ($driver instanceof MySqlDriver) {
+            if ($driver instanceof MySqlDriver) {
                 unset($params['dbname']);
 
                 $tmpConnection = DriverManager::getConnection($params);
-                $shouldNotCreateDatabase = in_array($name,
-                                                    $tmpConnection->getSchemaManager()
-                                                        ->listDatabases());
+                $shouldNotCreateDatabase = in_array(
+                    $name,
+                    $tmpConnection->getSchemaManager()->listDatabases()
+                );
 
                 if (!$shouldNotCreateDatabase) {
-                    $tmpConnection->getSchemaManager()
-                        ->createDatabase($name);
+                    $tmpConnection->getSchemaManager()->createDatabase($name);
                 }
 
                 self::createSchemaDatabase($omName, $om);
@@ -219,8 +216,7 @@ class FixtureUtility
         $executor->execute($loader->getFixtures(), true);
 
         if (isset($name) && isset($backup)) {
-            $executor->getReferenceRepository()
-                ->save($backup);
+            $executor->getReferenceRepository()->save($backup);
             copy($name, $backup);
         }
 
@@ -245,8 +241,7 @@ class FixtureUtility
     private static function createSchemaDatabase($omName, $om)
     {
         if (!isset(self::$cachedMetadatas[$omName])) {
-            self::$cachedMetadatas[$omName] = $om->getMetadataFactory()
-                ->getAllMetadata();
+            self::$cachedMetadatas[$omName] = $om->getMetadataFactory()->getAllMetadata();
             usort(
                 self::$cachedMetadatas[$omName],
                 function ($a, $b) {
