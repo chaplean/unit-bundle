@@ -29,7 +29,7 @@ class LoadProviderData extends AbstractFixture implements DependentFixtureInterf
         $product->addProduct($this->getReference('product-1'));
 
         $manager->persist($product);
-        $this->setReference('product-1', $product);
+        $this->setReference('provider-1', $product);
 
         $manager->flush();
     }
