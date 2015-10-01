@@ -8,7 +8,10 @@ use Doctrine\Common\DataFixtures\Executor\ORMExecutor;
 use Doctrine\Common\DataFixtures\Loader;
 use Doctrine\Common\DataFixtures\ProxyReferenceRepository;
 use Doctrine\Common\DataFixtures\Purger\ORMPurger;
+use Doctrine\Common\DataFixtures\ReferenceRepository;
+use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Driver\PDOMySql\Driver as MySqlDriver;
+use Doctrine\DBAL\Driver\PDOSqlite\Driver as SqliteDriver;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Tools\SchemaTool;
@@ -117,7 +120,6 @@ class FixtureUtility
         $executor->setReferenceRepository(self::$referenceRepository);
         $executor->execute($fixtures, true);
 
-
         return $executor;
     }
 
@@ -137,85 +139,84 @@ class FixtureUtility
      * Depends on the doctrine data-fixtures library being available in the
      * class path.
      *
-     * @param array   $classNames   List of fully qualified class names of fixtures to load
-     * @param string  $typeTest     Name of type test (logical, functional or behat)
-     * @param string  $omName       The name of object manager to use
-     * @param string  $registryName The service id of manager registry to use
+     * @param array  $classNames List of fully qualified class names of fixtures to load
+     * @param string $typeTest   Name of type test (logical, functional or behat)
      * @param integer $purgeMode    Sets the ORM purge mode
      *
      * @return ORMExecutor
      */
-    public static function loadFixtures(array $classNames, $typeTest, $omName = null, $registryName = 'doctrine', $purgeMode = ORMPurger::PURGE_MODE_DELETE)
+    public static function loadFixtures(array $classNames, $typeTest, $purgeMode = ORMPurger::PURGE_MODE_DELETE)
     {
         self::loadContainer($typeTest);
-        $registry = self::$container->get($registryName);
-
-        if ($registry instanceof Registry) {
-            $om = $registry->getManager($omName);
-            $type = $registry->getName();
-        } else {
-            $om = $registry->getEntityManager($omName);
-            $type = 'ORM';
-        }
-
-        $executorClass = 'PHPCR' === $type && class_exists(
-            'Doctrine\Bundle\PHPCRBundle\DataFixtures\PHPCRExecutor'
-        ) ? 'Doctrine\Bundle\PHPCRBundle\DataFixtures\PHPCRExecutor' : 'Doctrine\\Common\\DataFixtures\\Executor\\' . $type . 'Executor';
+        /** @var Registry $registry */
+        $registry = self::$container->get('doctrine');
+        /** @var EntityManager $om */
+        $om = $registry->getManager();
 
         self::$referenceRepository = new ProxyReferenceRepository($om);
 
+        /** @var Connection $connection */
         $connection = $om->getConnection();
         $driver = $connection->getDriver();
 
-        if ('ORM' === $type) {
-            $params = $connection->getParams();
-            if (isset($params['master'])) {
-                $params = $params['master'];
-            }
+        $params = $connection->getParams();
+        if (isset($params['master'])) {
+            $params = $params['master'];
+        }
 
-            $name = isset($params['path']) ? $params['path'] : (isset($params['dbname']) ? $params['dbname'] : false);
-            if (!$name) {
-                throw new \InvalidArgumentException(
-                    "Connection does not contain a 'path' or 'dbname' parameter and cannot be dropped."
-                );
-            }
+        $name = isset($params['path']) ? $params['path'] : (isset($params['dbname']) ? $params['dbname'] : false);
+        if (!$name) {
+            throw new \InvalidArgumentException(
+                "Connection does not contain a 'path' or 'dbname' parameter and cannot be dropped."
+            );
+        }
 
-            if ($driver instanceof MySqlDriver) {
-                unset($params['dbname']);
+        if ($driver instanceof SqliteDriver) {
+            if (self::$container->getParameter('liip_functional_test.cache_sqlite_db')) {
+                $backup = self::$container->getParameter('kernel.cache_dir') . '/test_' . md5(serialize(self::$cachedMetadatas['doctrine']) . serialize($classNames)) . '.db';
+                if (file_exists($backup) && file_exists($backup . '.ser') && self::isBackupUpToDate($classNames, $backup)) {
+                    $om->flush();
+                    $om->clear();
 
-                $tmpConnection = DriverManager::getConnection($params);
-                $shouldNotCreateDatabase = in_array(
-                    $name,
-                    $tmpConnection->getSchemaManager()->listDatabases()
-                );
+                    $executor = new ORMExecutor($om);
+                    $executor->setReferenceRepository(self::$referenceRepository);
+                    /** @var ReferenceRepository $referenceRepository */
+                    self::$referenceRepository = $executor->getReferenceRepository();
+                    self::$referenceRepository->load($backup);
 
-                if (!$shouldNotCreateDatabase) {
-                    $tmpConnection->getSchemaManager()->createDatabase($name);
+                    copy($backup, $name);
+
+                    return $executor;
                 }
-
-                self::createSchemaDatabase($omName, $om);
-
-                $connection->query(sprintf('SET FOREIGN_KEY_CHECKS=0'));
             }
+
+            self::createSchemaDatabase($om);
+
+            $executor = new ORMExecutor($om);
+            $executor->setReferenceRepository(self::$referenceRepository);
+
+        } elseif ($driver instanceof MySqlDriver) {
+            unset($params['dbname']);
+
+            $tmpConnection = DriverManager::getConnection($params);
+            $shouldNotCreateDatabase = in_array($name, $tmpConnection->getSchemaManager()->listDatabases());
+
+            if (!$shouldNotCreateDatabase) {
+                $tmpConnection->getSchemaManager()->createDatabase($name);
+            }
+
+            self::createSchemaDatabase($om);
+
+            $connection->query(sprintf('SET FOREIGN_KEY_CHECKS=0'));
         }
 
         if (empty($executor)) {
-            $purgerClass = 'Doctrine\\Common\\DataFixtures\\Purger\\' . $type . 'Purger';
-            if ('PHPCR' === $type) {
-                $purger = new $purgerClass($om);
-                $initManager = self::$container->has('doctrine_phpcr.initializer_manager') ? self::$container->get(
-                    'doctrine_phpcr.initializer_manager'
-                ) : null;
-
-                $executor = new $executorClass($om, $purger, $initManager);
-            } else {
-                $purger = new $purgerClass();
-                if (null !== $purgeMode) {
-                    $purger->setPurgeMode($purgeMode);
-                }
-
-                $executor = new $executorClass($om, $purger);
+            $purger = new ORMPurger();
+            if (null !== $purgeMode) {
+                $purger->setPurgeMode($purgeMode);
             }
+
+            $executor = new ORMExecutor($om, $purger);
 
             $executor->setReferenceRepository(self::$referenceRepository);
             $executor->purge();
@@ -246,24 +247,23 @@ class FixtureUtility
     /**
      * Create schema database
      *
-     * @param string                               $omName
      * @param \Doctrine\ORM\EntityManagerInterface $om
      *
      * @return void
      * @throws \Doctrine\ORM\Tools\ToolsException
      */
-    private static function createSchemaDatabase($omName, $om)
+    private static function createSchemaDatabase($om)
     {
-        if (!isset(self::$cachedMetadatas[$omName])) {
-            self::$cachedMetadatas[$omName] = $om->getMetadataFactory()->getAllMetadata();
+        if (!isset(self::$cachedMetadatas['doctrine'])) {
+            self::$cachedMetadatas['doctrine'] = $om->getMetadataFactory()->getAllMetadata();
             usort(
-                self::$cachedMetadatas[$omName],
+                self::$cachedMetadatas['doctrine'],
                 function ($a, $b) {
                     return strcmp($a->name, $b->name);
                 }
             );
         }
-        $metadatas = self::$cachedMetadatas[$omName];
+        $metadatas = self::$cachedMetadatas['doctrine'];
 
         $schemaTool = new SchemaTool($om);
         $schemaTool->dropDatabase();
@@ -328,7 +328,6 @@ class FixtureUtility
      *
      * @param Container $container
      * @param array     $classNames
-     * @param bool      $loadDependencies
      *
      * @return Loader
      */

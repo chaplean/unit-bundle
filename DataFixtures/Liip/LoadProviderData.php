@@ -3,7 +3,7 @@
 namespace Chaplean\Bundle\UnitBundle\DataFixtures\Liip;
 
 use Chaplean\Bundle\UnitBundle\Entity\Provider;
-use Doctrine\Common\DataFixtures\AbstractFixture;
+use Chaplean\Bundle\UnitBundle\Utility\AbstractFixture;
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 use Doctrine\Common\Persistence\ObjectManager;
 
@@ -26,10 +26,10 @@ class LoadProviderData extends AbstractFixture implements DependentFixtureInterf
         $product = new Provider();
 
         $product->setName('Stylo');
-        $product->addProduct($this->getReference('product-1'));
+        $product->addProduct($this->getEntity('product-1', $manager));
 
         $manager->persist($product);
-        $this->setReference('product-1', $product);
+        $this->setReference('provider-1', $product);
 
         $manager->flush();
     }

@@ -3,7 +3,7 @@
 namespace Chaplean\Bundle\UnitBundle\DataFixtures\Liip;
 
 use Chaplean\Bundle\UnitBundle\Entity\Client;
-use Doctrine\Common\DataFixtures\AbstractFixture;
+use Chaplean\Bundle\UnitBundle\Utility\AbstractFixture;
 use Doctrine\Common\Persistence\ObjectManager;
 
 /**

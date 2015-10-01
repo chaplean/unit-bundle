@@ -7,6 +7,7 @@ use Doctrine\Common\Annotations\AnnotationReader;
 use Doctrine\Common\DataFixtures\Executor\ORMExecutor;
 use Doctrine\Common\DataFixtures\Purger\ORMPurger;
 use Doctrine\Common\DataFixtures\ReferenceRepository;
+use Doctrine\Entity;
 use Doctrine\ORM\EntityManager;
 use Liip\FunctionalTestBundle\Test\WebTestCase;
 use Symfony\Component\DependencyInjection\Container;
@@ -28,7 +29,7 @@ class LogicalTest extends WebTestCase
     /**
      * @var ReferenceRepository
      */
-    protected $fixtures;
+    protected static $staticFixtures;
 
     /**
      * @var AnnotationReader $annotationReader
@@ -56,38 +57,32 @@ class LogicalTest extends WebTestCase
     {
         parent::__construct($name, $data, $dataName);
 
-        $this->em = $this->getContainer()
-                         ->get('doctrine')
-                         ->getManager();
+        $this->em = $this->getContainer()->get('doctrine')->getManager();
 
         $this->annotationReader = new AnnotationReader();
         $this->reflectionObject = new \ReflectionObject($this);
     }
 
     /**
-     * @param array   $classNames   List of fully qualified class names of fixtures to load
-     * @param string  $omName       The name of object manager to use
-     * @param string  $registryName The service id of manager registry to use
-     * @param integer $purgeMode    Sets the ORM purge mode
+     * @param array   $classNames List of fully qualified class names of fixtures to load
+     * @param integer $purgeMode  Sets the ORM purge mode
      *
      * @return ORMExecutor
      */
-    public static function loadStaticFixtures(array $classNames, $omName = null, $registryName = 'doctrine', $purgeMode = ORMPurger::PURGE_MODE_TRUNCATE)
+    public static function loadStaticFixtures(array $classNames, $purgeMode = ORMPurger::PURGE_MODE_TRUNCATE)
     {
-        return FixtureUtility::loadFixtures($classNames, 'logical', $omName, $registryName, $purgeMode);
+        self::$staticFixtures = FixtureUtility::loadFixtures($classNames, 'logical', $purgeMode)->getReferenceRepository();
     }
 
     /**
-     * @param array   $classNames   List of fully qualified class names of fixtures to load
-     * @param string  $omName       The name of object manager to use
-     * @param string  $registryName The service id of manager registry to use
-     * @param integer $purgeMode    Sets the ORM purge mode
+     * @param array   $classNames List of fully qualified class names of fixtures to load
+     * @param integer $purgeMode  Sets the ORM purge mode
      *
      * @return ORMExecutor
      */
-    public function loadFixtures(array $classNames, $omName = null, $registryName = 'doctrine', $purgeMode = ORMPurger::PURGE_MODE_TRUNCATE)
+    public function loadFixtures(array $classNames, $purgeMode = ORMPurger::PURGE_MODE_TRUNCATE)
     {
-        return FixtureUtility::loadFixtures($classNames, 'logical', $omName, $registryName, $purgeMode);
+        self::$staticFixtures = FixtureUtility::loadFixtures($classNames, 'logical', $purgeMode)->getReferenceRepository();
     }
 
     /**
@@ -135,6 +130,18 @@ class LogicalTest extends WebTestCase
     }
 
     /**
+     * @param string $reference
+     *
+     * @return Entity
+     */
+    public function getRealEntity($reference)
+    {
+        $entity = self::$staticFixtures->getReference($reference);
+
+        return $this->em->find(get_class($entity), $entity->getId());
+    }
+
+    /**
      * Close connection to avoid "Too Many Connection" error and rollback transaction
      *
      * @return void
@@ -143,9 +150,8 @@ class LogicalTest extends WebTestCase
     {
         $this->em->rollback();
 
-        $this->em->getConnection()
-                 ->close();
-        
+        $this->em->getConnection()->close();
+
         parent::tearDown();
     }
 }

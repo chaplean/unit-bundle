@@ -31,6 +31,11 @@ class ChapleanContext extends MinkContext implements KernelAwareContext
     private $dataFixtures = array();
 
     /**
+     * @var boolean
+     */
+    private $isLoaded = false;
+
+    /**
      * Checks that passed Element has passed Class.
      *
      * @Then /^the element "(?P<element>(?:[^"]|\\")*)" has class "(?P<class>(?:[^"]|\\")*)"$/
@@ -50,7 +55,7 @@ class ChapleanContext extends MinkContext implements KernelAwareContext
      *
      * @Then /^(?:|I )should not see a visible "(?P<element>[^"]*)" element$/
      *
-     * @param string  $element Searched element
+     * @param string $element Searched element
      *
      * @return void
      * @throws \Exception
@@ -71,8 +76,7 @@ class ChapleanContext extends MinkContext implements KernelAwareContext
      */
     public function assertPageAddressIsNot($page)
     {
-        $this->assertSession()
-            ->addressNotEquals($this->locatePath($page));
+        $this->assertSession()->addressNotEquals($this->locatePath($page));
     }
 
     /**
@@ -114,7 +118,7 @@ class ChapleanContext extends MinkContext implements KernelAwareContext
      *
      * @Then /^(?:|I )should see a visible "(?P<element>[^"]*)" element$/
      *
-     * @param string  $element Searched element
+     * @param string $element Searched element
      *
      * @return void
      * @throws \Exception
@@ -129,8 +133,8 @@ class ChapleanContext extends MinkContext implements KernelAwareContext
      *
      * @When /^(?:|I )fill in "(?P<field>(?:[^"]|\\")*)" element with "(?P<value>(?:[^"]|\\")*)"$/
      *
-     * @param $field
-     * @param $value
+     * @param string $field
+     * @param string $value
      *
      * @return void
      */
@@ -138,8 +142,7 @@ class ChapleanContext extends MinkContext implements KernelAwareContext
     {
         $field = $this->fixStepArgument($field);
         $value = $this->fixStepArgument($value);
-        $page = $this->getSession()
-            ->getPage();
+        $page = $this->getSession()->getPage();
 
         $node = $page->find('css', $field);
         $node->setValue($value);
@@ -185,11 +188,11 @@ class ChapleanContext extends MinkContext implements KernelAwareContext
      * @param string $element
      *
      * @return void
+     * @throws \Exception
      */
     public function iClickOn($element)
     {
-        $page = $this->getSession()
-            ->getPage();
+        $page = $this->getSession()->getPage();
         $element = $page->find('css', $element);
 
         if (!empty($element)) {
@@ -207,11 +210,11 @@ class ChapleanContext extends MinkContext implements KernelAwareContext
      * @param string $link
      *
      * @return void
+     * @throws \Exception
      */
     public function iClickOnLink($link)
     {
-        $page = $this->getSession()
-            ->getPage();
+        $page = $this->getSession()->getPage();
         $element = $page->findLink($link);
 
         if (!empty($element)) {
@@ -247,8 +250,7 @@ class ChapleanContext extends MinkContext implements KernelAwareContext
      */
     public function iWait($time)
     {
-        $this->getSession()
-            ->wait($time);
+        $this->getSession()->wait($time);
     }
 
     /**
@@ -297,11 +299,9 @@ class ChapleanContext extends MinkContext implements KernelAwareContext
         $container = $this->getContainer();
 
         /** @var EntityManager $em */
-        $em = $container->get('doctrine')
-            ->getManager();
+        $em = $container->get('doctrine')->getManager();
 
-        $listTables = $em->getMetadataFactory()
-            ->getAllMetadata();
+        $listTables = $em->getMetadataFactory()->getAllMetadata();
         $datafixtures = array();
 
         /** @var ClassMetadata $table */
@@ -331,11 +331,7 @@ class ChapleanContext extends MinkContext implements KernelAwareContext
         $finder = new Finder();
 
         // find every files inside the spool dir except hidden files
-        $finder
-            ->in($spoolDir)
-            ->ignoreDotFiles(true)
-            ->files();
-
+        $finder->in($spoolDir)->ignoreDotFiles(true)->files();
 
         foreach ($finder as $file) {
             $message = unserialize(file_get_contents($file));
