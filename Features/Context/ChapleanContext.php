@@ -28,7 +28,12 @@ class ChapleanContext extends MinkContext implements KernelAwareContext
     /**
      * @var array
      */
-    private $dataFixtures = array();
+    protected $dataFixtures = array();
+
+    /**
+     * @var boolean
+     */
+    protected static $databaseLoaded = false;
 
     /**
      * Checks that passed Element has passed Class.
@@ -50,7 +55,7 @@ class ChapleanContext extends MinkContext implements KernelAwareContext
      *
      * @Then /^(?:|I )should not see a visible "(?P<element>[^"]*)" element$/
      *
-     * @param string  $element Searched element
+     * @param string $element Searched element
      *
      * @return void
      * @throws \Exception
@@ -114,7 +119,7 @@ class ChapleanContext extends MinkContext implements KernelAwareContext
      *
      * @Then /^(?:|I )should see a visible "(?P<element>[^"]*)" element$/
      *
-     * @param string  $element Searched element
+     * @param string $element Searched element
      *
      * @return void
      * @throws \Exception
@@ -129,8 +134,8 @@ class ChapleanContext extends MinkContext implements KernelAwareContext
      *
      * @When /^(?:|I )fill in "(?P<field>(?:[^"]|\\")*)" element with "(?P<value>(?:[^"]|\\")*)"$/
      *
-     * @param $field
-     * @param $value
+     * @param string $field
+     * @param string $value
      *
      * @return void
      */
@@ -185,6 +190,7 @@ class ChapleanContext extends MinkContext implements KernelAwareContext
      * @param string $element
      *
      * @return void
+     * @throws \Exception
      */
     public function iClickOn($element)
     {
@@ -207,6 +213,7 @@ class ChapleanContext extends MinkContext implements KernelAwareContext
      * @param string $link
      *
      * @return void
+     * @throws \Exception
      */
     public function iClickOnLink($link)
     {
@@ -280,7 +287,10 @@ class ChapleanContext extends MinkContext implements KernelAwareContext
      */
     public function iLoadDatabase()
     {
-        FixtureUtility::loadFixtures($this->dataFixtures, 'behat');
+        if (!self::$databaseLoaded) {
+            self::$databaseLoaded = true;
+            FixtureUtility::loadFixtures($this->dataFixtures, 'behat');
+        }
     }
 
     /**
@@ -336,7 +346,6 @@ class ChapleanContext extends MinkContext implements KernelAwareContext
             ->ignoreDotFiles(true)
             ->files();
 
-
         foreach ($finder as $file) {
             $message = unserialize(file_get_contents($file));
 
@@ -348,5 +357,15 @@ class ChapleanContext extends MinkContext implements KernelAwareContext
         }
 
         throw new Exception(sprintf('The "%s" was not sent', $type));
+    }
+
+    /**
+     * @BeforeFeature
+     *
+     * @return void
+     */
+    public static function resetLoadedDatabase()
+    {
+        self::$databaseLoaded = false;
     }
 }
