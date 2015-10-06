@@ -28,12 +28,12 @@ class ChapleanContext extends MinkContext implements KernelAwareContext
     /**
      * @var array
      */
-    private $dataFixtures = array();
+    protected $dataFixtures = array();
 
     /**
      * @var boolean
      */
-    private $isLoaded = false;
+    protected static $databaseLoaded = false;
 
     /**
      * Checks that passed Element has passed Class.
@@ -282,7 +282,10 @@ class ChapleanContext extends MinkContext implements KernelAwareContext
      */
     public function iLoadDatabase()
     {
-        FixtureUtility::loadFixtures($this->dataFixtures, 'behat');
+        if (!self::$databaseLoaded) {
+            self::$databaseLoaded = true;
+            FixtureUtility::loadFixtures($this->dataFixtures, 'behat');
+        }
     }
 
     /**
@@ -344,5 +347,15 @@ class ChapleanContext extends MinkContext implements KernelAwareContext
         }
 
         throw new Exception(sprintf('The "%s" was not sent', $type));
+    }
+
+    /**
+     * @BeforeFeature
+     *
+     * @return void
+     */
+    public static function resetLoadedDatabase()
+    {
+        self::$databaseLoaded = false;
     }
 }
