@@ -92,7 +92,9 @@ class FixtureUtility
      */
     public static function getContainer($typeTest)
     {
-        self::loadContainer($typeTest);
+        if (empty(self::$container)) {
+            self::loadContainer($typeTest);
+        }
 
         return self::$container;
     }
@@ -139,9 +141,9 @@ class FixtureUtility
      * Depends on the doctrine data-fixtures library being available in the
      * class path.
      *
-     * @param array  $classNames List of fully qualified class names of fixtures to load
-     * @param string $typeTest   Name of type test (logical, functional or behat)
-     * @param integer $purgeMode    Sets the ORM purge mode
+     * @param array          $classNames List of fully qualified class names of fixtures to load
+     * @param string         $typeTest   Name of type test (logical, functional or behat)
+     * @param integer|string $purgeMode  Sets the ORM purge mode
      *
      * @return ORMExecutor
      */
@@ -194,7 +196,6 @@ class FixtureUtility
 
             $executor = new ORMExecutor($om);
             $executor->setReferenceRepository(self::$referenceRepository);
-
         } elseif ($driver instanceof MySqlDriver) {
             unset($params['dbname']);
 

@@ -49,6 +49,9 @@ class Product
      */
     private $prodiver;
 
+    /**
+     *
+     */
     public function __construct()
     {
         $this->prodiver = new ArrayCollection();

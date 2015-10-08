@@ -29,7 +29,7 @@ class LogicalTest extends WebTestCase
     /**
      * @var ReferenceRepository
      */
-    protected static $staticFixtures;
+    protected static $fixtures;
 
     /**
      * @var AnnotationReader $annotationReader
@@ -64,35 +64,24 @@ class LogicalTest extends WebTestCase
     }
 
     /**
-     * @param array   $classNames List of fully qualified class names of fixtures to load
-     * @param integer $purgeMode  Sets the ORM purge mode
+     * @param array          $classNames List of fully qualified class names of fixtures to load
+     * @param integer|string $purgeMode  Sets the ORM purge mode
      *
-     * @return ORMExecutor
-     */
-    public static function loadStaticFixtures(array $classNames, $purgeMode = ORMPurger::PURGE_MODE_TRUNCATE)
-    {
-        self::$staticFixtures = FixtureUtility::loadFixtures($classNames, 'logical', $purgeMode)->getReferenceRepository();
-    }
-
-    /**
-     * @param array   $classNames List of fully qualified class names of fixtures to load
-     * @param integer $purgeMode  Sets the ORM purge mode
-     *
-     * @return ORMExecutor
+     * @return void
      */
     public function loadFixtures(array $classNames, $purgeMode = ORMPurger::PURGE_MODE_TRUNCATE)
     {
-        self::$staticFixtures = FixtureUtility::loadFixtures($classNames, 'logical', $purgeMode)->getReferenceRepository();
+        self::$fixtures = FixtureUtility::loadFixtures($classNames, 'logical', $purgeMode)->getReferenceRepository();
     }
 
     /**
      * @param array $classNames List of fully qualified class names of fixtures to load
      *
-     * @return ORMExecutor
+     * @return void
      */
     public function loadPartialFixtures(array $classNames)
     {
-        return FixtureUtility::loadPartialFixtures($classNames, $this->em);
+        self::$fixtures = FixtureUtility::loadPartialFixtures($classNames, $this->em)->getReferenceRepository();
     }
 
     /**
@@ -112,7 +101,7 @@ class LogicalTest extends WebTestCase
      */
     public static function setUpBeforeClass()
     {
-        self::loadStaticFixtures(array());
+        self::loadFixtures(array());
 
         parent::setUpBeforeClass();
     }
@@ -136,7 +125,7 @@ class LogicalTest extends WebTestCase
      */
     public function getRealEntity($reference)
     {
-        $entity = self::$staticFixtures->getReference($reference);
+        $entity = self::$fixtures->getReference($reference);
 
         return $this->em->find(get_class($entity), $entity->getId());
     }

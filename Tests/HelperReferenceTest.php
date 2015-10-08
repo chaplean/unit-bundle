@@ -18,7 +18,7 @@ class HelperReferenceTest extends LogicalTest
      */
     public static function setUpBeforeClass()
     {
-        self::loadStaticFixtures(
+        self::loadFixtures(
             array(
                 'Chaplean\Bundle\UnitBundle\DataFixtures\Liip\LoadProviderData'
             )

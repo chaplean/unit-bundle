@@ -35,16 +35,19 @@ class Provider
     private $name;
 
     /**
-     * @var ArrayCollection
+     * @var Product
      *
      * @ORM\JoinColumn(name="product_id", referencedColumnName="id", nullable=false)
-     * @ORM\ManyToMany(targetEntity="Product", inversedBy="provider")
+     * @ORM\ManyToOne(targetEntity="Product", inversedBy="provider")
      */
     private $product;
 
+    /**
+     *
+     */
     public function __construct()
     {
-        $this->product = new ArrayCollection();
+//        $this->product = new ArrayCollection();
     }
 
     /**
@@ -104,27 +107,13 @@ class Provider
     /**
      * Add product.
      *
-     * @param ArrayCollection $product
+     * @param Product $product
      *
      * @return self
      */
-    public function addProduct($product)
+    public function setProduct($product)
     {
-        $this->product->add($product);
-
-        return $this;
-    }
-
-    /**
-     * Remove product.
-     *
-     * @param ArrayCollection $product
-     *
-     * @return self
-     */
-    public function removeProduct($product)
-    {
-        $this->product->remove($product);
+        $this->product = $product;
 
         return $this;
     }

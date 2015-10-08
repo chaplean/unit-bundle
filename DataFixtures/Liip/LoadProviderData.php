@@ -26,7 +26,7 @@ class LoadProviderData extends AbstractFixture implements DependentFixtureInterf
         $product = new Provider();
 
         $product->setName('Stylo');
-        $product->addProduct($this->getEntity('product-1', $manager));
+        $product->setProduct($this->getEntity('product-1', $manager));
 
         $manager->persist($product);
         $this->setReference('provider-1', $product);
