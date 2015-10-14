@@ -3,8 +3,6 @@
 namespace Chaplean\Bundle\UnitBundle\Test;
 
 use Chaplean\Bundle\UnitBundle\Utility\FixtureUtility;
-use Doctrine\Common\Annotations\AnnotationReader;
-use Doctrine\Common\DataFixtures\Executor\ORMExecutor;
 use Doctrine\Common\DataFixtures\Purger\ORMPurger;
 use Doctrine\Common\DataFixtures\ReferenceRepository;
 use Doctrine\Entity;
@@ -46,13 +44,18 @@ class LogicalTest extends WebTestCase
     }
 
     /**
-     * @param array          $classNames List of fully qualified class names of fixtures to load
-     * @param integer|string $purgeMode  Sets the ORM purge mode
+     * @param array    $classNames
+     * @param string   $omName
+     * @param string   $registryName
+     * @param int|null $purgeMode
      *
      * @return void
      */
-    public function loadFixtures(array $classNames, $purgeMode = ORMPurger::PURGE_MODE_TRUNCATE)
+    public function loadFixtures(array $classNames, $omName = null, $registryName = 'doctrine', $purgeMode = ORMPurger::PURGE_MODE_TRUNCATE)
     {
+        $omName = null;
+        $registryName = null;
+
         self::$fixtures = FixtureUtility::loadFixtures($classNames, 'logical', $purgeMode)->getReferenceRepository();
     }
 
