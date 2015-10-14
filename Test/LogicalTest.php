@@ -50,12 +50,24 @@ class LogicalTest extends WebTestCase
      * @param int|null $purgeMode
      *
      * @return void
+     * @deprecated Use loadStaticFixtures ! Transaction is active by function test
      */
     public function loadFixtures(array $classNames, $omName = null, $registryName = 'doctrine', $purgeMode = ORMPurger::PURGE_MODE_TRUNCATE)
     {
         $omName = null;
         $registryName = null;
 
+        self::$fixtures = FixtureUtility::loadFixtures($classNames, 'logical', $purgeMode)->getReferenceRepository();
+    }
+
+    /**
+     * @param array $classNames
+     * @param int   $purgeMode
+     *
+     * @return void
+     */
+    public function loadStaticFixtures(array $classNames, $purgeMode = ORMPurger::PURGE_MODE_TRUNCATE)
+    {
         self::$fixtures = FixtureUtility::loadFixtures($classNames, 'logical', $purgeMode)->getReferenceRepository();
     }
 
@@ -86,7 +98,7 @@ class LogicalTest extends WebTestCase
      */
     public static function setUpBeforeClass()
     {
-        self::loadFixtures(array());
+        self::loadStaticFixtures(array());
 
         parent::setUpBeforeClass();
     }
