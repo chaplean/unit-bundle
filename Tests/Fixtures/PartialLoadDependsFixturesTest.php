@@ -18,7 +18,7 @@ class PartialLoadDependsFixturesTest extends LogicalTest
      */
     public static function setUpBeforeClass()
     {
-        self::loadFixtures(array('Chaplean\Bundle\UnitBundle\DataFixtures\Liip\LoadProductData'));
+        self::loadStaticFixtures(array('Chaplean\Bundle\UnitBundle\DataFixtures\Liip\LoadProductData'));
     }
 
     /**
