@@ -43,14 +43,6 @@ class Provider
     private $product;
 
     /**
-     *
-     */
-    public function __construct()
-    {
-//        $this->product = new ArrayCollection();
-    }
-
-    /**
      * Get id.
      *
      * @return int
@@ -58,18 +50,6 @@ class Provider
     public function getId()
     {
         return $this->id;
-    }
-
-    /**
-     * Set id.
-     *
-     * @param int $id
-     *
-     * @return void
-     */
-    public function setId($id)
-    {
-        $this->id = $id;
     }
 
     /**

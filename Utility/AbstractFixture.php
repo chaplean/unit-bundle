@@ -1,10 +1,11 @@
 <?php
+
 namespace Chaplean\Bundle\UnitBundle\Utility;
 
-use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\DataFixtures\AbstractFixture as BaseAbstractFixture;
 use Doctrine\Common\Persistence\ObjectManager;
 use Doctrine\ORM\Mapping\ClassMetadata;
+use MyProject\Proxies\__CG__\stdClass;
 
 /**
  * AbstractFixture.php.
@@ -15,6 +16,11 @@ use Doctrine\ORM\Mapping\ClassMetadata;
  */
 abstract class AbstractFixture extends BaseAbstractFixture
 {
+    /**
+     * @var ObjectManager
+     */
+    private $em;
+
     /**
      * Loads an Entity using stored reference
      * named by $name
@@ -32,15 +38,20 @@ abstract class AbstractFixture extends BaseAbstractFixture
     }
 
     /**
+     * Persist a entity with random data for
+     * required field not set
+     *
      * @param mixed         $entity
      * @param ObjectManager $manager
      *
      * @return void
      */
-    public function persist($entity, $manager)
+    public function persist($entity, $manager = null)
     {
+        $this->setManager($manager);
+
         /** @var ClassMetadata $classMetadata */
-        $classMetadata = $manager->getClassMetadata(get_class($entity));
+        $classMetadata = $this->em->getClassMetadata(get_class($entity));
 
         $fieldMappings = $classMetadata->fieldMappings;
         $associationMappings = $classMetadata->associationMappings;
@@ -57,6 +68,9 @@ abstract class AbstractFixture extends BaseAbstractFixture
         $fieldsRequired += $associationsRequired;
 
         foreach ($fieldsRequired as $field) {
+            $isEnum = false;
+            $matches = null;
+
             $fieldName = ucfirst(str_replace(' ', '', ucwords(str_replace('_', ' ', $field['fieldName']))));
             $getter = 'get' . $fieldName;
             $setter = 'set' . $fieldName;
@@ -65,43 +79,72 @@ abstract class AbstractFixture extends BaseAbstractFixture
                 continue;
             }
 
-            if (isset($field['joinColumns'])) {
-                $dependency = new $field['targetEntity']();
-                $this->persist($dependency, $manager);
-                $manager->flush();
-
-                $entity->$setter($dependency);
-            } else {
-                $value = self::generateRandomData($field['type']);
-                $entity->$setter($value);
+            if (isset($field['columnDefinition'])) {
+                preg_match_all('/enum\((.*)\)/i', $field['columnDefinition'], $matches);
+                $isEnum = !empty($matches) && count($matches) > 0;
             }
+
+            switch (true) {
+                case $isEnum:
+                    $value = $this->getEnum($matches[1][0]);
+                    break;
+                case isset($field['joinColumns']):
+                    $value = $this->saveDependency($field['targetEntity']);
+                    break;
+                default:
+                    $value = FixtureUtility::generateRandomData($field['type']);
+            }
+
+            $entity->$setter($value);
         }
 
-        $manager->persist($entity);
+        $this->em->persist($entity);
     }
 
-    public static function generateRandomData($type)
+    /**
+     * Save target entity dependency
+     *
+     * @param stdClass $class
+     *
+     * @return mixed
+     */
+    public function saveDependency($class)
     {
-        switch ($type) {
-            case 'array':
-                return array();
-            case 'bigint':
-            case 'integer':
-                return rand(0);
-            case 'smallint':
-                return rand(0, 1);
-            case 'boolean':
-                return (bool) rand(0, 1);
-            case 'date':
-            case 'datetime':
-                return new \DateTime();
-            case 'decimal':
-            case 'float':
-                return (float) rand(0)/getrandmax();
-            case 'string':
-            case 'text':
-                return str_shuffle('azertyuiopmlkjhgfdsqwxcvbn');
+        $dependency = new $class();
+
+        $this->persist($dependency);
+        $this->em->flush();
+
+        return $dependency;
+    }
+
+    /**
+     * Get a possible value for a enum
+     *
+     * @param string $enum
+     *
+     * @return string
+     */
+    public function getEnum($enum)
+    {
+        $possibleValues = explode(',', str_replace('\'', '', $enum));
+
+        $index = rand(0, count($possibleValues) - 1);
+
+        return $possibleValues[$index];
+    }
+
+    /**
+     * Set manager used in datafixtures
+     *
+     * @param ObjectManager $manager
+     *
+     * @return void
+     */
+    public function setManager($manager)
+    {
+        if (empty($this->em) && !empty($manager)) {
+            $this->em = $manager;
         }
-        return null;
     }
 }

@@ -10,6 +10,12 @@
             "homepage": "http://chaplean.com/"
         }
     ],
+    "repositories": [
+        {
+            "type": "composer",
+            "url": "http://satis.chaplean.com"
+        }
+    ],
     "require": {
         "php": ">=5.5.9",
         "symfony/symfony": "2.7.*",
@@ -27,6 +33,7 @@
         "mockery/mockery": "^0.9.4"
     },
     "require-dev": {
+        "chaplean/coding-standard": "1.1.*"
     },
     "autoload": {
         "psr-0": {

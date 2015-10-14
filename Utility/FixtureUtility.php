@@ -375,4 +375,36 @@ class FixtureUtility
             }
         }
     }
+
+    /**
+     * Generated random data for doctrine type
+     *
+     * @param string $type
+     *
+     * @return array|bool|\DateTime|float|int|null|number|string
+     */
+    public static function generateRandomData($type)
+    {
+        switch ($type) {
+            case 'array':
+                return array();
+            case 'bigint':
+            case 'integer':
+                return abs(rand());
+            case 'smallint':
+                return rand(0, 1);
+            case 'boolean':
+                return (bool) rand(0, 1);
+            case 'date':
+            case 'datetime':
+                return new \DateTime();
+            case 'decimal':
+            case 'float':
+                return (float) (abs(rand()) / getrandmax());
+            case 'string':
+            case 'text':
+                return str_shuffle('azertyuiopmlkjhgfdsqwxcvbn');
+        }
+        return null;
+    }
 }

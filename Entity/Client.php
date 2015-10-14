@@ -48,6 +48,16 @@ class Client
      */
     private $product;
 
+    /**
+     * @var \DateTime
+     *
+     * @ORM\Column(name="date_add", type="datetime", nullable=false)
+     */
+    private $dateAdd;
+
+    /**
+     *
+     */
     public function __construct()
     {
         $this->product = new ArrayCollection();
@@ -135,5 +145,27 @@ class Client
         return $this;
     }
 
+    /**
+     * Get dateAdd.
+     *
+     * @return \DateTime
+     */
+    public function getDateAdd()
+    {
+        return $this->dateAdd;
+    }
 
+    /**
+     * Set dateAdd.
+     *
+     * @param \DateTime $dateAdd
+     *
+     * @return self
+     */
+    public function setDateAdd($dateAdd)
+    {
+        $this->dateAdd = $dateAdd;
+
+        return $this;
+    }
 }

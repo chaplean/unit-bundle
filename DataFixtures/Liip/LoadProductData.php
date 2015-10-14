@@ -28,7 +28,7 @@ class LoadProductData extends AbstractFixture implements DependentFixtureInterfa
         $product->setName('Stylo');
         $product->setClient($this->getEntity('client-1', $manager));
 
-        $manager->persist($product);
+        $this->persist($product, $manager);
         $this->setReference('product-1', $product);
 
         $manager->flush();
