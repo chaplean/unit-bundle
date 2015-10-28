@@ -1,0 +1,41 @@
+before_commands:
+    - 'git clone https://tom-chaplean@bitbucket.org/chaplean/coding-standard.git ../coding-standard/'
+
+tools:
+    external_code_coverage:
+        timeout: 3600
+    php_sim: true
+    php_pdepend: true
+    php_analyzer: true
+    php_mess_detector:
+        config:
+            ruleset: ../coding-standard/phpmd/ruleset.xml
+    sensiolabs_security_checker: true
+
+filter:
+    excluded_paths:
+        - 'app/*'
+        - 'bin/*'
+        - 'DataFixtures/*'
+        - 'Tests/*'
+        - 'var/*'
+        - 'vendor/*'
+        - 'web/*'
+
+build:
+    project_setup:
+        before:
+            -
+                command: 'composer config -g github-oauth.github.com 7fa26c02ea1b016a956f5d774362096b6bf42d61'
+
+    tests:
+        override:
+            -
+                command: 'echo "We are Chaplean"'
+
+checks:
+    php:
+        custom_coding_standard:
+            git_repository: 'https://tom-chaplean@bitbucket.org/chaplean/coding-standard.git'
+            git_version: '97f7f5d92c81b6e1566ae8d29ba3be81cc98788d'
+            ruleset_path: 'phpcs/ruleset.xml'

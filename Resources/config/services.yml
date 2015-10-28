@@ -1,4 +1,4 @@
 services:
-#    chaplean_tests.example:
-#        class: Chaplean\Bundle\UnitBundle\Example
-#        arguments: [@service_id, "plain_value", %parameter%]
+#    chaplean_unit.generator_data:
+#        class: Chaplean\Bundle\UnitBundle\Utility\GeneratorData
+#        arguments: [@validator]

@@ -11,10 +11,10 @@ Installation step process:
 
 1. Download ChapleanUnitBundle using composer
 2. Add the Bundle and dependency
-3. Create a BehatKernel class
 4. Configure your application's config_test.yml
-5. Create FeatureContext class
-6. Copy behat.yml.dist
+5. Create datafixtures definition for auto-generate data required
+6. Create FeatureContext class who extend ChapleanContext
+7. Copy behat.yml.dist
 
 ### Step 1: Download ChapleanUnitBundle using composer
 
@@ -24,7 +24,7 @@ Include ChapleanUnitBundle in `composer.json`
 {
 ...
 "require-dev": {
-        "chaplean/unit-bundle": "1.5.*"
+        "chaplean/unit-bundle": "2.0.*"
         ...
         }
 }
@@ -87,6 +87,20 @@ class FeatureContext extends ChapleanContext
 
 Create behat.yml from behat.yml.dist
 
+## Syntax for Nelmio\Alice
+
+### Example file datafixtures.yml
+
+```yaml
+Chaplean\Bundle\UnitBundle\Entity\Client:
+    properties:
+        name: <lastname()>
+        code: R<current()>ABC
+        email: client<current()>.<email()>
+        dateAdd: <(new \DateTime('-2 hours'))>
+```
+More: [nelmio/alice](https://github.com/nelmio/alice):
+
 # Let's go
 
 ### Run Selenium server
@@ -126,4 +140,3 @@ change a `phpunit.xml.dist`
     </php>
     [...]
 ```
-

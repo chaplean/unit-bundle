@@ -5,7 +5,6 @@ namespace Chaplean\Bundle\UnitBundle\Utility;
 use Doctrine\Common\DataFixtures\AbstractFixture as BaseAbstractFixture;
 use Doctrine\Common\Persistence\ObjectManager;
 use Doctrine\ORM\Mapping\ClassMetadata;
-use MyProject\Proxies\__CG__\stdClass;
 
 /**
  * AbstractFixture.php.
@@ -20,6 +19,16 @@ abstract class AbstractFixture extends BaseAbstractFixture
      * @var ObjectManager
      */
     private $em;
+
+    /**
+     * @var GeneratorData
+     */
+    private $generator;
+
+    /**
+     * @var array
+     */
+    private $matches;
 
     /**
      * Loads an Entity using stored reference
@@ -48,51 +57,27 @@ abstract class AbstractFixture extends BaseAbstractFixture
      */
     public function persist($entity, $manager = null)
     {
+        $this->initGenerator($entity);
         $this->setManager($manager);
 
-        /** @var ClassMetadata $classMetadata */
-        $classMetadata = $this->em->getClassMetadata(get_class($entity));
-
-        $fieldMappings = $classMetadata->fieldMappings;
-        $associationMappings = $classMetadata->associationMappings;
-
-        $fieldsRequired = array_filter($fieldMappings, function ($field) {
-            return !$field['nullable'] && !isset($field['id']);
-        });
-        $associationsRequired = array_filter($associationMappings, function ($entity) {
-            return isset($entity['joinColumns']) && count(array_filter($entity['joinColumns'], function ($joinColumn) {
-                return !$joinColumn['nullable'];
-            }));
-        });
-
-        $fieldsRequired += $associationsRequired;
+        $fieldsRequired = $this->getRequiredField($entity);
 
         foreach ($fieldsRequired as $field) {
-            $isEnum = false;
-            $matches = null;
-
-            $fieldName = ucfirst(str_replace(' ', '', ucwords(str_replace('_', ' ', $field['fieldName']))));
-            $getter = 'get' . $fieldName;
-            $setter = 'set' . $fieldName;
+            list($getter, $setter) = $this->getAccessor($field);
 
             if (!empty($entity->$getter())) {
                 continue;
             }
 
-            if (isset($field['columnDefinition'])) {
-                preg_match_all('/enum\((.*)\)/i', $field['columnDefinition'], $matches);
-                $isEnum = !empty($matches) && count($matches) > 0;
-            }
-
             switch (true) {
-                case $isEnum:
-                    $value = $this->getEnum($matches[1][0]);
+                case $this->isEnum($field):
+                    $value = $this->getEnum($this->matches[1][0]);
                     break;
                 case isset($field['joinColumns']):
                     $value = $this->saveDependency($field['targetEntity']);
                     break;
                 default:
-                    $value = FixtureUtility::generateRandomData($field['type']);
+                    $value = $this->generator->getData(get_class($entity), $field['fieldName']);
             }
 
             $entity->$setter($value);
@@ -104,7 +89,7 @@ abstract class AbstractFixture extends BaseAbstractFixture
     /**
      * Save target entity dependency
      *
-     * @param stdClass $class
+     * @param mixed $class
      *
      * @return mixed
      */
@@ -116,6 +101,21 @@ abstract class AbstractFixture extends BaseAbstractFixture
         $this->em->flush();
 
         return $dependency;
+    }
+
+    /**
+     * @param array $field
+     *
+     * @return boolean
+     */
+    public function isEnum($field)
+    {
+        if (isset($field['columnDefinition'])) {
+            preg_match_all('/enum\((.*)\)/i', $field['columnDefinition'], $this->matches);
+            return !empty($this->matches) && count($this->matches) > 0;
+        } else {
+            return false;
+        }
     }
 
     /**
@@ -135,6 +135,49 @@ abstract class AbstractFixture extends BaseAbstractFixture
     }
 
     /**
+     * Parse ORM annotations for get not nullable field
+     *
+     * @param mixed $entity
+     *
+     * @return array
+     */
+    public function getRequiredField($entity)
+    {
+        /** @var ClassMetadata $classMetadata */
+        $classMetadata = $this->em->getClassMetadata(get_class($entity));
+
+        $fieldMappings = $classMetadata->fieldMappings;
+        $associationMappings = $classMetadata->associationMappings;
+
+        $fieldsRequired = array_filter($fieldMappings, function ($field) {
+            return !$field['nullable'] && !isset($field['id']);
+        });
+        $associationsRequired = array_filter($associationMappings, function ($entity) {
+            return isset($entity['joinColumns']) && count(array_filter($entity['joinColumns'], function ($joinColumn) {
+                return !$joinColumn['nullable'];
+            }));
+        });
+
+        return $fieldsRequired + $associationsRequired;
+    }
+
+    /**
+     * Get accessor for a attributes entity
+     *
+     * @param array $field
+     *
+     * @return array
+     */
+    public function getAccessor($field)
+    {
+        $fieldName = ucfirst(str_replace(' ', '', ucwords(str_replace('_', ' ', $field['fieldName']))));
+        $getter = 'get' . $fieldName;
+        $setter = 'set' . $fieldName;
+
+        return array($getter, $setter);
+    }
+
+    /**
      * Set manager used in datafixtures
      *
      * @param ObjectManager $manager
@@ -145,6 +188,22 @@ abstract class AbstractFixture extends BaseAbstractFixture
     {
         if (empty($this->em) && !empty($manager)) {
             $this->em = $manager;
+        }
+    }
+
+    /**
+     * @param mixed $entity
+     *
+     * @return void
+     */
+    public function initGenerator($entity)
+    {
+        if (empty($this->generator)) {
+            $reflectionClass = new \ReflectionClass(get_class($entity));
+            $path = $reflectionClass->getFileName();
+            $path = str_replace($reflectionClass->getShortName() . '.php', '', $path);
+
+            $this->generator = new GeneratorData($path . '../Resources/config/datafixtures.yml');
         }
     }
 }

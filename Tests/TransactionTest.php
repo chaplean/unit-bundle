@@ -30,6 +30,7 @@ class TransactionTest extends LogicalTest
         $client = new Client();
         $client->setCode('test');
         $client->setName('pony');
+        $client->setEmail('e@e.fr');
         $client->setDateAdd(new \DateTime());
         $this->em->persist($client);
         $this->em->flush($client);

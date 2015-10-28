@@ -16,4 +16,5 @@
     <php>
         <server name="KERNEL_DIR" value="app/" />
     </php>
+
 </phpunit>

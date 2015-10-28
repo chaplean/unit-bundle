@@ -2,7 +2,9 @@ imports:
     - { resource: parameters.yml }
 
 framework:
-    secret:          "S3cR€t"
+    secret: "S3cR€t"
+    form:   ~
+    validation: { enable_annotations: false }
 
 monolog:
     handlers:

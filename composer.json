@@ -30,7 +30,11 @@
         "behat/mink-extension": "~2.0",
         "behat/mink-selenium2-driver": "~1.2",
         "doctrine/doctrine-fixtures-bundle": "~2.2",
-        "mockery/mockery": "^0.9.4"
+        "mockery/mockery": "^0.9.4",
+        "jms/di-extra-bundle": "^1.6.0",
+        "sensio/framework-extra-bundle": "^3.0",
+        "jms/security-extra-bundle": "1.*",
+        "nelmio/alice": "^2.1"
     },
     "require-dev": {
         "chaplean/coding-standard": "1.1.*"

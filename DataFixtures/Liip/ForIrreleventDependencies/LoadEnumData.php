@@ -2,18 +2,18 @@
 
 namespace Chaplean\Bundle\UnitBundle\DataFixtures\Liip\ForIrreleventDependencies;
 
-use Chaplean\Bundle\UnitBundle\Entity\Type;
+use Chaplean\Bundle\UnitBundle\Entity\Enum;
 use Chaplean\Bundle\UnitBundle\Utility\AbstractFixture;
 use Doctrine\Common\Persistence\ObjectManager;
 
 /**
- * LoadTypeData.php.
+ * LoadEnumData.php.
  *
  * @author    Valentin - Chaplean <valentin@chaplean.com>
  * @copyright 2014 - 2015 Chaplean (http://www.chaplean.com)
  * @since     2.0.0
  */
-class LoadTypeData extends AbstractFixture
+class LoadEnumData extends AbstractFixture
 {
     /**
      * Load data fixtures with the passed EntityManager
@@ -24,7 +24,7 @@ class LoadTypeData extends AbstractFixture
      */
     public function load(ObjectManager $manager)
     {
-        $type = new Type();
+        $type = new Enum();
 
         $this->persist($type, $manager);
 
