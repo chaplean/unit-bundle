@@ -16,5 +16,14 @@
     <php>
         <server name="KERNEL_DIR" value="app/" />
     </php>
-
+    <filter>
+        <whitelist>
+            <directory>Entity/</directory>
+            <directory>Fixtures/</directory>
+            <directory>Resources/</directory>
+            <directory>Repository/</directory>
+            <directory>Test/</directory>
+            <directory>Utility/</directory>
+        </whitelist>
+    </filter>
 </phpunit>
