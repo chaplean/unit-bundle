@@ -263,6 +263,8 @@ class LogicalTest extends WebTestCase
 
         if (self::$iWantDefaultData) {
             self::loadDefaultFixtures();
+        } else {
+            self::$iWantDefaultData = true;
         }
 
         self::loadStaticFixtures(self::$defaultFixtures);
