@@ -1,4 +1,4 @@
 services:
-#    chaplean_unit.generator_data:
-#        class: Chaplean\Bundle\UnitBundle\Utility\GeneratorData
-#        arguments: [@validator]
+    chaplean_unit.swiftmailer_cache:
+        class: Chaplean\Bundle\UnitBundle\Utility\SwiftMailerCacheUtility
+        arguments: [%swiftmailer.spool.default.file.path%]

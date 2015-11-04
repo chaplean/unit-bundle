@@ -37,5 +37,5 @@ checks:
     php:
         custom_coding_standard:
             git_repository: 'https://tom-chaplean@bitbucket.org/chaplean/coding-standard.git'
-            git_version: '97f7f5d92c81b6e1566ae8d29ba3be81cc98788d'
-            ruleset_path: 'phpcs/ruleset.xml'
+            git_version: '11647c41615bd68325c5a0ca7a8db65450172058'
+            ruleset_path: 'phpcs/ChapleanStandard/ruleset.xml'

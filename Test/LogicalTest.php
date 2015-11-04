@@ -3,6 +3,7 @@
 namespace Chaplean\Bundle\UnitBundle\Test;
 
 use Chaplean\Bundle\UnitBundle\Utility\FixtureUtility;
+use Chaplean\Bundle\UnitBundle\Utility\SwiftMailerCacheUtility;
 use Doctrine\Common\DataFixtures\Purger\ORMPurger;
 use Doctrine\Common\DataFixtures\ReferenceRepository;
 use Doctrine\Entity;
@@ -29,6 +30,11 @@ class LogicalTest extends WebTestCase
     protected $em;
 
     /**
+     * @var SwiftMailerCacheUtility
+     */
+    protected $swiftmailerCacheUtility;
+
+    /**
      * @var ReferenceRepository
      */
     protected static $fixtures;
@@ -43,6 +49,9 @@ class LogicalTest extends WebTestCase
      */
     protected static $iWantDefaultData = true;
 
+    /**
+     * @var string
+     */
     protected static $namespace;
 
     /**
@@ -53,6 +62,7 @@ class LogicalTest extends WebTestCase
         parent::__construct();
 
         $this->em = $this->getContainer()->get('doctrine')->getManager();
+        $this->swiftmailerCacheUtility = $this->getContainer()->get('chaplean_unit.swiftmailer_cache');
 
         $file = new \ReflectionClass(get_called_class());
         $name = $file->getName();
@@ -64,16 +74,17 @@ class LogicalTest extends WebTestCase
      */
     public function cleanMailDir()
     {
-        $mailDir = $this->getContainer()->getParameter('kernel.cache_dir') . '/swiftmailer/spool/default';
-
-        if (is_dir($mailDir)) {
-            $finder = Finder::create()->files()->in($mailDir);
-
-            /** @var SplFileInfo $file */
-            foreach ($finder as $file) {
-                unlink($file->getRealPath());
-            }
-        }
+//        $mailDir = $this->getContainer()->getParameter('kernel.cache_dir') . '/swiftmailer/spool/default';
+//
+//        if (is_dir($mailDir)) {
+//            $finder = Finder::create()->files()->in($mailDir);
+//
+//            /** @var SplFileInfo $file */
+//            foreach ($finder as $file) {
+//                unlink($file->getRealPath());
+//            }
+//        }
+        $this->swiftmailerCacheUtility->cleanMailDir();
     }
 
     /**
@@ -235,20 +246,7 @@ class LogicalTest extends WebTestCase
      */
     public function readMessages()
     {
-        $messages = array();
-        $mailDir = $this->getContainer()->getParameter('kernel.cache_dir') . '/swiftmailer/spool/default';
-        $finder = Finder::create()->files()->in($mailDir);
-
-        if ($finder->count() == 0) {
-            return null;
-        }
-
-        /** @var SplFileInfo $file */
-        foreach ($finder as $file) {
-            $messages[] = unserialize($file->getContents());
-        }
-
-        return count($messages) == 1 ? $messages[0] : $messages;
+        return $this->swiftmailerCacheUtility->readMessages();
     }
 
     /**

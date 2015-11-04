@@ -68,4 +68,15 @@ class MessageTest extends LogicalTest
         $this->assertEquals('[TEST]message test', $messageSended->getSubject());
         $this->assertEquals('Chaplean is Awesome !!', $messageSended->getBody());
     }
+
+    /**
+     * @return void
+     * @throws \Exception
+     */
+    public function testReadWithoutMessage()
+    {
+        $message = $this->readMessages();
+
+        $this->assertNull($message);
+    }
 }

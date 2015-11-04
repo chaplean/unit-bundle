@@ -12,8 +12,6 @@ use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Symfony\Component\Config\Definition\Exception\Exception;
 use Symfony\Component\DependencyInjection\Container;
-use Symfony\Component\Finder\Finder;
-use Symfony\Component\Finder\SplFileInfo;
 
 /**
  * Class FeatureContext.
@@ -136,16 +134,7 @@ class ChapleanContext extends MinkContext implements KernelAwareContext
      */
     public function cleanMailDir()
     {
-        $mailDir = $this->getContainer()->getParameter('kernel.cache_dir') . '/swiftmailer/spool/default';
-
-        if (is_dir($mailDir)) {
-            $finder = Finder::create()->files()->in($mailDir);
-
-            /** @var SplFileInfo $file */
-            foreach ($finder as $file) {
-                unlink($file->getRealPath());
-            }
-        }
+        $this->getContainer()->get('chaplean_unit.swiftmailer_cache')->cleanMailDir();
     }
 
     /**
@@ -166,14 +155,6 @@ class ChapleanContext extends MinkContext implements KernelAwareContext
 
         $node = $page->find('css', $field);
         $node->setValue($value);
-    }
-
-    /**
-     * @return string
-     */
-    protected function getSpoolDir()
-    {
-        return $this->getContainer()->getParameter('swiftmailer.spool.default.file.path');
     }
 
     /**
@@ -426,18 +407,16 @@ class ChapleanContext extends MinkContext implements KernelAwareContext
      */
     public function theMailShouldBeSentTo($type, $email)
     {
-        $spoolDir = $this->getSpoolDir();
+        $messages = $this->readMessages();
 
-        $finder = new Finder();
+        if (gettype($messages) == 'object') {
+            $messages = array($messages);
+        }
 
-        // find every files inside the spool dir except hidden files
-        $finder->in($spoolDir)->ignoreDotFiles(true)->files();
-
-        foreach ($finder as $file) {
-            $message = unserialize(file_get_contents($file));
-
-            // check the recipients
+        foreach ($messages as $message) {
+            /** @noinspection PhpUndefinedMethodInspection */
             $recipients = array_keys($message->getTo());
+
             if (in_array($email, $recipients)) {
                 return;
             }
@@ -462,19 +441,6 @@ class ChapleanContext extends MinkContext implements KernelAwareContext
      */
     public function readMessages()
     {
-        $messages = array();
-        $mailDir = $this->getContainer()->getParameter('kernel.cache_dir') . '/swiftmailer/spool/default';
-        $finder = Finder::create()->files()->in($mailDir);
-
-        if ($finder->count() == 0) {
-            return null;
-        }
-
-        /** @var SplFileInfo $file */
-        foreach ($finder as $file) {
-            $messages[] = unserialize($file->getContents());
-        }
-
-        return count($messages) == 1 ? $messages[0] : $messages;
+        return $this->getContainer()->get('chaplean_unit.swiftmailer_cache')->readMessages();
     }
 }
