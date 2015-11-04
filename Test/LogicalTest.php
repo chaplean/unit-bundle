@@ -65,7 +65,7 @@ class LogicalTest extends WebTestCase
         $this->swiftmailerCacheUtility = $this->getContainer()->get('chaplean_unit.swiftmailer_cache');
 
         $file = new \ReflectionClass(get_called_class());
-        $name = $file->getName();
+        $name = $file->name;
         self::$namespace = substr($name, 0, strpos($name, 'Tests'));
     }
 
@@ -74,16 +74,6 @@ class LogicalTest extends WebTestCase
      */
     public function cleanMailDir()
     {
-//        $mailDir = $this->getContainer()->getParameter('kernel.cache_dir') . '/swiftmailer/spool/default';
-//
-//        if (is_dir($mailDir)) {
-//            $finder = Finder::create()->files()->in($mailDir);
-//
-//            /** @var SplFileInfo $file */
-//            foreach ($finder as $file) {
-//                unlink($file->getRealPath());
-//            }
-//        }
         $this->swiftmailerCacheUtility->cleanMailDir();
     }
 
@@ -129,7 +119,7 @@ class LogicalTest extends WebTestCase
     /**
      * @param string $reference
      *
-     * @return Entity
+     * @return Entity|null
      */
     public function getRealEntity($reference)
     {
@@ -155,21 +145,15 @@ class LogicalTest extends WebTestCase
      */
     public static function loadDefaultFixtures($namespace = null)
     {
-        if (empty($namespace)) {
-            $namespace = self::$namespace;
+        if (!empty($namespace)) {
+            $namespaceBckup = self::$namespace;
+            self::$namespace = $namespace;
         }
 
-        list($namespaceDefaultContext, $pathDatafixtures) = self::getNamespacePathDataFixtures($namespace, self::DIR_DEFAULT_DATA);
+        self::$defaultFixtures = self::getClassNamesByContext(self::DIR_DEFAULT_DATA);
 
-        if (is_dir($pathDatafixtures)) {
-            $files = Finder::create()->files()->in($pathDatafixtures);
-
-            /** @var SplFileInfo $file */
-            foreach ($files as $file) {
-                if ($file->getExtension() == 'php') {
-                    self::$defaultFixtures[] = $namespaceDefaultContext . str_replace('.php', '', $file->getFilename());
-                }
-            }
+        if (isset($namespaceBckup)) {
+            self::$namespace = $namespaceBckup;
         }
     }
 
@@ -184,8 +168,8 @@ class LogicalTest extends WebTestCase
      */
     public function loadFixtures(array $classNames, $omName = null, $registryName = 'doctrine', $purgeMode = ORMPurger::PURGE_MODE_TRUNCATE)
     {
-        $omName = null;
-        $registryName = null;
+        unset($omName);
+        unset($registryName);
 
         self::$fixtures = FixtureUtility::loadFixtures($classNames, 'logical', $purgeMode)->getReferenceRepository();
     }

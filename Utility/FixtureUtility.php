@@ -60,20 +60,19 @@ class FixtureUtility
     private static function loadContainer($typeTest)
     {
         /** @var Kernel $kernel */
-        $kernel = null;
 
         switch ($typeTest) {
             case 'behat':
                 /** @noinspection PhpIncludeInspection */
                 require_once 'vendor/chaplean/unit-bundle/Chaplean/Bundle/UnitBundle/BehatKernel.php';
-                $kernelClass = FixtureUtility::BEHAT_KERNEL;
+                $kernelClass = self::BEHAT_KERNEL;
                 $kernel = new $kernelClass('behat', true);
                 break;
 
             case 'functional':
             case 'logical':
             default:
-                $kernelClass = FixtureUtility::DEFAULT_KERNEL;
+                $kernelClass = self::DEFAULT_KERNEL;
                 $kernel = new $kernelClass('test', true);
                 break;
         }
@@ -100,8 +99,8 @@ class FixtureUtility
     }
 
     /**
-     * @param array         $classNames    List of fully qualified class names of fixtures to load
-     * @param EntityManager $entityManager EntityManager to use
+     * @param array              $classNames    List of fully qualified class names of fixtures to load
+     * @param EntityManager|null $entityManager EntityManager to use
      *
      * @return ORMExecutor
      */

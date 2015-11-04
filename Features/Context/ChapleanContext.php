@@ -2,6 +2,7 @@
 
 namespace Chaplean\Bundle\UnitBundle\Features\Context;
 
+use Behat\Mink\Element\DocumentElement;
 use Behat\Mink\Element\NodeElement;
 use Behat\Mink\Exception\ExpectationException;
 use Behat\MinkExtension\Context\MinkContext;
@@ -196,11 +197,7 @@ class ChapleanContext extends MinkContext implements KernelAwareContext
         $page = $this->getSession()->getPage();
         $element = $page->find('css', $element);
 
-        if (!empty($element)) {
-            $element->click();
-        } else {
-            throw new \Exception(error_get_last() . ' ' . $page->getContent());
-        }
+        $this->iClick($element, $page);
     }
 
     /**
@@ -218,6 +215,18 @@ class ChapleanContext extends MinkContext implements KernelAwareContext
         $page = $this->getSession()->getPage();
         $element = $page->findLink($link);
 
+        $this->iClick($element, $page);
+    }
+
+    /**
+     * @param NodeElement     $element
+     * @param DocumentElement $page
+     *
+     * @return void
+     * @throws \Exception
+     */
+    private function iClick($element, $page)
+    {
         if (!empty($element)) {
             $element->click();
         } else {
@@ -259,6 +268,7 @@ class ChapleanContext extends MinkContext implements KernelAwareContext
      *
      * @return void
      * @throws \Behat\Mink\Exception\ExpectationException
+     * @throws \Exception
      */
     public function iWaitAjax()
     {
@@ -288,7 +298,7 @@ class ChapleanContext extends MinkContext implements KernelAwareContext
                 $this->getSession()->wait($waitTime, '(0 === jQuery.active && 0 === jQuery(\':animated\').length)');
             }
         } catch (Exception $e) {
-            var_dump($e->getMessage()); //Debug here.
+            throw new \Exception($e->getMessage()); //Debug here.
         }
     }
 

@@ -180,7 +180,7 @@ abstract class AbstractFixture extends BaseAbstractFixture
     /**
      * Set manager used in datafixtures
      *
-     * @param ObjectManager $manager
+     * @param ObjectManager|null $manager
      *
      * @return void
      */
