@@ -37,7 +37,9 @@
         "nelmio/alice": "^2.1"
     },
     "require-dev": {
-        "chaplean/coding-standard": "1.1.*"
+        "chaplean/coding-standard": "1.1.*",
+        "symfony/swiftmailer-bundle": "~2.3",
+        "chaplean/mailer-bundle": "^1.0"
     },
     "autoload": {
         "psr-0": {

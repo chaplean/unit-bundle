@@ -3,6 +3,7 @@
 namespace Chaplean\Bundle\UnitBundle\Features\Context;
 
 use Behat\Mink\Element\NodeElement;
+use Behat\Mink\Exception\ExpectationException;
 use Behat\MinkExtension\Context\MinkContext;
 use Behat\Symfony2Extension\Context\KernelAwareContext;
 use Behat\Symfony2Extension\Context\KernelDictionary;
@@ -12,6 +13,7 @@ use Doctrine\ORM\Mapping\ClassMetadata;
 use Symfony\Component\Config\Definition\Exception\Exception;
 use Symfony\Component\DependencyInjection\Container;
 use Symfony\Component\Finder\Finder;
+use Symfony\Component\Finder\SplFileInfo;
 
 /**
  * Class FeatureContext.
@@ -126,6 +128,24 @@ class ChapleanContext extends MinkContext implements KernelAwareContext
     public function assertVisibleElement($element)
     {
         $this->assertVisibleElements(1, $element);
+    }
+
+    /**
+     * @BeforeScenario
+     * @return void
+     */
+    public function cleanMailDir()
+    {
+        $mailDir = $this->getContainer()->getParameter('kernel.cache_dir') . '/swiftmailer/spool/default';
+
+        if (is_dir($mailDir)) {
+            $finder = Finder::create()->files()->in($mailDir);
+
+            /** @var SplFileInfo $file */
+            foreach ($finder as $file) {
+                unlink($file->getRealPath());
+            }
+        }
     }
 
     /**
@@ -254,6 +274,83 @@ class ChapleanContext extends MinkContext implements KernelAwareContext
     }
 
     /**
+     * @When /^I wait Ajax$/
+     *
+     * @return void
+     * @throws \Behat\Mink\Exception\ExpectationException
+     */
+    public function iWaitAjax()
+    {
+        $waitTime = 5000;
+        try {
+            //Wait for Angular
+            $angularIsNotUndefined = $this->getSession()->evaluateScript("return (typeof angular != 'undefined')");
+            if ($angularIsNotUndefined) {
+                //If you run the below code on a page ending in #, the page reloads.
+                if (substr($this->getSession()->getCurrentUrl(), -1) !== '#') {
+                    $angular = 'angular.getTestability(document.body).whenStable(function() {window.__testable = true;})';
+                    $this->getSession()->evaluateScript($angular);
+                    $this->getSession()->wait($waitTime, 'window.__testable == true');
+                }
+
+                /*
+                 * Angular JS AJAX can't be detected overall like in jQuery,
+                 * but we can check if any of the html elements are marked as showing up when ajax is running,
+                 * then wait for them to disappear.
+                 */
+                $ajaxRunningXPath = "xpath://*[@ng-if='ajax_running']";
+                $this->waitForElementToDisappear($waitTime, $ajaxRunningXPath);
+            }
+
+            //Wait for jQuery
+            if ($this->getSession()->evaluateScript("return (typeof jQuery != 'undefined')")) {
+                $this->getSession()->wait($waitTime, '(0 === jQuery.active && 0 === jQuery(\':animated\').length)');
+            }
+        } catch (Exception $e) {
+            var_dump($e->getMessage()); //Debug here.
+        }
+    }
+
+    /**
+     * @param integer $time
+     * @param string  $fullLocator
+     *
+     * @return void
+     * @throws \Behat\Mink\Exception\ExpectationException
+     */
+    public function waitForElementToDisappear($time, $fullLocator)
+    {
+        $page = $this->getSession()->getPage();
+        list($selector, $locator) = $this->expandLocatorDefintion($fullLocator);
+        $start = 1000 * microtime(true);
+        $end = $start + $time;
+        $element = $page->find($selector, $locator);
+        while (1000 * microtime(true) < $end && $element !== null) {
+            sleep(0.1);
+            $element = $page->find($selector, $locator);
+        }
+        if ($element !== null) {
+            $message = sprintf('Element %s has not disappeared after %sms timeout.', $locator, $time);
+            throw new ExpectationException($message, $this->getSession());
+        }
+    }
+
+    /**
+     * @param string $locator
+     * @return array
+     */
+    public function expandLocatorDefintion($locator)
+    {
+        if (substr($locator, 0, 6) == 'xpath:') {
+            return array('xpath', substr($locator, 6));
+        } elseif (substr($locator, 0, 4) == 'css:') {
+            return array('css', substr($locator, 4));
+        } else {
+            return array('named', $locator);
+        }
+    }
+
+    /**
      * Waiting ajax Angular call
      *
      * @When /^(?:|I )wait for Angular$/
@@ -357,5 +454,27 @@ class ChapleanContext extends MinkContext implements KernelAwareContext
     public static function resetLoadedDatabase()
     {
         self::$databaseLoaded = false;
+    }
+
+    /**
+     * @return mixed
+     * @throws \Exception
+     */
+    public function readMessages()
+    {
+        $messages = array();
+        $mailDir = $this->getContainer()->getParameter('kernel.cache_dir') . '/swiftmailer/spool/default';
+        $finder = Finder::create()->files()->in($mailDir);
+
+        if ($finder->count() == 0) {
+            return null;
+        }
+
+        /** @var SplFileInfo $file */
+        foreach ($finder as $file) {
+            $messages[] = unserialize($file->getContents());
+        }
+
+        return count($messages) == 1 ? $messages[0] : $messages;
     }
 }

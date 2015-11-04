@@ -36,3 +36,16 @@ doctrine:
     orm:
         auto_generate_proxy_classes: "%kernel.debug%"
         auto_mapping: true
+
+parameters:
+    chaplean_mailer:
+        bcc_address: 'unit@chaplean.com'
+        sender_address: 'unit@chaplean.com'
+        sender_name: 'Chaplean'
+        subject:
+            prefix: "[TEST]"
+        test: true
+
+swiftmailer:
+    spool:
+        type: file

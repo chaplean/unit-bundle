@@ -17,6 +17,15 @@ class TransactionTest extends LogicalTest
     /**
      * @return void
      */
+    public static function setUpBeforeClass()
+    {
+        self::$iWantDefaultData = false;
+        parent::setUpBeforeClass();
+    }
+
+    /**
+     * @return void
+     */
     public function testBeforeAnnotationEmptyFixtureLoaded()
     {
         $this->assertCount(0, $this->em->getRepository('ChapleanUnitBundle:Client')->findAll());

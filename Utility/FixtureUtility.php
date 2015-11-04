@@ -107,6 +107,13 @@ class FixtureUtility
      */
     public static function loadPartialFixtures(array $classNames, $entityManager)
     {
+        if (empty($entityManager)) {
+            /** @var Registry $registry */
+            $registry = self::$container->get('doctrine');
+            /** @var EntityManager $om */
+            $entityManager = $registry->getManager();
+        }
+
         $executor = new ORMExecutor($entityManager);
 
         $loader = self::getFixtureLoader(self::$container, $classNames);

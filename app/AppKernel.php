@@ -17,7 +17,7 @@ class AppKernel extends Kernel
      */
     public function registerBundles()
     {
-        return array(
+        $bundles = array(
             new Sensio\Bundle\FrameworkExtraBundle\SensioFrameworkExtraBundle(),
             new Symfony\Bundle\FrameworkBundle\FrameworkBundle(),
             new Doctrine\Bundle\DoctrineBundle\DoctrineBundle(),
@@ -26,6 +26,12 @@ class AppKernel extends Kernel
             new Chaplean\Bundle\UnitBundle\ChapleanUnitBundle(),
             new Liip\FunctionalTestBundle\LiipFunctionalTestBundle(),
         );
+
+        if (in_array($this->getEnvironment(), array('dev', 'test', 'behat'))) {
+            $bundles[] = new Symfony\Bundle\SwiftmailerBundle\SwiftmailerBundle();
+        }
+
+        return $bundles;
     }
 
     /**
