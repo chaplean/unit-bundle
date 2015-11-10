@@ -436,6 +436,38 @@ class ChapleanContext extends MinkContext implements KernelAwareContext
     }
 
     /**
+     * @When /^(?:|I )click on the first link in the last mail sent$/
+     *
+     * @return void
+     */
+    public function iClickLinkInMail()
+    {
+        $messages = $this->readMessages();
+
+        if (gettype($messages) == 'object') {
+            $messages = array($messages);
+        }
+
+        foreach ($messages as $message) {
+            /** @noinspection PhpUndefinedMethodInspection */
+            $body = array_keys($message->getBody());
+
+            $body = '<p class="navbar-btn"> <a href="/user/login" class="btn btn-success" role="button">Se connecter</a> </p>';
+
+            $matches = array();
+            preg_match('#<a[^>]*href="([^"]*)"[^>]*>.*</a>#', $body, $matches);
+
+            if (!isset($matches[1])) {
+                throw new Exception('No link found in the mail');
+            }
+
+            $this->visitPath($matches[1]);
+        }
+
+        throw new Exception('No link found in the mail');
+    }
+
+    /**
      * @BeforeFeature
      *
      * @return void
