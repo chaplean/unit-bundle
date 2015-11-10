@@ -1,4 +1,4 @@
 services:
     chaplean_unit.swiftmailer_cache:
         class: Chaplean\Bundle\UnitBundle\Utility\SwiftMailerCacheUtility
-        arguments: [%swiftmailer.spool.default.file.path%]
+        arguments: [@service_container]
