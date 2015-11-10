@@ -2,7 +2,9 @@
 
 namespace Chaplean\Bundle\UnitBundle\Test;
 
+use Chaplean\Bundle\UnitBundle\Utility\ContainerUtility;
 use Chaplean\Bundle\UnitBundle\Utility\FixtureUtility;
+use Chaplean\Bundle\UnitBundle\Utility\NamespaceUtility;
 use Chaplean\Bundle\UnitBundle\Utility\SwiftMailerCacheUtility;
 use Doctrine\Common\DataFixtures\Purger\ORMPurger;
 use Doctrine\Common\DataFixtures\ReferenceRepository;
@@ -10,8 +12,6 @@ use Doctrine\Entity;
 use Doctrine\ORM\EntityManager;
 use Liip\FunctionalTestBundle\Test\WebTestCase;
 use Symfony\Component\DependencyInjection\Container;
-use Symfony\Component\Finder\Finder;
-use Symfony\Component\Finder\SplFileInfo;
 
 /**
  * LogicalTest.
@@ -22,8 +22,6 @@ use Symfony\Component\Finder\SplFileInfo;
  */
 class LogicalTest extends WebTestCase
 {
-    const DIR_DEFAULT_DATA = 'DefaultData';
-
     /**
      * @var EntityManager
      */
@@ -78,45 +76,6 @@ class LogicalTest extends WebTestCase
     }
 
     /**
-     * @param string $context
-     *
-     * @return array
-     */
-    private static function getClassNamesByContext($context)
-    {
-        $defaultFixtures = array();
-        list($namespaceContext, $pathDatafixtures) = self::getNamespacePathDataFixtures(self::$namespace, $context);
-
-        if (is_dir($pathDatafixtures)) {
-            $files = Finder::create()->files()->in($pathDatafixtures);
-
-            /** @var SplFileInfo $file */
-            foreach ($files as $file) {
-                $defaultFixtures[] = $namespaceContext . str_replace('.php', '', $file->getFilename());
-            }
-        }
-
-        return $defaultFixtures;
-    }
-
-    /**
-     * @param string $namespace
-     * @param string $subfolder
-     *
-     * @return array
-     */
-    private static function getNamespacePathDataFixtures($namespace, $subfolder = '')
-    {
-        $classBundleName = str_replace(array('\\Bundle', '\\'), '', $namespace);
-        $classBundle = new \ReflectionClass($namespace . $classBundleName);
-        $path = str_replace($classBundleName . '.php', '', $classBundle->getFileName());
-        $pathDatafixtures = $path . 'DataFixtures/Liip/' . ($subfolder ? ($subfolder . '/') : $subfolder);
-        $namespaceDefaultContext = $namespace . 'DataFixtures\\Liip\\' . ($subfolder ? ($subfolder . '\\') : $subfolder);
-
-        return array($namespaceDefaultContext, $pathDatafixtures);
-    }
-
-    /**
      * @param string $reference
      *
      * @return Entity|null
@@ -135,7 +94,7 @@ class LogicalTest extends WebTestCase
      */
     public static function getStaticContainer()
     {
-        return FixtureUtility::getContainer('logical');
+        return ContainerUtility::getContainer('logical');
     }
 
     /**
@@ -150,7 +109,7 @@ class LogicalTest extends WebTestCase
             self::$namespace = $namespace;
         }
 
-        self::$defaultFixtures = self::getClassNamesByContext(self::DIR_DEFAULT_DATA);
+        self::$defaultFixtures = NamespaceUtility::getClassNamesByContext(self::$namespace, NamespaceUtility::DIR_DEFAULT_DATA);
 
         if (isset($namespaceBckup)) {
             self::$namespace = $namespaceBckup;
@@ -181,7 +140,7 @@ class LogicalTest extends WebTestCase
      */
     public static function loadFixturesByContext($context)
     {
-        $defaultFixtures = self::getClassNamesByContext($context);
+        $defaultFixtures = NamespaceUtility::getClassNamesByContext(self::$namespace, $context);
 
         if (!empty($defaultFixtures)) {
             if (empty(self::$fixtures)) {
@@ -209,7 +168,7 @@ class LogicalTest extends WebTestCase
      */
     public function loadPartialFixturesByContext($context)
     {
-        $classNames = self::getClassNamesByContext($context);
+        $classNames = NamespaceUtility::getClassNamesByContext(self::$namespace, $context);
         self::$fixtures = FixtureUtility::loadPartialFixtures($classNames, $this->em)->getReferenceRepository();
     }
 

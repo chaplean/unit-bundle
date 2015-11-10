@@ -2,6 +2,7 @@
 
 namespace Chaplean\Bundle\UnitBundle\Utility;
 
+use Symfony\Component\DependencyInjection\Container;
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\Finder\SplFileInfo;
 
@@ -22,11 +23,15 @@ class SwiftMailerCacheUtility
     /**
      * SwiftMailerCacheUtility constructor.
      *
-     * @param string $swiftmailerCacheDir
+     * @param Container $container
      */
-    public function __construct($swiftmailerCacheDir)
+    public function __construct($container)
     {
-        $this->swiftmailerCacheDir = $swiftmailerCacheDir;
+        try {
+            $this->swiftmailerCacheDir = $container->getParameter('swiftmailer.spool.default.file.path');
+        } catch (\Exception $e) {
+            $this->swiftmailerCacheDir = $container->getParameter('kernel.cache_dir') . '/switfmailer/';
+        }
     }
 
     /**

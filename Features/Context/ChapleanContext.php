@@ -8,9 +8,9 @@ use Behat\Mink\Exception\ExpectationException;
 use Behat\MinkExtension\Context\MinkContext;
 use Behat\Symfony2Extension\Context\KernelAwareContext;
 use Behat\Symfony2Extension\Context\KernelDictionary;
+use Chaplean\Bundle\UnitBundle\Utility\ContainerUtility;
 use Chaplean\Bundle\UnitBundle\Utility\FixtureUtility;
-use Doctrine\ORM\EntityManager;
-use Doctrine\ORM\Mapping\ClassMetadata;
+use Chaplean\Bundle\UnitBundle\Utility\NamespaceUtility;
 use Symfony\Component\Config\Definition\Exception\Exception;
 use Symfony\Component\DependencyInjection\Container;
 
@@ -29,12 +29,17 @@ class ChapleanContext extends MinkContext implements KernelAwareContext
     /**
      * @var array
      */
-    protected $dataFixtures = array();
+    protected static $dataFixtures = array();
 
     /**
      * @var boolean
      */
     protected static $databaseLoaded = false;
+
+    /**
+     * @var string
+     */
+    protected static $namespace;
 
     /**
      * Checks that passed Element has passed Class.
@@ -165,7 +170,7 @@ class ChapleanContext extends MinkContext implements KernelAwareContext
      */
     public static function getStaticContainer()
     {
-        return FixtureUtility::getContainer('behat');
+        return ContainerUtility::getContainer('behat');
     }
 
     /**
@@ -179,7 +184,7 @@ class ChapleanContext extends MinkContext implements KernelAwareContext
      */
     public function iAddDatafixture($datafixture)
     {
-        $this->dataFixtures[] = $datafixture;
+        self::$dataFixtures[] = $datafixture;
     }
 
     /**
@@ -372,39 +377,50 @@ class ChapleanContext extends MinkContext implements KernelAwareContext
     {
         if (!self::$databaseLoaded) {
             self::$databaseLoaded = true;
-            FixtureUtility::loadFixtures($this->dataFixtures, 'behat');
+            FixtureUtility::loadFixtures(self::$dataFixtures, 'behat');
         }
     }
 
     /**
      * Load default datafixture
      *
-     * @Given /^I load all default datafixture "(?P<namespace>(?:[^"]|\\")*)"$/
+     * @Given /^I load default datafixture with "(?P<namespace>(?:[^"]|\\")*)"$/
+     * @Given /^I load default datafixture$/
      *
      * @param string $namespace
      *
      * @return void
      */
-    public function iLoadAllDefaultDatafixture($namespace)
+    public function iLoadDefaultFixtures($namespace = null)
     {
-        $container = $this->getContainer();
-
-        /** @var EntityManager $em */
-        $em = $container->get('doctrine')->getManager();
-
-        $listTables = $em->getMetadataFactory()->getAllMetadata();
-        $datafixtures = array();
-
-        /** @var ClassMetadata $table */
-        foreach ($listTables as $table) {
-            $class = new \ReflectionClass($table->getName());
-            $fixtureClass = $namespace . '\\DataFixtures\\Liip\\Load' . $class->getShortName() . 'Data';
-            if (class_exists($fixtureClass)) {
-                $datafixtures[] = $fixtureClass;
-            }
+        if (!empty($namespace)) {
+            $namespaceBckup = self::$namespace;
+            self::$namespace = $namespace;
         }
 
-        FixtureUtility::loadFixtures($datafixtures, 'behat');
+        self::$dataFixtures = NamespaceUtility::getClassNamesByContext(self::$namespace, NamespaceUtility::DIR_DEFAULT_DATA);
+
+        if (isset($namespaceBckup)) {
+            self::$namespace = $namespaceBckup;
+        }
+
+        $this->iLoadDatabase();
+    }
+
+    /**
+     * Load default datafixture
+     *
+     * @Given /^I load context datafixture with "(?P<context>(?:[^"]|\\")*)"$/
+     *
+     * @param string $context
+     *
+     * @return void
+     */
+    public function iLoadByContextFixtures($context)
+    {
+        self::$dataFixtures = NamespaceUtility::getClassNamesByContext(self::$namespace, $context);
+
+        $this->iLoadDatabase();
     }
 
     /**
@@ -475,6 +491,10 @@ class ChapleanContext extends MinkContext implements KernelAwareContext
     public static function resetLoadedDatabase()
     {
         self::$databaseLoaded = false;
+
+        $file = new \ReflectionClass(get_called_class());
+        $name = $file->name;
+        self::$namespace = substr($name, 0, strpos($name, 'Features\Context'));
     }
 
     /**
