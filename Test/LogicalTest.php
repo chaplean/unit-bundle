@@ -231,7 +231,9 @@ class LogicalTest extends WebTestCase
      */
     public function tearDown()
     {
-        $this->em->rollback();
+        if (!$this->em->getConnection()->isAutoCommit()) {
+            $this->em->rollback();
+        }
 
         $this->em->getConnection()->close();
 
