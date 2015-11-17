@@ -48,6 +48,11 @@ class LogicalTest extends WebTestCase
     protected static $iWantDefaultData = true;
 
     /**
+     * @var boolean
+     */
+    protected static $databaseLoaded = false;
+
+    /**
      * @var string
      */
     protected static $namespace;
@@ -65,6 +70,7 @@ class LogicalTest extends WebTestCase
         $file = new \ReflectionClass(get_called_class());
         $name = $file->name;
         self::$namespace = substr($name, 0, strpos($name, 'Tests'));
+        self::$databaseLoaded = false;
     }
 
     /**
@@ -209,6 +215,7 @@ class LogicalTest extends WebTestCase
         }
 
         self::loadStaticFixtures(self::$defaultFixtures);
+        self::$databaseLoaded = true;
     }
 
     /**
@@ -218,7 +225,9 @@ class LogicalTest extends WebTestCase
      */
     public function setUp()
     {
-        $this->em->beginTransaction();
+        if (self::$databaseLoaded) {
+            $this->em->beginTransaction();
+        }
         $this->cleanMailDir();
 
         parent::setUp();
@@ -231,7 +240,7 @@ class LogicalTest extends WebTestCase
      */
     public function tearDown()
     {
-        if (!$this->em->getConnection()->isAutoCommit()) {
+        if (!$this->em->getConnection()->isAutoCommit() && self::$databaseLoaded) {
             $this->em->rollback();
         }
 
