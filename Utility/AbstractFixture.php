@@ -31,6 +31,56 @@ abstract class AbstractFixture extends BaseAbstractFixture
     private $matches;
 
     /**
+     * @var array
+     */
+    private $embeddedClass;
+
+    /**
+     * @param object $entity
+     *
+     * @return mixed
+     */
+    public function generateEntity($entity)
+    {
+        $this->initGenerator($entity);
+
+        $this->getEmbeddedClass($entity);
+        $fieldsRequired = $this->getRequiredField($entity);
+
+        foreach ($fieldsRequired as $field) {
+            // filed is a embedded
+            if (isset($field['originalClass'])) {
+                $field['fieldName'] = $field['declaredField'];
+                $field['isEmbeddedField'] = true;
+            }
+
+            list($getter, $setter) = $this->getAccessor($field);
+
+            if (!empty($entity->$getter())) {
+                continue;
+            }
+
+            switch (true) {
+                case $this->isEnum($field):
+                    $value = $this->getEnum($this->matches[1][0]);
+                    break;
+                case isset($field['joinColumns']):
+                    $value = $this->saveDependency($field['targetEntity']);
+                    break;
+                case isset($field['isEmbeddedField']) && $field['isEmbeddedField']:
+                    $value = $this->generateEntity(new $this->embeddedClass[$field['fieldName']]());
+                    break;
+                default:
+                    $value = $this->generator->getData(get_class($entity), $field['fieldName']);
+            }
+
+            $entity->$setter($value);
+        }
+
+        return $entity;
+    }
+
+    /**
      * Loads an Entity using stored reference
      * named by $name
      *
@@ -57,31 +107,9 @@ abstract class AbstractFixture extends BaseAbstractFixture
      */
     public function persist($entity, $manager = null)
     {
-        $this->initGenerator($entity);
         $this->setManager($manager);
 
-        $fieldsRequired = $this->getRequiredField($entity);
-
-        foreach ($fieldsRequired as $field) {
-            list($getter, $setter) = $this->getAccessor($field);
-
-            if (!empty($entity->$getter())) {
-                continue;
-            }
-
-            switch (true) {
-                case $this->isEnum($field):
-                    $value = $this->getEnum($this->matches[1][0]);
-                    break;
-                case isset($field['joinColumns']):
-                    $value = $this->saveDependency($field['targetEntity']);
-                    break;
-                default:
-                    $value = $this->generator->getData(get_class($entity), $field['fieldName']);
-            }
-
-            $entity->$setter($value);
-        }
+        $entity = $this->generateEntity($entity);
 
         $this->em->persist($entity);
     }
@@ -115,6 +143,23 @@ abstract class AbstractFixture extends BaseAbstractFixture
             return !empty($this->matches) && count($this->matches) > 0;
         } else {
             return false;
+        }
+    }
+
+    /**
+     * @param object $entity
+     *
+     * @return void
+     */
+    public function getEmbeddedClass($entity)
+    {
+        /** @var ClassMetadata $classMetadata */
+        $classMetadata = $this->em->getClassMetadata(get_class($entity));
+
+        $embeddedClasses = $classMetadata->embeddedClasses;
+
+        foreach ($embeddedClasses as $key => $embeddedClass) {
+            $this->embeddedClass[$key] = $embeddedClass['class'];
         }
     }
 
@@ -171,7 +216,7 @@ abstract class AbstractFixture extends BaseAbstractFixture
     public function getAccessor($field)
     {
         $fieldName = ucfirst(str_replace(' ', '', ucwords(str_replace('_', ' ', $field['fieldName']))));
-        $getter = 'get' . $fieldName;
+        $getter = ($field['type'] == 'boolean' ? 'is' : 'get') . $fieldName;
         $setter = 'set' . $fieldName;
 
         return array($getter, $setter);
