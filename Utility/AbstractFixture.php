@@ -65,7 +65,12 @@ abstract class AbstractFixture extends BaseAbstractFixture
                     $value = $this->getEnum($this->matches[1][0]);
                     break;
                 case isset($field['joinColumns']):
-                    $value = $this->saveDependency($field['targetEntity']);
+                    if ($this->generator->hasReference(get_class($entity), $field['fieldName'])) {
+                        $reference = $this->generator->getReference(get_class($entity), $field['fieldName']);
+                        $value = $this->getReference($reference);
+                    } else {
+                        $value = $this->saveDependency($field['targetEntity']);
+                    }
                     break;
                 case isset($field['isEmbeddedField']) && $field['isEmbeddedField']:
                     $value = $this->generateEntity(new $this->embeddedClass[$field['fieldName']]());

@@ -12,3 +12,8 @@ Chaplean\Bundle\UnitBundle\Entity\Product:
 Chaplean\Bundle\UnitBundle\Entity\Provider:
     properties:
         name: <firstname()>
+
+Chaplean\Bundle\UnitBundle\Entity\User:
+    properties:
+        email: <email()>
+        status: @status-[active, inactive, deleted]

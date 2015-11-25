@@ -205,6 +205,11 @@ class LogicalTest extends WebTestCase
      */
     public static function setUpBeforeClass()
     {
+        $args = func_get_args();
+        if (!empty($args)) {
+            $datafixtures = $args[0];
+        }
+
         parent::setUpBeforeClass();
         self::$defaultFixtures = array();
 
@@ -212,6 +217,10 @@ class LogicalTest extends WebTestCase
             self::loadDefaultFixtures();
         } else {
             self::$iWantDefaultData = true;
+        }
+
+        if (!empty($datafixtures)) {
+            self::$defaultFixtures = array_merge(self::$defaultFixtures, $datafixtures);
         }
 
         self::loadStaticFixtures(self::$defaultFixtures);
