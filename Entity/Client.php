@@ -177,30 +177,6 @@ class Client
     }
 
     /**
-     * Get status.
-     *
-     * @return Status
-     */
-    public function getStatus()
-    {
-        return $this->status;
-    }
-
-    /**
-     * Set status.
-     *
-     * @param Status $status
-     *
-     * @return self
-     */
-    public function setStatus($status)
-    {
-        $this->status = $status;
-
-        return $this;
-    }
-
-    /**
      * Get dateAdd.
      *
      * @return \DateTime

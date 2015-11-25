@@ -74,4 +74,28 @@ class Status
 
         return $this;
     }
+
+    /**
+     * Get user.
+     *
+     * @return ArrayCollection
+     */
+    public function getUser()
+    {
+        return $this->user;
+    }
+
+    /**
+     * Set user.
+     *
+     * @param ArrayCollection $user
+     *
+     * @return self
+     */
+    public function setUser($user)
+    {
+        $this->user = $user;
+
+        return $this;
+    }
 }
