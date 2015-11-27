@@ -2,6 +2,7 @@
 
 namespace Chaplean\Bundle\UnitBundle\Features\Context;
 
+use Behat\Behat\Hook\Scope\AfterStepScope;
 use Behat\Mink\Element\DocumentElement;
 use Behat\Mink\Element\NodeElement;
 use Behat\Mink\Exception\ExpectationException;
@@ -132,6 +133,24 @@ class ChapleanContext extends MinkContext implements KernelAwareContext
     public function assertVisibleElement($element)
     {
         $this->assertVisibleElements(1, $element);
+    }
+
+    /**
+     * @BeforeScenario
+     *
+     * @return void
+     */
+    public function beforeScenario()
+    {
+        $session = $this->getSession();
+        $driver = $session->getDriver();
+
+        $driver->resizeWindow(1920, 1080);
+        $hasBind = $session->evaluateScript('(typeof Function.prototype.bind == \'function\')');
+        if (!$hasBind) {
+            $bind = file_get_contents(__DIR__ . '/../../Resources/public/js/polyfill-bind.js');
+            $session->executeScript($bind);
+        }
     }
 
     /**
@@ -504,5 +523,33 @@ class ChapleanContext extends MinkContext implements KernelAwareContext
     public function readMessages()
     {
         return $this->getContainer()->get('chaplean_unit.swiftmailer_cache')->readMessages();
+    }
+
+    /**
+     * @When /^take a screenshot$/
+     *
+     * @return void
+     */
+    public function takeAScreenshot()
+    {
+        if ($this->getSession()->getDriver() instanceof \Behat\Mink\Driver\Selenium2Driver) {
+            $screenshot = $this->getSession()->getDriver()->getScreenshot();
+            file_put_contents('/tmp/screenshot.png', $screenshot);
+        }
+    }
+
+    /**
+     * @AfterStep
+     *
+     * @param AfterStepScope $scope
+     *
+     * @return void
+     * @throws \Exception
+     */
+    public function waitAjax(AfterStepScope $scope)
+    {
+        if (preg_match('/I? am on "(.?[^"]+)"/', $scope->getStep()->getText())) {
+            $this->iWaitAjax();
+        }
     }
 }
