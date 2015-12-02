@@ -39,6 +39,11 @@ class FixtureUtility
     private static $container;
 
     /**
+     * @var string
+     */
+    public static $namespace;
+
+    /**
      * @param array              $classNames    List of fully qualified class names of fixtures to load
      * @param EntityManager|null $entityManager EntityManager to use
      *
@@ -116,7 +121,7 @@ class FixtureUtility
                 break;
             case $driver instanceof MySqlDriver:
                 $executor = DatabaseUtility::initMySqlDatabase();
-                MySqlUtilityDriver::enableForeignKeyCheck($connection);
+                MySqlUtilityDriver::disableForeignKeyCheck($connection);
                 break;
             default:
                 $executor = null;
@@ -149,7 +154,7 @@ class FixtureUtility
         }
 
         if ($driver instanceof MySqlDriver) {
-            MySqlUtilityDriver::disableForeignKeyCheck($connection);
+            MySqlUtilityDriver::enableForeignKeyCheck($connection);
             $connection->close();
         }
 
@@ -206,5 +211,26 @@ class FixtureUtility
                 self::loadFixtureClass($loader, $dependency);
             }
         }
+    }
+
+    /**
+     * @param string|null $namespace
+     *
+     * @return array
+     */
+    public static function loadDefaultFixtures($namespace = null)
+    {
+        if (!empty($namespace)) {
+            $namespaceBckup = self::$namespace;
+            self::$namespace = $namespace;
+        }
+
+        $dataFixtures = NamespaceUtility::getClassNamesByContext(self::$namespace, NamespaceUtility::DIR_DEFAULT_DATA);
+
+        if (isset($namespaceBckup)) {
+            self::$namespace = $namespaceBckup;
+        }
+
+        return $dataFixtures;
     }
 }

@@ -3,6 +3,7 @@
 namespace Chaplean\Bundle\UnitBundle\Features\Context;
 
 use Behat\Behat\Hook\Scope\AfterStepScope;
+use Behat\Mink\Driver\Selenium2Driver;
 use Behat\Mink\Element\DocumentElement;
 use Behat\Mink\Element\NodeElement;
 use Behat\Mink\Exception\ExpectationException;
@@ -36,11 +37,6 @@ class ChapleanContext extends MinkContext implements KernelAwareContext
      * @var boolean
      */
     protected static $databaseLoaded = false;
-
-    /**
-     * @var string
-     */
-    protected static $namespace;
 
     /**
      * Checks that passed Element has passed Class.
@@ -412,18 +408,7 @@ class ChapleanContext extends MinkContext implements KernelAwareContext
      */
     public function iLoadDefaultFixtures($namespace = null)
     {
-        if (!empty($namespace)) {
-            $namespaceBckup = self::$namespace;
-            self::$namespace = $namespace;
-        }
-
-        self::$dataFixtures = NamespaceUtility::getClassNamesByContext(self::$namespace, NamespaceUtility::DIR_DEFAULT_DATA);
-
-        if (isset($namespaceBckup)) {
-            self::$namespace = $namespaceBckup;
-        }
-
-        $this->iLoadDatabase();
+        self::$dataFixtures = FixtureUtility::loadDefaultFixtures($namespace);
     }
 
     /**
@@ -437,7 +422,7 @@ class ChapleanContext extends MinkContext implements KernelAwareContext
      */
     public function iLoadByContextFixtures($context)
     {
-        self::$dataFixtures = NamespaceUtility::getClassNamesByContext(self::$namespace, $context);
+        self::$dataFixtures = NamespaceUtility::getClassNamesByContext(FixtureUtility::$namespace, $context);
 
         $this->iLoadDatabase();
     }
@@ -487,8 +472,6 @@ class ChapleanContext extends MinkContext implements KernelAwareContext
             /** @noinspection PhpUndefinedMethodInspection */
             $body = array_keys($message->getBody());
 
-            $body = '<p class="navbar-btn"> <a href="/user/login" class="btn btn-success" role="button">Se connecter</a> </p>';
-
             $matches = array();
             preg_match('#<a[^>]*href="([^"]*)"[^>]*>.*</a>#', $body, $matches);
 
@@ -513,7 +496,7 @@ class ChapleanContext extends MinkContext implements KernelAwareContext
 
         $file = new \ReflectionClass(get_called_class());
         $name = $file->name;
-        self::$namespace = substr($name, 0, strpos($name, 'Features\Context'));
+        FixtureUtility::$namespace = substr($name, 0, strpos($name, 'Features\Context'));
     }
 
     /**
@@ -532,7 +515,7 @@ class ChapleanContext extends MinkContext implements KernelAwareContext
      */
     public function takeAScreenshot()
     {
-        if ($this->getSession()->getDriver() instanceof \Behat\Mink\Driver\Selenium2Driver) {
+        if ($this->getSession()->getDriver() instanceof Selenium2Driver) {
             $screenshot = $this->getSession()->getDriver()->getScreenshot();
             file_put_contents('/tmp/screenshot.png', $screenshot);
         }

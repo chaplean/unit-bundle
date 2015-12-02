@@ -53,11 +53,6 @@ class LogicalTest extends WebTestCase
     protected static $databaseLoaded = false;
 
     /**
-     * @var string
-     */
-    protected static $namespace;
-
-    /**
      * Construct
      */
     public function __construct()
@@ -69,7 +64,7 @@ class LogicalTest extends WebTestCase
 
         $file = new \ReflectionClass(get_called_class());
         $name = $file->name;
-        self::$namespace = substr($name, 0, strpos($name, 'Tests'));
+        FixtureUtility::$namespace = substr($name, 0, strpos($name, 'Tests'));
         self::$databaseLoaded = false;
     }
 
@@ -110,16 +105,7 @@ class LogicalTest extends WebTestCase
      */
     public static function loadDefaultFixtures($namespace = null)
     {
-        if (!empty($namespace)) {
-            $namespaceBckup = self::$namespace;
-            self::$namespace = $namespace;
-        }
-
-        self::$defaultFixtures = NamespaceUtility::getClassNamesByContext(self::$namespace, NamespaceUtility::DIR_DEFAULT_DATA);
-
-        if (isset($namespaceBckup)) {
-            self::$namespace = $namespaceBckup;
-        }
+        self::$defaultFixtures = FixtureUtility::loadDefaultFixtures($namespace);
     }
 
     /**
@@ -146,7 +132,7 @@ class LogicalTest extends WebTestCase
      */
     public static function loadFixturesByContext($context)
     {
-        $defaultFixtures = NamespaceUtility::getClassNamesByContext(self::$namespace, $context);
+        $defaultFixtures = NamespaceUtility::getClassNamesByContext(FixtureUtility::$namespace, $context);
 
         if (!empty($defaultFixtures)) {
             if (empty(self::$fixtures)) {
@@ -174,7 +160,7 @@ class LogicalTest extends WebTestCase
      */
     public function loadPartialFixturesByContext($context)
     {
-        $classNames = NamespaceUtility::getClassNamesByContext(self::$namespace, $context);
+        $classNames = NamespaceUtility::getClassNamesByContext(FixtureUtility::$namespace, $context);
         self::$fixtures = FixtureUtility::loadPartialFixtures($classNames, $this->em)->getReferenceRepository();
     }
 

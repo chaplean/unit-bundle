@@ -20,7 +20,7 @@ class MySqlUtilityDriver
      */
     public static function enableForeignKeyCheck($connection)
     {
-        $connection->query(sprintf('SET FOREIGN_KEY_CHECKS=0'));
+        $connection->query(sprintf('SET FOREIGN_KEY_CHECKS=1'));
     }
 
     /**
