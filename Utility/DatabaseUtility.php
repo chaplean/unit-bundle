@@ -3,6 +3,7 @@
 namespace Chaplean\Bundle\UnitBundle\Utility;
 
 use Chaplean\Bundle\UnitBundle\Utility\Driver\SqliteUtilityDriver;
+use Doctrine\Bundle\DoctrineBundle\Registry;
 use Doctrine\Common\DataFixtures\Executor\ORMExecutor;
 use Doctrine\Common\DataFixtures\ProxyReferenceRepository;
 use Doctrine\Common\DataFixtures\ReferenceRepository;
@@ -47,18 +48,18 @@ class DatabaseUtility
     private static $params;
 
     /**
-     * @param string        $typeTest
-     * @param EntityManager $om
+     * @param string   $typeTest
+     * @param Registry $registry
      *
      * @return void
      */
-    public static function initDatabase($typeTest, $om)
+    public static function initDatabase($typeTest, $registry)
     {
         self::$typeTest = $typeTest;
-        self::$om = $om;
+        self::$om = $registry->getManager();
 
         /** @var Connection $connection */
-        $connection = $om->getConnection();
+        $connection = self::$om->getConnection();
         $params = $connection->getParams();
 
         if (isset($params['master'])) {
@@ -113,7 +114,8 @@ class DatabaseUtility
     }
 
     /**
-     * @return null
+     * @return void
+     * @throws \Doctrine\DBAL\DBALException
      */
     public static function initMySqlDatabase()
     {
@@ -130,8 +132,6 @@ class DatabaseUtility
         }
 
         self::createSchemaDatabase(self::$om);
-
-        return null;
     }
 
     /**

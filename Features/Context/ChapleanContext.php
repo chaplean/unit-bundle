@@ -138,15 +138,15 @@ class ChapleanContext extends MinkContext implements KernelAwareContext
      */
     public function beforeScenario()
     {
-        $session = $this->getSession();
-        $driver = $session->getDriver();
-
-        $driver->resizeWindow(1920, 1080);
-        $hasBind = $session->evaluateScript('(typeof Function.prototype.bind == \'function\')');
-        if (!$hasBind) {
-            $bind = file_get_contents(__DIR__ . '/../../Resources/public/js/polyfill-bind.js');
-            $session->executeScript($bind);
-        }
+//        $session = $this->getSession();
+//        $driver = $session->getDriver();
+//
+//        $driver->resizeWindow(1920, 1080);
+//        $hasBind = $session->evaluateScript('(typeof Function.prototype.bind == \'function\')');
+//        if (!$hasBind) {
+//            $bind = file_get_contents(__DIR__ . '/../../Resources/public/js/polyfill-bind.js');
+//
+//        }
     }
 
     /**
@@ -239,8 +239,8 @@ class ChapleanContext extends MinkContext implements KernelAwareContext
     }
 
     /**
-     * @param NodeElement     $element
-     * @param DocumentElement $page
+     * @param null|NodeElement $element
+     * @param DocumentElement  $page
      *
      * @return void
      * @throws \Exception

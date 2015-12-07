@@ -108,7 +108,7 @@ class FixtureUtility
 
         self::$referenceRepository = new ProxyReferenceRepository($om);
 
-        DatabaseUtility::initDatabase($typeTest, $om);
+        DatabaseUtility::initDatabase($typeTest, $registry);
         $connection = $om->getConnection();
         $driver = $connection->getDriver();
         $name = DatabaseUtility::getParams()['dbname'];
@@ -120,7 +120,7 @@ class FixtureUtility
                 $executor = DatabaseUtility::initSqliteDatabase($classNames);
                 break;
             case $driver instanceof MySqlDriver:
-                $executor = DatabaseUtility::initMySqlDatabase();
+                DatabaseUtility::initMySqlDatabase();
                 MySqlUtilityDriver::disableForeignKeyCheck($connection);
                 break;
             default:

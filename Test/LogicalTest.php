@@ -62,9 +62,7 @@ class LogicalTest extends WebTestCase
         $this->em = $this->getContainer()->get('doctrine')->getManager();
         $this->swiftmailerCacheUtility = $this->getContainer()->get('chaplean_unit.swiftmailer_cache');
 
-        $file = new \ReflectionClass(get_called_class());
-        $name = $file->name;
-        FixtureUtility::$namespace = substr($name, 0, strpos($name, 'Tests'));
+        self::resetNamespaceFixtures();
         self::$databaseLoaded = false;
     }
 
@@ -182,6 +180,26 @@ class LogicalTest extends WebTestCase
     public function readMessages()
     {
         return $this->swiftmailerCacheUtility->readMessages();
+    }
+
+    /**
+     * @return void
+     */
+    public function resetNamespaceFixtures()
+    {
+        $file = new \ReflectionClass(get_called_class());
+        $name = $file->name;
+        FixtureUtility::$namespace = substr($name, 0, strpos($name, 'Tests'));
+    }
+
+    /**
+     * @param string $namespace
+     *
+     * @return void
+     */
+    public static function setNamespaceFixtures($namespace)
+    {
+        FixtureUtility::$namespace = $namespace;
     }
 
     /**

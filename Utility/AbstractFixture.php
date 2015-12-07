@@ -56,7 +56,7 @@ abstract class AbstractFixture extends BaseAbstractFixture
 
             list($getter, $setter) = $this->getAccessor($field);
 
-            if (!empty($entity->$getter())) {
+            if (!empty($entity->$getter()) || $entity->$getter() !== null) {
                 continue;
             }
 
