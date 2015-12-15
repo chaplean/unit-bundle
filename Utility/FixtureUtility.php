@@ -2,8 +2,8 @@
 
 namespace Chaplean\Bundle\UnitBundle\Utility;
 
+use Chaplean\Bundle\UnitBundle\Utility\Driver\MySqlUtilityDriver;
 use Doctrine\Bundle\DoctrineBundle\Registry;
-use Doctrine\Common\Cache\Cache;
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 use Doctrine\Common\DataFixtures\Executor\ORMExecutor;
 use Doctrine\Common\DataFixtures\Loader;
@@ -11,10 +11,8 @@ use Doctrine\Common\DataFixtures\ProxyReferenceRepository;
 use Doctrine\Common\DataFixtures\Purger\ORMPurger;
 use Doctrine\DBAL\Driver\PDOMySql\Driver as MySqlDriver;
 use Doctrine\DBAL\Driver\PDOSqlite\Driver as SqliteDriver;
-use Doctrine\DBAL\DriverManager;
-use Doctrine\ORM\Tools\SchemaTool;
+use Doctrine\ORM\EntityManager;
 use Symfony\Component\DependencyInjection\Container;
-use Symfony\Component\HttpKernel\Kernel;
 
 /**
  * FixtureUtility.php.
@@ -25,13 +23,15 @@ use Symfony\Component\HttpKernel\Kernel;
  */
 class FixtureUtility
 {
-    const BEHAT_KERNEL = '\BehatKernel';
-    const DEFAULT_KERNEL = '\AppKernel';
-
     /**
      * @var array
      */
-    private static $cachedMetadatas = array();
+    private static $loaded;
+
+    /**
+     * @var ProxyReferenceRepository
+     */
+    private static $referenceRepository;
 
     /**
      * @var Container
@@ -39,49 +39,41 @@ class FixtureUtility
     private static $container;
 
     /**
-     * Load container
-     *
-     * @param string $typeTest Define a type of test (logical, functionnal or behat)
-     *
-     * @return void
+     * @var string
      */
-    private static function loadContainer($typeTest)
-    {
-        /** @var Kernel $kernel */
-        $kernel = null;
-
-        switch ($typeTest) {
-            case 'behat':
-                /** @noinspection PhpIncludeInspection */
-                require_once 'vendor/chaplean/unit-bundle/Chaplean/Bundle/UnitBundle/BehatKernel.php';
-                $kernelClass = FixtureUtility::BEHAT_KERNEL;
-                $kernel = new $kernelClass('behat', true);
-                break;
-
-            case 'functional':
-            case 'logical':
-            default:
-                $kernelClass = FixtureUtility::DEFAULT_KERNEL;
-                $kernel = new $kernelClass('test', true);
-                break;
-        }
-
-        $kernel->boot();
-
-        self::$container = $kernel->getContainer();
-    }
+    public static $namespace;
 
     /**
-     * Return the container
+     * @param array              $classNames    List of fully qualified class names of fixtures to load
+     * @param EntityManager|null $entityManager EntityManager to use
      *
-     * @param string $typeTest Define a type of test (logical, functionnal or behat)
-     *
-     * @return Container
+     * @return ORMExecutor
      */
-    public static function getContainer($typeTest)
+    public static function loadPartialFixtures(array $classNames, $entityManager)
     {
-        self::loadContainer($typeTest);
-        return self::$container;
+        if (empty($entityManager)) {
+            /** @var Registry $registry */
+            $registry = self::$container->get('doctrine');
+            /** @var EntityManager $om */
+            $entityManager = $registry->getManager();
+        }
+
+        $executor = new ORMExecutor($entityManager);
+
+        $loader = self::getFixtureLoader(self::$container, $classNames);
+
+        $fixtures = array();
+        foreach ($loader->getFixtures() as $fixture) {
+            $fixtureClass = get_class($fixture);
+            if (!in_array($fixtureClass, self::$loaded)) {
+                $fixtures[] = new $fixtureClass();
+            }
+        }
+
+        $executor->setReferenceRepository(self::$referenceRepository);
+        $executor->execute($fixtures, true);
+
+        return $executor;
     }
 
     /**
@@ -100,218 +92,73 @@ class FixtureUtility
      * Depends on the doctrine data-fixtures library being available in the
      * class path.
      *
-     * @param array   $classNames   List of fully qualified class names of fixtures to load
-     * @param string  $typeTest     Name of type test (logical, functional or behat)
-     * @param string  $omName       The name of object manager to use
-     * @param string  $registryName The service id of manager registry to use
-     * @param integer $purgeMode    Sets the ORM purge mode
+     * @param array          $classNames List of fully qualified class names of fixtures to load
+     * @param string         $typeTest   Name of type test (logical, functional or behat)
+     * @param integer|string $purgeMode  Sets the ORM purge mode
      *
      * @return ORMExecutor
      */
-    public static function loadFixtures(array $classNames, $typeTest, $omName = null, $registryName = 'doctrine', $purgeMode = ORMPurger::PURGE_MODE_DELETE)
+    public static function loadFixtures(array $classNames, $typeTest, $purgeMode = ORMPurger::PURGE_MODE_DELETE)
     {
-        self::loadContainer($typeTest);
-        $registry = self::$container->get($registryName);
+        self::$container = ContainerUtility::getContainer($typeTest);
+        /** @var Registry $registry */
+        $registry = self::$container->get('doctrine');
+        /** @var EntityManager $om */
+        $om = $registry->getManager();
 
-        if ($registry instanceof Registry) {
-            $om = $registry->getManager($omName);
-            $type = $registry->getName();
-        } else {
-            $om = $registry->getEntityManager($omName);
-            $type = 'ORM';
-        }
+        self::$referenceRepository = new ProxyReferenceRepository($om);
 
-        $executorClass = 'PHPCR' === $type && class_exists(
-            'Doctrine\Bundle\PHPCRBundle\DataFixtures\PHPCRExecutor'
-        ) ? 'Doctrine\Bundle\PHPCRBundle\DataFixtures\PHPCRExecutor' : 'Doctrine\\Common\\DataFixtures\\Executor\\' . $type . 'Executor';
-
-        $referenceRepository = new ProxyReferenceRepository($om);
-
-        /** @var Cache $cacheDriver */
-        $cacheDriver = $om->getMetadataFactory()
-            ->getCacheDriver();
-
-        if ($cacheDriver) {
-            $cacheDriver->deleteAll();
-        }
-
+        DatabaseUtility::initDatabase($typeTest, $registry);
         $connection = $om->getConnection();
         $driver = $connection->getDriver();
+        $name = DatabaseUtility::getParams()['dbname'];
 
-        if ('ORM' === $type) {
-            $params = $connection->getParams();
-            if (isset($params['master'])) {
-                $params = $params['master'];
-            }
+        $executor = null;
 
-            $name = isset($params['path']) ? $params['path'] : (isset($params['dbname']) ? $params['dbname'] : false);
-            if (!$name) {
-                throw new \InvalidArgumentException(
-                    "Connection does not contain a 'path' or 'dbname' parameter and cannot be dropped."
-                );
-            }
-
-            if ($driver instanceof SqliteDriver) {
-                if (self::$container->getParameter('liip_functional_test.cache_sqlite_db')) {
-                    $backup = self::$container->getParameter('kernel.cache_dir') . '/test_' . md5(serialize(self::$cachedMetadatas[$omName]) . serialize($classNames)) . '.db';
-                    if (file_exists($backup) && file_exists($backup . '.ser') && self::isBackupUpToDate($classNames, $backup)) {
-                        $om->flush();
-                        $om->clear();
-
-                        $executor = new $executorClass($om);
-                        $executor->setReferenceRepository($referenceRepository);
-                        $executor->getReferenceRepository()
-                            ->load($backup);
-
-                        copy($backup, $name);
-
-                        return $executor;
-                    }
-                }
-
-                self::createSchemaDatabase($omName, $om);
-
-                $executor = new $executorClass($om);
-                $executor->setReferenceRepository($referenceRepository);
-            } elseif ($driver instanceof MySqlDriver) {
-                unset($params['dbname']);
-
-                $tmpConnection = DriverManager::getConnection($params);
-                $shouldNotCreateDatabase = in_array($name,
-                                                    $tmpConnection->getSchemaManager()
-                                                        ->listDatabases());
-
-                if (!$shouldNotCreateDatabase) {
-                    $tmpConnection->getSchemaManager()
-                        ->createDatabase($name);
-                }
-
-                self::createSchemaDatabase($omName, $om);
-
-                $connection->query(sprintf('SET FOREIGN_KEY_CHECKS=0'));
-            }
+        switch (true) {
+            case $driver instanceof SqliteDriver:
+                $executor = DatabaseUtility::initSqliteDatabase($classNames);
+                break;
+            case $driver instanceof MySqlDriver:
+                DatabaseUtility::initMySqlDatabase();
+                MySqlUtilityDriver::disableForeignKeyCheck($connection);
+                break;
+            default:
+                $executor = null;
         }
 
         if (empty($executor)) {
-            $purgerClass = 'Doctrine\\Common\\DataFixtures\\Purger\\' . $type . 'Purger';
-            if ('PHPCR' === $type) {
-                $purger = new $purgerClass($om);
-                $initManager = self::$container->has('doctrine_phpcr.initializer_manager') ? self::$container->get(
-                    'doctrine_phpcr.initializer_manager'
-                ) : null;
-
-                $executor = new $executorClass($om, $purger, $initManager);
-            } else {
-                $purger = new $purgerClass();
-                if (null !== $purgeMode) {
-                    $purger->setPurgeMode($purgeMode);
-                }
-
-                $executor = new $executorClass($om, $purger);
+            $purger = new ORMPurger();
+            if (null !== $purgeMode) {
+                $purger->setPurgeMode($purgeMode);
             }
 
-            $executor->setReferenceRepository($referenceRepository);
+            $executor = new ORMExecutor($om, $purger);
+
+            $executor->setReferenceRepository(self::$referenceRepository);
             $executor->purge();
         }
 
         $loader = self::getFixtureLoader(self::$container, $classNames);
+        self::$loaded = array();
+        foreach ($loader->getFixtures() as $fixture) {
+            self::$loaded[] = get_class($fixture);
+        }
 
         $executor->execute($loader->getFixtures(), true);
 
         if (isset($name) && isset($backup)) {
-            $executor->getReferenceRepository()
-                ->save($backup);
+            /** @noinspection PhpUndefinedMethodInspection */
+            $executor->getReferenceRepository()->save($backup);
             copy($name, $backup);
         }
 
         if ($driver instanceof MySqlDriver) {
-            // re enable check foreign key
-            $connection->query(sprintf('SET FOREIGN_KEY_CHECKS=0'));
+            MySqlUtilityDriver::enableForeignKeyCheck($connection);
             $connection->close();
         }
 
         return $executor;
-    }
-
-    /**
-     * Create schema database
-     *
-     * @param string                               $omName
-     * @param \Doctrine\ORM\EntityManagerInterface $om
-     *
-     * @return void
-     * @throws \Doctrine\ORM\Tools\ToolsException
-     */
-    private static function createSchemaDatabase($omName, $om)
-    {
-        if (!isset(self::$cachedMetadatas[$omName])) {
-            self::$cachedMetadatas[$omName] = $om->getMetadataFactory()
-                ->getAllMetadata();
-            usort(
-                self::$cachedMetadatas[$omName],
-                function ($a, $b) {
-                    return strcmp($a->name, $b->name);
-                }
-            );
-        }
-        $metadatas = self::$cachedMetadatas[$omName];
-
-        $schemaTool = new SchemaTool($om);
-        $schemaTool->dropDatabase();
-
-        if (!empty($metadatas)) {
-            $schemaTool->createSchema($metadatas);
-        }
-    }
-
-    /**
-     * Determine if the Fixtures that define a database backup have been
-     * modified since the backup was made.
-     *
-     * @param array  $classNames The fixture classnames to check
-     * @param string $backup     The fixture backup SQLite database file path
-     *
-     * @return bool TRUE if the backup was made since the modifications to the
-     * fixtures; FALSE otherwise
-     */
-    private static function isBackupUpToDate(array $classNames, $backup)
-    {
-        $backupLastModifiedDateTime = new \DateTime();
-        $backupLastModifiedDateTime->setTimestamp(filemtime($backup));
-
-        foreach ($classNames as &$className) {
-            $fixtureLastModifiedDateTime = self::getFixtureLastModified($className);
-            if ($backupLastModifiedDateTime < $fixtureLastModifiedDateTime) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    /**
-     * This function finds the time when the data blocks of a class definition
-     * file were being written to, that is, the time when the content of the
-     * file was changed.
-     *
-     * @param string $class The fully qualified class name of the fixture class to
-     *                      check modification date on.
-     *
-     * @return \DateTime|null
-     */
-    private static function getFixtureLastModified($class)
-    {
-        $lastModifiedDateTime = null;
-
-        $reflClass = new \ReflectionClass($class);
-        $classFileName = $reflClass->getFileName();
-
-        if (file_exists($classFileName)) {
-            $lastModifiedDateTime = new \DateTime();
-            $lastModifiedDateTime->setTimestamp(filemtime($classFileName));
-        }
-
-        return $lastModifiedDateTime;
     }
 
     /**
@@ -364,5 +211,26 @@ class FixtureUtility
                 self::loadFixtureClass($loader, $dependency);
             }
         }
+    }
+
+    /**
+     * @param string|null $namespace
+     *
+     * @return array
+     */
+    public static function loadDefaultFixtures($namespace = null)
+    {
+        if (!empty($namespace)) {
+            $namespaceBckup = self::$namespace;
+            self::$namespace = $namespace;
+        }
+
+        $dataFixtures = NamespaceUtility::getClassNamesByContext(self::$namespace, NamespaceUtility::DIR_DEFAULT_DATA);
+
+        if (isset($namespaceBckup)) {
+            self::$namespace = $namespaceBckup;
+        }
+
+        return $dataFixtures;
     }
 }

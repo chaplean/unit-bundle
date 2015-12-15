@@ -2,10 +2,13 @@
 
 namespace Chaplean\Bundle\UnitBundle\Test;
 
+use Chaplean\Bundle\UnitBundle\Utility\ContainerUtility;
 use Chaplean\Bundle\UnitBundle\Utility\FixtureUtility;
-use Doctrine\Common\DataFixtures\Executor\ORMExecutor;
+use Chaplean\Bundle\UnitBundle\Utility\NamespaceUtility;
+use Chaplean\Bundle\UnitBundle\Utility\SwiftMailerCacheUtility;
 use Doctrine\Common\DataFixtures\Purger\ORMPurger;
 use Doctrine\Common\DataFixtures\ReferenceRepository;
+use Doctrine\Entity;
 use Doctrine\ORM\EntityManager;
 use Liip\FunctionalTestBundle\Test\WebTestCase;
 use Symfony\Component\DependencyInjection\Container;
@@ -25,50 +28,62 @@ class LogicalTest extends WebTestCase
     protected $em;
 
     /**
+     * @var SwiftMailerCacheUtility
+     */
+    protected $swiftmailerCacheUtility;
+
+    /**
      * @var ReferenceRepository
      */
-    protected $fixtures;
+    protected static $fixtures;
+
+    /**
+     * @var array
+     */
+    protected static $defaultFixtures;
+
+    /**
+     * @var boolean
+     */
+    protected static $iWantDefaultData = true;
+
+    /**
+     * @var boolean
+     */
+    protected static $databaseLoaded = false;
 
     /**
      * Construct
-     *
-     * @param string $name
-     * @param array  $data
-     * @param string $dataName
      */
-    public function __construct($name = null, array $data = array(), $dataName = '')
+    public function __construct()
     {
-        parent::__construct($name, $data, $dataName);
+        parent::__construct();
 
-        $this->em = $this->getContainer()
-                         ->get('doctrine')
-                         ->getManager();
+        $this->em = $this->getContainer()->get('doctrine')->getManager();
+        $this->swiftmailerCacheUtility = $this->getContainer()->get('chaplean_unit.swiftmailer_cache');
+
+        self::resetNamespaceFixtures();
+        self::$databaseLoaded = false;
     }
 
     /**
-     * @param array   $classNames   List of fully qualified class names of fixtures to load
-     * @param string  $omName       The name of object manager to use
-     * @param string  $registryName The service id of manager registry to use
-     * @param integer $purgeMode    Sets the ORM purge mode
-     *
-     * @return ORMExecutor
+     * @return void
      */
-    public static function loadStaticFixtures(array $classNames, $omName = null, $registryName = 'doctrine', $purgeMode = ORMPurger::PURGE_MODE_TRUNCATE)
+    public function cleanMailDir()
     {
-        return FixtureUtility::loadFixtures($classNames, 'logical', $omName, $registryName, $purgeMode);
+        $this->swiftmailerCacheUtility->cleanMailDir();
     }
 
     /**
-     * @param array   $classNames   List of fully qualified class names of fixtures to load
-     * @param string  $omName       The name of object manager to use
-     * @param string  $registryName The service id of manager registry to use
-     * @param integer $purgeMode    Sets the ORM purge mode
+     * @param string $reference
      *
-     * @return ORMExecutor
+     * @return Entity|null
      */
-    public function loadFixtures(array $classNames, $omName = null, $registryName = 'doctrine', $purgeMode = ORMPurger::PURGE_MODE_TRUNCATE)
+    public function getRealEntity($reference)
     {
-        return FixtureUtility::loadFixtures($classNames, 'logical', $omName, $registryName, $purgeMode);
+        $entity = self::$fixtures->getReference($reference);
+
+        return $this->em->find(get_class($entity), $entity->getId());
     }
 
     /**
@@ -78,19 +93,172 @@ class LogicalTest extends WebTestCase
      */
     public static function getStaticContainer()
     {
-        return FixtureUtility::getContainer('logical');
+        return ContainerUtility::getContainer('logical');
     }
 
     /**
-     * Close connection to avoid "Too Many Connection" error
+     * @param string|null $namespace
+     *
+     * @return void
+     */
+    public static function loadDefaultFixtures($namespace = null)
+    {
+        self::$defaultFixtures = FixtureUtility::loadDefaultFixtures($namespace);
+    }
+
+    /**
+     * @param array    $classNames
+     * @param string   $omName
+     * @param string   $registryName
+     * @param int|null $purgeMode
+     *
+     * @return void
+     * @deprecated Use loadStaticFixtures ! Transaction is active by function test
+     */
+    public function loadFixtures(array $classNames, $omName = null, $registryName = 'doctrine', $purgeMode = ORMPurger::PURGE_MODE_TRUNCATE)
+    {
+        unset($omName);
+        unset($registryName);
+
+        self::$fixtures = FixtureUtility::loadFixtures($classNames, 'logical', $purgeMode)->getReferenceRepository();
+    }
+
+    /**
+     * @param string $context
+     *
+     * @return void
+     */
+    public static function loadFixturesByContext($context)
+    {
+        $defaultFixtures = NamespaceUtility::getClassNamesByContext(FixtureUtility::$namespace, $context);
+
+        if (!empty($defaultFixtures)) {
+            if (empty(self::$fixtures)) {
+                self::loadStaticFixtures($defaultFixtures);
+            } else {
+                self::$fixtures = FixtureUtility::loadPartialFixtures($defaultFixtures, null)->getReferenceRepository();
+            }
+        }
+    }
+
+    /**
+     * @param array $classNames List of fully qualified class names of fixtures to load
+     *
+     * @return void
+     */
+    public function loadPartialFixtures(array $classNames)
+    {
+        self::$fixtures = FixtureUtility::loadPartialFixtures($classNames, $this->em)->getReferenceRepository();
+    }
+
+    /**
+     * @param string $context
+     *
+     * @return void
+     */
+    public function loadPartialFixturesByContext($context)
+    {
+        $classNames = NamespaceUtility::getClassNamesByContext(FixtureUtility::$namespace, $context);
+        self::$fixtures = FixtureUtility::loadPartialFixtures($classNames, $this->em)->getReferenceRepository();
+    }
+
+    /**
+     * @param array $classNames
+     * @param int   $purgeMode
+     *
+     * @return void
+     */
+    public static function loadStaticFixtures(array $classNames, $purgeMode = ORMPurger::PURGE_MODE_TRUNCATE)
+    {
+        self::$fixtures = FixtureUtility::loadFixtures($classNames, 'logical', $purgeMode)->getReferenceRepository();
+    }
+
+    /**
+     * @return mixed
+     * @throws \Exception
+     */
+    public function readMessages()
+    {
+        return $this->swiftmailerCacheUtility->readMessages();
+    }
+
+    /**
+     * @return void
+     */
+    public function resetNamespaceFixtures()
+    {
+        $file = new \ReflectionClass(get_called_class());
+        $name = $file->name;
+        FixtureUtility::$namespace = substr($name, 0, strpos($name, 'Tests'));
+    }
+
+    /**
+     * @param string $namespace
+     *
+     * @return void
+     */
+    public static function setNamespaceFixtures($namespace)
+    {
+        FixtureUtility::$namespace = $namespace;
+    }
+
+    /**
+     * Load empty data fixture to generate the database schema even if no data are given
+     *
+     * @return void
+     */
+    public static function setUpBeforeClass()
+    {
+        $args = func_get_args();
+        if (!empty($args)) {
+            $datafixtures = $args[0];
+        }
+
+        parent::setUpBeforeClass();
+        self::$defaultFixtures = array();
+
+        if (self::$iWantDefaultData) {
+            self::loadDefaultFixtures();
+        } else {
+            self::$iWantDefaultData = true;
+        }
+
+        if (!empty($datafixtures)) {
+            self::$defaultFixtures = array_merge(self::$defaultFixtures, $datafixtures);
+        }
+
+        self::loadStaticFixtures(self::$defaultFixtures);
+        self::$databaseLoaded = true;
+    }
+
+    /**
+     * Start transaction
+     *
+     * @return void
+     */
+    public function setUp()
+    {
+        if (self::$databaseLoaded) {
+            $this->em->beginTransaction();
+        }
+        $this->cleanMailDir();
+
+        parent::setUp();
+    }
+
+    /**
+     * Close connection to avoid "Too Many Connection" error and rollback transaction
      *
      * @return void
      */
     public function tearDown()
     {
-        $this->em->getConnection()
-                 ->close();
-        
+        if (!$this->em->getConnection()->isAutoCommit() && self::$databaseLoaded) {
+            $this->em->rollback();
+        }
+
+        $this->em->getConnection()->close();
+
         parent::tearDown();
     }
 }

@@ -2,16 +2,19 @@
 
 namespace Chaplean\Bundle\UnitBundle\Features\Context;
 
+use Behat\Behat\Hook\Scope\AfterStepScope;
+use Behat\Mink\Driver\Selenium2Driver;
+use Behat\Mink\Element\DocumentElement;
 use Behat\Mink\Element\NodeElement;
+use Behat\Mink\Exception\ExpectationException;
 use Behat\MinkExtension\Context\MinkContext;
 use Behat\Symfony2Extension\Context\KernelAwareContext;
 use Behat\Symfony2Extension\Context\KernelDictionary;
+use Chaplean\Bundle\UnitBundle\Utility\ContainerUtility;
 use Chaplean\Bundle\UnitBundle\Utility\FixtureUtility;
-use Doctrine\ORM\EntityManager;
-use Doctrine\ORM\Mapping\ClassMetadata;
+use Chaplean\Bundle\UnitBundle\Utility\NamespaceUtility;
 use Symfony\Component\Config\Definition\Exception\Exception;
 use Symfony\Component\DependencyInjection\Container;
-use Symfony\Component\Finder\Finder;
 
 /**
  * Class FeatureContext.
@@ -28,7 +31,7 @@ class ChapleanContext extends MinkContext implements KernelAwareContext
     /**
      * @var array
      */
-    protected $dataFixtures = array();
+    protected static $dataFixtures = array();
 
     /**
      * @var boolean
@@ -76,8 +79,7 @@ class ChapleanContext extends MinkContext implements KernelAwareContext
      */
     public function assertPageAddressIsNot($page)
     {
-        $this->assertSession()
-            ->addressNotEquals($this->locatePath($page));
+        $this->assertSession()->addressNotEquals($this->locatePath($page));
     }
 
     /**
@@ -130,6 +132,33 @@ class ChapleanContext extends MinkContext implements KernelAwareContext
     }
 
     /**
+     * @BeforeScenario
+     *
+     * @return void
+     */
+    public function beforeScenario()
+    {
+//        $session = $this->getSession();
+//        $driver = $session->getDriver();
+//
+//        $driver->resizeWindow(1920, 1080);
+//        $hasBind = $session->evaluateScript('(typeof Function.prototype.bind == \'function\')');
+//        if (!$hasBind) {
+//            $bind = file_get_contents(__DIR__ . '/../../Resources/public/js/polyfill-bind.js');
+//
+//        }
+    }
+
+    /**
+     * @BeforeScenario
+     * @return void
+     */
+    public function cleanMailDir()
+    {
+        $this->getContainer()->get('chaplean_unit.swiftmailer_cache')->cleanMailDir();
+    }
+
+    /**
      * Fills in form field with specified element.
      *
      * @When /^(?:|I )fill in "(?P<field>(?:[^"]|\\")*)" element with "(?P<value>(?:[^"]|\\")*)"$/
@@ -143,19 +172,10 @@ class ChapleanContext extends MinkContext implements KernelAwareContext
     {
         $field = $this->fixStepArgument($field);
         $value = $this->fixStepArgument($value);
-        $page = $this->getSession()
-            ->getPage();
+        $page = $this->getSession()->getPage();
 
         $node = $page->find('css', $field);
         $node->setValue($value);
-    }
-
-    /**
-     * @return string
-     */
-    protected function getSpoolDir()
-    {
-        return $this->getContainer()->getParameter('swiftmailer.spool.default.file.path');
     }
 
     /**
@@ -165,7 +185,7 @@ class ChapleanContext extends MinkContext implements KernelAwareContext
      */
     public static function getStaticContainer()
     {
-        return FixtureUtility::getContainer('behat');
+        return ContainerUtility::getContainer('behat');
     }
 
     /**
@@ -179,7 +199,7 @@ class ChapleanContext extends MinkContext implements KernelAwareContext
      */
     public function iAddDatafixture($datafixture)
     {
-        $this->dataFixtures[] = $datafixture;
+        self::$dataFixtures[] = $datafixture;
     }
 
     /**
@@ -194,15 +214,10 @@ class ChapleanContext extends MinkContext implements KernelAwareContext
      */
     public function iClickOn($element)
     {
-        $page = $this->getSession()
-            ->getPage();
+        $page = $this->getSession()->getPage();
         $element = $page->find('css', $element);
 
-        if (!empty($element)) {
-            $element->click();
-        } else {
-            throw new \Exception(error_get_last() . ' ' . $page->getContent());
-        }
+        $this->iClick($element, $page);
     }
 
     /**
@@ -217,10 +232,21 @@ class ChapleanContext extends MinkContext implements KernelAwareContext
      */
     public function iClickOnLink($link)
     {
-        $page = $this->getSession()
-            ->getPage();
+        $page = $this->getSession()->getPage();
         $element = $page->findLink($link);
 
+        $this->iClick($element, $page);
+    }
+
+    /**
+     * @param null|NodeElement $element
+     * @param DocumentElement  $page
+     *
+     * @return void
+     * @throws \Exception
+     */
+    private function iClick($element, $page)
+    {
         if (!empty($element)) {
             $element->click();
         } else {
@@ -254,8 +280,85 @@ class ChapleanContext extends MinkContext implements KernelAwareContext
      */
     public function iWait($time)
     {
-        $this->getSession()
-            ->wait($time);
+        $this->getSession()->wait($time);
+    }
+
+    /**
+     * @When /^I wait Ajax$/
+     *
+     * @return void
+     * @throws \Behat\Mink\Exception\ExpectationException
+     * @throws \Exception
+     */
+    public function iWaitAjax()
+    {
+        $waitTime = 5000;
+        try {
+            //Wait for Angular
+            $angularIsNotUndefined = $this->getSession()->evaluateScript("return (typeof angular != 'undefined')");
+            if ($angularIsNotUndefined) {
+                //If you run the below code on a page ending in #, the page reloads.
+                if (substr($this->getSession()->getCurrentUrl(), -1) !== '#') {
+                    $angular = 'angular.getTestability(document.body).whenStable(function() {window.__testable = true;})';
+                    $this->getSession()->evaluateScript($angular);
+                    $this->getSession()->wait($waitTime, 'window.__testable == true');
+                }
+
+                /*
+                 * Angular JS AJAX can't be detected overall like in jQuery,
+                 * but we can check if any of the html elements are marked as showing up when ajax is running,
+                 * then wait for them to disappear.
+                 */
+                $ajaxRunningXPath = "xpath://*[@ng-if='ajax_running']";
+                $this->waitForElementToDisappear($waitTime, $ajaxRunningXPath);
+            }
+
+            //Wait for jQuery
+            if ($this->getSession()->evaluateScript("return (typeof jQuery != 'undefined')")) {
+                $this->getSession()->wait($waitTime, '(0 === jQuery.active && 0 === jQuery(\':animated\').length)');
+            }
+        } catch (Exception $e) {
+            throw new \Exception($e->getMessage()); //Debug here.
+        }
+    }
+
+    /**
+     * @param integer $time
+     * @param string  $fullLocator
+     *
+     * @return void
+     * @throws \Behat\Mink\Exception\ExpectationException
+     */
+    public function waitForElementToDisappear($time, $fullLocator)
+    {
+        $page = $this->getSession()->getPage();
+        list($selector, $locator) = $this->expandLocatorDefintion($fullLocator);
+        $start = 1000 * microtime(true);
+        $end = $start + $time;
+        $element = $page->find($selector, $locator);
+        while (1000 * microtime(true) < $end && $element !== null) {
+            sleep(0.1);
+            $element = $page->find($selector, $locator);
+        }
+        if ($element !== null) {
+            $message = sprintf('Element %s has not disappeared after %sms timeout.', $locator, $time);
+            throw new ExpectationException($message, $this->getSession());
+        }
+    }
+
+    /**
+     * @param string $locator
+     * @return array
+     */
+    public function expandLocatorDefintion($locator)
+    {
+        if (substr($locator, 0, 6) == 'xpath:') {
+            return array('xpath', substr($locator, 6));
+        } elseif (substr($locator, 0, 4) == 'css:') {
+            return array('css', substr($locator, 4));
+        } else {
+            return array('named', $locator);
+        }
     }
 
     /**
@@ -289,41 +392,39 @@ class ChapleanContext extends MinkContext implements KernelAwareContext
     {
         if (!self::$databaseLoaded) {
             self::$databaseLoaded = true;
-            FixtureUtility::loadFixtures($this->dataFixtures, 'behat');
+            FixtureUtility::loadFixtures(self::$dataFixtures, 'behat');
         }
     }
 
     /**
      * Load default datafixture
      *
-     * @Given /^I load all default datafixture "(?P<namespace>(?:[^"]|\\")*)"$/
+     * @Given /^I load default datafixture with "(?P<namespace>(?:[^"]|\\")*)"$/
+     * @Given /^I load default datafixture$/
      *
      * @param string $namespace
      *
      * @return void
      */
-    public function iLoadAllDefaultDatafixture($namespace)
+    public function iLoadDefaultFixtures($namespace = null)
     {
-        $container = $this->getContainer();
+        self::$dataFixtures = FixtureUtility::loadDefaultFixtures($namespace);
+    }
 
-        /** @var EntityManager $em */
-        $em = $container->get('doctrine')
-            ->getManager();
+    /**
+     * Load default datafixture
+     *
+     * @Given /^I load context datafixture with "(?P<context>(?:[^"]|\\")*)"$/
+     *
+     * @param string $context
+     *
+     * @return void
+     */
+    public function iLoadByContextFixtures($context)
+    {
+        self::$dataFixtures = NamespaceUtility::getClassNamesByContext(FixtureUtility::$namespace, $context);
 
-        $listTables = $em->getMetadataFactory()
-            ->getAllMetadata();
-        $datafixtures = array();
-
-        /** @var ClassMetadata $table */
-        foreach ($listTables as $table) {
-            $class = new \ReflectionClass($table->getName());
-            $fixtureClass = $namespace . '\\DataFixtures\\Liip\\Load' . $class->getShortName() . 'Data';
-            if (class_exists($fixtureClass)) {
-                $datafixtures[] = $fixtureClass;
-            }
-        }
-
-        FixtureUtility::loadFixtures($datafixtures, 'behat');
+        $this->iLoadDatabase();
     }
 
     /**
@@ -336,27 +437,52 @@ class ChapleanContext extends MinkContext implements KernelAwareContext
      */
     public function theMailShouldBeSentTo($type, $email)
     {
-        $spoolDir = $this->getSpoolDir();
+        $messages = $this->readMessages();
 
-        $finder = new Finder();
+        if (gettype($messages) == 'object') {
+            $messages = array($messages);
+        }
 
-        // find every files inside the spool dir except hidden files
-        $finder
-            ->in($spoolDir)
-            ->ignoreDotFiles(true)
-            ->files();
-
-        foreach ($finder as $file) {
-            $message = unserialize(file_get_contents($file));
-
-            // check the recipients
+        foreach ($messages as $message) {
+            /** @noinspection PhpUndefinedMethodInspection */
             $recipients = array_keys($message->getTo());
+
             if (in_array($email, $recipients)) {
                 return;
             }
         }
 
         throw new Exception(sprintf('The "%s" was not sent', $type));
+    }
+
+    /**
+     * @When /^(?:|I )click on the first link in the last mail sent$/
+     *
+     * @return void
+     */
+    public function iClickLinkInMail()
+    {
+        $messages = $this->readMessages();
+
+        if (gettype($messages) == 'object') {
+            $messages = array($messages);
+        }
+
+        foreach ($messages as $message) {
+            /** @noinspection PhpUndefinedMethodInspection */
+            $body = array_keys($message->getBody());
+
+            $matches = array();
+            preg_match('#<a[^>]*href="([^"]*)"[^>]*>.*</a>#', $body, $matches);
+
+            if (!isset($matches[1])) {
+                throw new Exception('No link found in the mail');
+            }
+
+            $this->visitPath($matches[1]);
+        }
+
+        throw new Exception('No link found in the mail');
     }
 
     /**
@@ -367,5 +493,46 @@ class ChapleanContext extends MinkContext implements KernelAwareContext
     public static function resetLoadedDatabase()
     {
         self::$databaseLoaded = false;
+
+        $file = new \ReflectionClass(get_called_class());
+        $name = $file->name;
+        FixtureUtility::$namespace = substr($name, 0, strpos($name, 'Features\Context'));
+    }
+
+    /**
+     * @return mixed
+     * @throws \Exception
+     */
+    public function readMessages()
+    {
+        return $this->getContainer()->get('chaplean_unit.swiftmailer_cache')->readMessages();
+    }
+
+    /**
+     * @When /^take a screenshot$/
+     *
+     * @return void
+     */
+    public function takeAScreenshot()
+    {
+        if ($this->getSession()->getDriver() instanceof Selenium2Driver) {
+            $screenshot = $this->getSession()->getDriver()->getScreenshot();
+            file_put_contents('/tmp/screenshot.png', $screenshot);
+        }
+    }
+
+    /**
+     * @AfterStep
+     *
+     * @param AfterStepScope $scope
+     *
+     * @return void
+     * @throws \Exception
+     */
+    public function waitAjax(AfterStepScope $scope)
+    {
+        if (preg_match('/I? am on "(.?[^"]+)"/', $scope->getStep()->getText())) {
+            $this->iWaitAjax();
+        }
     }
 }

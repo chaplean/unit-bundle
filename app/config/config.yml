@@ -1,5 +1,23 @@
+imports:
+    - { resource: parameters.yml }
+
 framework:
-    secret:          "S3cR€t"
+    secret: "S3cR€t"
+    form:   ~
+    validation: { enable_annotations: false }
+
+monolog:
+    handlers:
+        main:
+            type:         fingers_crossed
+            action_level: error
+            handler:      nested
+        nested:
+            type:  stream
+            path:  "%kernel.logs_dir%/%kernel.environment%.log"
+            level: info
+        console:
+            type:  console
 
 # Doctrine Configuration
 doctrine:
@@ -9,8 +27,25 @@ doctrine:
         port:     3306
         dbname:   test_database
         user:     root
-        password: root
+        password: %database_password%
         charset:  UTF8
+        server_version: 5.5
+        mapping_types:
+            enum: string
+
     orm:
         auto_generate_proxy_classes: "%kernel.debug%"
         auto_mapping: true
+
+parameters:
+    chaplean_mailer:
+        bcc_address: 'unit@chaplean.com'
+        sender_address: 'unit@chaplean.com'
+        sender_name: 'Chaplean'
+        subject:
+            prefix: "[TEST]"
+        test: true
+
+swiftmailer:
+    spool:
+        type: file

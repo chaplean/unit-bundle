@@ -31,9 +31,7 @@ class ChapleanUnitExtension extends Extension
         $loader = new Loader\YamlFileLoader($container, new FileLocator(__DIR__ . '/../Resources/config'));
         $loader->load('services.yml');
 
-        foreach ($config as $key => $value) {
-            $container->setParameter($this->getAlias() . '.' . $key, $value);
-        }
+        $container->setParameter($this->getAlias(), $config);
 
         $classLoader = new Psr4ClassLoader();
         $classLoader->addPrefix('Mockery\\', $container->getParameter('kernel.root_dir') . '/../vendor/mockery/mockery/library/');

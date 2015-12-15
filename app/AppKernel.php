@@ -1,15 +1,24 @@
 <?php
 
-// Tests/app/AppKernel.php
-
 use Symfony\Component\HttpKernel\Kernel;
 use Symfony\Component\Config\Loader\LoaderInterface;
 
+/**
+ * Class AppKernel.
+ *
+ * @author    Valentin - Chaplean <valentin@chaplean.com>
+ * @copyright 2014 - 2015 Chaplean (http://www.chaplean.com)
+ * @since     2.0.0
+ */
 class AppKernel extends Kernel
 {
+    /**
+     * @return array
+     */
     public function registerBundles()
     {
-        return array(
+        $bundles = array(
+            new Sensio\Bundle\FrameworkExtraBundle\SensioFrameworkExtraBundle(),
             new Symfony\Bundle\FrameworkBundle\FrameworkBundle(),
             new Doctrine\Bundle\DoctrineBundle\DoctrineBundle(),
             new Doctrine\Bundle\FixturesBundle\DoctrineFixturesBundle(),
@@ -17,8 +26,19 @@ class AppKernel extends Kernel
             new Chaplean\Bundle\UnitBundle\ChapleanUnitBundle(),
             new Liip\FunctionalTestBundle\LiipFunctionalTestBundle(),
         );
+
+        if (in_array($this->getEnvironment(), array('dev', 'test', 'behat'))) {
+            $bundles[] = new Symfony\Bundle\SwiftmailerBundle\SwiftmailerBundle();
+        }
+
+        return $bundles;
     }
 
+    /**
+     * @param LoaderInterface $loader
+     *
+     * @return void
+     */
     public function registerContainerConfiguration(LoaderInterface $loader)
     {
         $loader->load(__DIR__.'/config/config.yml');
