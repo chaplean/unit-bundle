@@ -72,7 +72,7 @@ class RestClientTest extends LogicalTest
         $this->assertEquals(array(
             'id' => 1,
             'name' => 'foo',
-        ), json_decode($response->getContent(), true));
+        ), $restClient->getContent());
     }
 
     /**
@@ -97,7 +97,7 @@ class RestClientTest extends LogicalTest
         $response = $restClient->requestGet('/rest/unit');
 
         $this->assertEquals(200, $response->getStatusCode());
-        $this->assertEquals(array('http://:/'), json_decode($response->getContent(), true));
+        $this->assertEquals(array('http://:/'), $restClient->getContent());
     }
 
     /**
@@ -110,7 +110,7 @@ class RestClientTest extends LogicalTest
         $response = $restClient->requestGet('/rest/unit/{id}', array('id' => 5));
 
         $this->assertEquals(200, $response->getStatusCode());
-        $this->assertEquals(array(5), json_decode($response->getContent(), true));
+        $this->assertEquals(array(5), $restClient->getContent());
     }
 
     /**
@@ -123,7 +123,7 @@ class RestClientTest extends LogicalTest
         $response = $restClient->requestGet('/rest/unit/request/{id}', array('id' => 5));
 
         $this->assertEquals(200, $response->getStatusCode());
-        $this->assertEquals(array('http://:/', 5), json_decode($response->getContent(), true));
+        $this->assertEquals(array('http://:/', 5), $restClient->getContent());
     }
 
     /**
@@ -136,7 +136,7 @@ class RestClientTest extends LogicalTest
         $response = $restClient->requestGet('/rest/unit/query', array(), array('limit' => 150));
 
         $this->assertEquals(200, $response->getStatusCode());
-        $this->assertEquals(array(150), json_decode($response->getContent(), true));
+        $this->assertEquals(array(150), $restClient->getContent());
     }
 
     /**
@@ -149,7 +149,7 @@ class RestClientTest extends LogicalTest
         $response = $restClient->requestPost('/rest/unit/request', array(), array(), array('name' => 'foo'));
 
         $this->assertEquals(200, $response->getStatusCode());
-        $this->assertEquals(array('foo'), json_decode($response->getContent(), true));
+        $this->assertEquals(array('foo'), $restClient->getContent());
     }
 
     /**
@@ -189,6 +189,19 @@ class RestClientTest extends LogicalTest
         $response = $restClient->requestGet('/route/not/found');
 
         $this->assertEquals(200, $response->getStatusCode());
+    }
+
+    /**
+     * @return void
+     *
+     * @expectedException \Exception
+     * @expectedExceptionMessage Not response flush !
+     */
+    public function testGetContentRestClient()
+    {
+        $restClient = $this->getContainer()->get('chaplean_unit.rest_client');
+
+        $restClient->getContent();
     }
 }
 

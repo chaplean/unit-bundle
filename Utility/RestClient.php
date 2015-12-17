@@ -26,6 +26,11 @@ class RestClient
     private $container;
 
     /**
+     * @var Response
+     */
+    private $response;
+
+    /**
      * @var Router
      */
     private $router;
@@ -59,6 +64,73 @@ class RestClient
     }
 
     /**
+     * @param string $class
+     * @param string $method
+     * @param array  $parameters
+     *
+     * @return array
+     */
+    protected function getArguments($class, $method, $parameters)
+    {
+        $reflectionMethod = new \ReflectionMethod($class, $method);
+
+        list($query, $request, $attributes, $cookies, $files, $server, $content) = $this->parametersRequest;
+        $args = array();
+        $arguments = $reflectionMethod->getParameters();
+
+        foreach ($arguments as $arg) {
+            if ($arg->getName() == 'request') {
+                $args[] = new Request($query, $request, $attributes, $cookies, $files, $server, $content);
+            } else {
+                if (isset($parameters[$arg->getName()])) {
+                    $args[] = $parameters[$arg->getName()];
+                }
+            }
+        }
+
+        return $args;
+    }
+
+    /**
+     * @return mixed|null
+     *
+     * @throws \Exception
+     */
+    public function getContent()
+    {
+        if (empty($this->response)) {
+            throw new \Exception('Not response flush !');
+        }
+
+        return json_decode($this->response->getContent(), true);
+    }
+
+    /**
+     * @param string $type
+     * @param string $uri
+     *
+     * @return Route
+     */
+    protected function getRouteByUri($type, $uri)
+    {
+        $routes = $this->router->getRouteCollection();
+        $it = $routes->getIterator();
+
+        while ($it->valid()) {
+            /** @var Route $route */
+            $route = $it->current();
+
+            if ($route->getPath() == $uri && strtolower($type) == strtolower($route->getMethods()[0])) {
+                return $route;
+            }
+
+            $it->next();
+        }
+
+        throw new RouteNotFoundException(sprintf('%s \'%s\' not found route ! Check your routing ;)', strtoupper($type), $uri));
+    }
+
+    /**
      * @param string $type
      * @param string $uri
      * @param array  $params
@@ -86,7 +158,8 @@ class RestClient
         $controller = new $class();
         $controller->setContainer($this->container);
 
-        return call_user_func_array(array($controller, $method), $args);
+        $this->response = call_user_func_array(array($controller, $method), $args);
+        return $this->response;
     }
 
     /**
@@ -135,58 +208,5 @@ class RestClient
         $args = array_merge($args, func_get_args());
 
         return call_user_func_array(array($this, 'request'), $args);
-    }
-
-    /**
-     * @param string $type
-     * @param string $uri
-     *
-     * @return Route
-     */
-    protected function getRouteByUri($type, $uri)
-    {
-        $routes = $this->router->getRouteCollection();
-        $it = $routes->getIterator();
-
-        while ($it->valid()) {
-            /** @var Route $route */
-            $route = $it->current();
-
-            if ($route->getPath() == $uri && strtolower($type) == strtolower($route->getMethods()[0])) {
-                return $route;
-            }
-
-            $it->next();
-        }
-
-        throw new RouteNotFoundException(sprintf('%s \'%s\' not found route ! Check your routing ;)', strtoupper($type), $uri));
-    }
-
-    /**
-     * @param string $class
-     * @param string $method
-     * @param array  $parameters
-     *
-     * @return array
-     */
-    protected function getArguments($class, $method, $parameters)
-    {
-        $reflectionMethod = new \ReflectionMethod($class, $method);
-
-        list($query, $request, $attributes, $cookies, $files, $server, $content) = $this->parametersRequest;
-        $args = array();
-        $arguments = $reflectionMethod->getParameters();
-
-        foreach ($arguments as $arg) {
-            if ($arg->getName() == 'request') {
-                $args[] = new Request($query, $request, $attributes, $cookies, $files, $server, $content);
-            } else {
-                if (isset($parameters[$arg->getName()])) {
-                    $args[] = $parameters[$arg->getName()];
-                }
-            }
-        }
-
-        return $args;
     }
 }
