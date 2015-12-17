@@ -5,6 +5,7 @@ namespace Chaplean\Bundle\UnitBundle\Test;
 use Chaplean\Bundle\UnitBundle\Utility\ContainerUtility;
 use Chaplean\Bundle\UnitBundle\Utility\FixtureUtility;
 use Chaplean\Bundle\UnitBundle\Utility\NamespaceUtility;
+use Chaplean\Bundle\UnitBundle\Utility\RestClient;
 use Chaplean\Bundle\UnitBundle\Utility\SwiftMailerCacheUtility;
 use Doctrine\Common\DataFixtures\Purger\ORMPurger;
 use Doctrine\Common\DataFixtures\ReferenceRepository;
@@ -31,6 +32,11 @@ class LogicalTest extends WebTestCase
      * @var SwiftMailerCacheUtility
      */
     protected $swiftmailerCacheUtility;
+
+    /**
+     * @var RestClient
+     */
+    public $restClient = null;
 
     /**
      * @var ReferenceRepository
@@ -72,6 +78,15 @@ class LogicalTest extends WebTestCase
     public function cleanMailDir()
     {
         $this->swiftmailerCacheUtility->cleanMailDir();
+    }
+
+    /**
+     * @return RestClient
+     */
+    public function createRestClient()
+    {
+        $this->restClient = $this->getContainer()->get('chaplean_unit.rest_client');
+        return $this->restClient;
     }
 
     /**

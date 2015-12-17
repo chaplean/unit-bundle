@@ -4,7 +4,17 @@ imports:
 framework:
     secret: "S3cR€t"
     form:   ~
+    router:
+        resource: "%kernel.root_dir%/config/routing.yml"
+        strict_requirements: true
     validation: { enable_annotations: false }
+    templating:
+        engines: ['twig']
+
+# Twig Configuration
+twig:
+    debug:            "%kernel.debug%"
+    strict_variables: "%kernel.debug%"
 
 monolog:
     handlers:
@@ -49,3 +59,10 @@ parameters:
 swiftmailer:
     spool:
         type: file
+
+fos_rest:
+    routing_loader:
+        default_format: json
+        include_format: false
+    serializer:
+        serialize_null: true
