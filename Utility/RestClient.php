@@ -79,11 +79,11 @@ class RestClient
         $arguments = $reflectionMethod->getParameters();
 
         foreach ($arguments as $arg) {
-            if ($arg->getName() == 'request') {
+            if ($arg->name == 'request') {
                 $args[] = new Request($query, $request, $attributes, $cookies, $files, $server, $content);
             } else {
-                if (isset($parameters[$arg->getName()])) {
-                    $args[] = $parameters[$arg->getName()];
+                if (isset($parameters[$arg->name])) {
+                    $args[] = $parameters[$arg->name];
                 }
             }
         }
@@ -168,10 +168,7 @@ class RestClient
      */
     public function requestDelete()
     {
-        $args = array('DELETE');
-        $args = array_merge($args, func_get_args());
-
-        return call_user_func_array(array($this, 'request'), $args);
+        return call_user_func_array(array($this, 'request'), array_merge(array('DELETE'), func_get_args()));
     }
 
     /**
@@ -180,10 +177,7 @@ class RestClient
      */
     public function requestGet()
     {
-        $args = array('GET');
-        $args = array_merge($args, func_get_args());
-
-        return call_user_func_array(array($this, 'request'), $args);
+        return call_user_func_array(array($this, 'request'), array_merge(array('GET'), func_get_args()));
     }
 
     /**
@@ -192,10 +186,7 @@ class RestClient
      */
     public function requestPost()
     {
-        $args = array('POST');
-        $args = array_merge($args, func_get_args());
-
-        return call_user_func_array(array($this, 'request'), $args);
+        return call_user_func_array(array($this, 'request'), array_merge(array('POST'), func_get_args()));
     }
 
     /**
@@ -204,9 +195,6 @@ class RestClient
      */
     public function requestPut()
     {
-        $args = array('PUT');
-        $args = array_merge($args, func_get_args());
-
-        return call_user_func_array(array($this, 'request'), $args);
+        return call_user_func_array(array($this, 'request'), array_merge(array('PUT'), func_get_args()));
     }
 }
