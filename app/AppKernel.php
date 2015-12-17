@@ -29,6 +29,9 @@ class AppKernel extends Kernel
 
         if (in_array($this->getEnvironment(), array('dev', 'test', 'behat'))) {
             $bundles[] = new Symfony\Bundle\SwiftmailerBundle\SwiftmailerBundle();
+            $bundles[] = new FOS\RestBundle\FOSRestBundle();
+            $bundles[] = new JMS\SerializerBundle\JMSSerializerBundle();
+            $bundles[] = new Symfony\Bundle\TwigBundle\TwigBundle();
         }
 
         return $bundles;

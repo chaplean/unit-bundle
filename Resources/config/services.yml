@@ -2,3 +2,7 @@ services:
     chaplean_unit.swiftmailer_cache:
         class: Chaplean\Bundle\UnitBundle\Utility\SwiftMailerCacheUtility
         arguments: [@service_container]
+
+    chaplean_unit.rest_client:
+        class: Chaplean\Bundle\UnitBundle\Utility\RestClient
+        arguments: [@router.default]
