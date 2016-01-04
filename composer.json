@@ -42,13 +42,13 @@
         "chaplean/mailer-bundle": "^1.0",
         "friendsofsymfony/rest-bundle": "~1.5",
         "jms/serializer-bundle": "^1.1",
-        "sensio/generator-bundle": "~3.0"
+        "sensio/generator-bundle": "~2.3"
     },
     "autoload": {
-        "psr-4": {
-            "Chaplean\\Bundle\\UnitBundle\\": ""
-        },
-        "classmap": ["app/AppKernel.php"]
+        "psr-0": {
+            "Chaplean\\Bundle\\UnitBundle": ""
+        }
     },
+    "target-dir" : "Chaplean/Bundle/UnitBundle",
     "bin": ["bin/selenium-server-standalone-2.45.0.jar", "bin/chromedriver"]
 }
