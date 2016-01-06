@@ -202,9 +202,10 @@ abstract class AbstractFixture extends BaseAbstractFixture
         $fieldsRequired = array_filter($fieldMappings, function ($field) {
             return !$field['nullable'] && !isset($field['id']);
         });
+
         $associationsRequired = array_filter($associationMappings, function ($entity) {
             return isset($entity['joinColumns']) && count(array_filter($entity['joinColumns'], function ($joinColumn) {
-                return !$joinColumn['nullable'];
+                return isset($joinColumn['nullable']) && !$joinColumn['nullable'];
             }));
         });
 
