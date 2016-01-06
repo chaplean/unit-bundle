@@ -39,6 +39,19 @@ class ChapleanContext extends MinkContext implements KernelAwareContext
     protected static $databaseLoaded = false;
 
     /**
+     * @Given /^I set the datafixtures namespace as "(?P<namespace>(?:[^"]|\\")*)"$/
+     *
+     * @param string $namespace
+     *
+     * @return void
+     */
+    public function setNamespace($namespace)
+    {
+        // Default namespace: 'App\Bundle\RestBundle\\'
+        FixtureUtility::$namespace = $namespace;
+    }
+
+    /**
      * Checks that passed Element has passed Class.
      *
      * @Then /^the element "(?P<element>(?:[^"]|\\")*)" has class "(?P<class>(?:[^"]|\\")*)"$/
@@ -249,6 +262,7 @@ class ChapleanContext extends MinkContext implements KernelAwareContext
     {
         if (!empty($element)) {
             $element->click();
+            $this->iWaitAjax();
         } else {
             throw new \Exception(error_get_last() . ' ' . $page->getContent());
         }
@@ -531,7 +545,7 @@ class ChapleanContext extends MinkContext implements KernelAwareContext
      */
     public function waitAjax(AfterStepScope $scope)
     {
-        if (preg_match('/I? am on "(.?[^"]+)"/', $scope->getStep()->getText())) {
+        if (preg_match('/^(?:|I )am on "(.?[^"]+)"$/', $scope->getStep()->getText()) || preg_match('/^(?:|I )am on (?:|the )homepage$/', $scope->getStep()->getText())) {
             $this->iWaitAjax();
         }
     }
