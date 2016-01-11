@@ -45,41 +45,43 @@ abstract class AbstractFixture extends BaseAbstractFixture
         $this->initGenerator($entity);
 
         $this->getEmbeddedClass($entity);
-        $fieldsRequired = $this->getRequiredField($entity);
+        $fields = $this->getRequiredField($entity);
 
-        foreach ($fieldsRequired as $field) {
-            // filed is a embedded
-            if (isset($field['originalClass'])) {
-                $field['fieldName'] = $field['declaredField'];
-                $field['isEmbeddedField'] = true;
+        foreach ($fields as $field) {
+            if ($this->isFieldRequired($field) || $this->generator->hasDefinition(get_class($entity), $field['fieldName'])) {
+                // filed is a embedded
+                if (isset($field['originalClass'])) {
+                    $field['fieldName'] = $field['declaredField'];
+                    $field['isEmbeddedField'] = true;
+                }
+
+                list($getter, $setter) = $this->getAccessor($field);
+
+                if (!empty($entity->$getter()) || $entity->$getter() !== null) {
+                    continue;
+                }
+
+                switch (true) {
+                    case $this->isEnum($field):
+                        $value = $this->getEnum($this->matches[1][0]);
+                        break;
+                    case isset($field['joinColumns']):
+                        if ($this->generator->hasReference(get_class($entity), $field['fieldName'])) {
+                            $reference = $this->generator->getReference(get_class($entity), $field['fieldName']);
+                            $value = $this->getReference($reference);
+                        } else {
+                            $value = $this->saveDependency($field['targetEntity']);
+                        }
+                        break;
+                    case isset($field['isEmbeddedField']) && $field['isEmbeddedField']:
+                        $value = $this->generateEntity(new $this->embeddedClass[$field['fieldName']]());
+                        break;
+                    default:
+                        $value = $this->generator->getData(get_class($entity), $field['fieldName']);
+                }
+
+                $entity->$setter($value);
             }
-
-            list($getter, $setter) = $this->getAccessor($field);
-
-            if (!empty($entity->$getter()) || $entity->$getter() !== null) {
-                continue;
-            }
-
-            switch (true) {
-                case $this->isEnum($field):
-                    $value = $this->getEnum($this->matches[1][0]);
-                    break;
-                case isset($field['joinColumns']):
-                    if ($this->generator->hasReference(get_class($entity), $field['fieldName'])) {
-                        $reference = $this->generator->getReference(get_class($entity), $field['fieldName']);
-                        $value = $this->getReference($reference);
-                    } else {
-                        $value = $this->saveDependency($field['targetEntity']);
-                    }
-                    break;
-                case isset($field['isEmbeddedField']) && $field['isEmbeddedField']:
-                    $value = $this->generateEntity(new $this->embeddedClass[$field['fieldName']]());
-                    break;
-                default:
-                    $value = $this->generator->getData(get_class($entity), $field['fieldName']);
-            }
-
-            $entity->$setter($value);
         }
 
         return $entity;
@@ -199,17 +201,22 @@ abstract class AbstractFixture extends BaseAbstractFixture
         $fieldMappings = $classMetadata->fieldMappings;
         $associationMappings = $classMetadata->associationMappings;
 
-        $fieldsRequired = array_filter($fieldMappings, function ($field) {
-            return !$field['nullable'] && !isset($field['id']);
-        });
+        return $fieldMappings + $associationMappings;
+    }
 
-        $associationsRequired = array_filter($associationMappings, function ($entity) {
-            return isset($entity['joinColumns']) && count(array_filter($entity['joinColumns'], function ($joinColumn) {
-                return isset($joinColumn['nullable']) && !$joinColumn['nullable'];
-            }));
-        });
-
-        return $fieldsRequired + $associationsRequired;
+    /**
+     * @param array $field
+     *
+     * @return boolean
+     */
+    public function isFieldRequired($field)
+    {
+        return (!isset($field['joinColumns']) && isset($field['nullable']) && !$field['nullable'] && !isset($field['id']))
+            || (isset($field['joinColumns']) && count(
+                array_filter($field['joinColumns'], function ($joinColumn) {
+                    return isset($joinColumn['nullable']) && !$joinColumn['nullable'];
+                })
+            ));
     }
 
     /**
