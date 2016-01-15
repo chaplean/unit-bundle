@@ -49,6 +49,13 @@ class Client
     private $email;
 
     /**
+     * @var string
+     *
+     * @ORM\Column(name="details", type="string", length=255, nullable=true)
+     */
+    private $details;
+
+    /**
      * @var ArrayCollection
      *
      * @ORM\OneToMany(targetEntity="Product", mappedBy="client")
@@ -148,6 +155,30 @@ class Client
     public function setEmail($email)
     {
         $this->email = $email;
+
+        return $this;
+    }
+
+    /**
+     * Get details.
+     *
+     * @return string
+     */
+    public function getDetails()
+    {
+        return $this->details;
+    }
+
+    /**
+     * Set details.
+     *
+     * @param string $details
+     *
+     * @return self
+     */
+    public function setDetails($details)
+    {
+        $this->details = $details;
 
         return $this;
     }

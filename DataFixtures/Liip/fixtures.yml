@@ -1,6 +1,6 @@
 Chaplean\Bundle\UnitBundle\Entity\Client:
     client-{1..10}:
-        name: <lastname()>
+        name: <fr_FR:address()>
         code: <current()>ABC
         email: <email()>
         dateAdd: <(new \DateTime('-2 hours'))>

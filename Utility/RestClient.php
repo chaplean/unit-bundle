@@ -7,6 +7,7 @@ use Symfony\Bundle\FrameworkBundle\Routing\Router;
 use Symfony\Component\Debug\Exception\ClassNotFoundException;
 use Symfony\Component\DependencyInjection\Container;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Exception\RouteNotFoundException;
 use Symfony\Component\Routing\Route;
@@ -36,6 +37,16 @@ class RestClient
     private $router;
 
     /**
+     * @var Request
+     */
+    private $request;
+
+    /**
+     * @var RequestStack
+     */
+    private $requestStack;
+
+    /**
      * @var array
      */
     private $parametersRequest;
@@ -55,12 +66,12 @@ class RestClient
         $this->router = $router;
         $this->container = ContainerUtility::getContainer('logical');
 
-        $requestStack = \Mockery::mock('Symfony\Component\HttpFoundation\RequestStack');
-        $this->container->set('request_stack', $requestStack);
+        $this->requestStack = \Mockery::mock('Symfony\Component\HttpFoundation\RequestStack');
+        $this->container->set('request_stack', $this->requestStack);
 
-        $request = Request::create('', 'GET', array(), array(), array());
-        $request->setRequestFormat('json');
-        $requestStack->shouldReceive('getCurrentRequest')->andReturn($request);
+        $this->request = Request::create('', 'GET', array(), array(), array());
+        $this->request->setRequestFormat('json');
+        $this->requestStack->shouldReceive('getCurrentRequest')->andReturn($this->request);
     }
 
     /**
@@ -131,6 +142,14 @@ class RestClient
     }
 
     /**
+     * @return Request
+     */
+    public function getRequest()
+    {
+        return $this->request;
+    }
+
+    /**
      * @param string $type
      * @param string $uri
      * @param array  $params
@@ -196,5 +215,17 @@ class RestClient
     public function requestPut()
     {
         return call_user_func_array(array($this, 'request'), array_merge(array('PUT'), func_get_args()));
+    }
+
+    /**
+     * @param Request $request
+     *
+     * @return RequestStack
+     */
+    public function setCurrentRequest(Request $request)
+    {
+        $this->request  = $request;
+        $this->request->setRequestFormat('json');
+        $this->requestStack->shouldReceive('getCurrentRequest')->andReturn($this->request);
     }
 }

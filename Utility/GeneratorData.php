@@ -3,7 +3,6 @@
 namespace Chaplean\Bundle\UnitBundle\Utility;
 
 use Chaplean\Bundle\UnitBundle\Fixtures\Loader;
-use Doctrine\Common\Persistence\ObjectManager;
 
 /**
  * GeneratorData.php.
@@ -101,6 +100,22 @@ class GeneratorData
             return $this->references[$class . ':' . $fieldName]->getReferenceKey();
         } else {
             throw new \Exception();
+        }
+    }
+
+    /**
+     * @param string $class
+     * @param string $fieldName
+     *
+     * @return bool
+     */
+    public function hasDefinition($class, $fieldName)
+    {
+        try {
+            $this->classDefinitionExist($class, $fieldName);
+            return true;
+        } catch (\Exception $e) {
+            return false;
         }
     }
 

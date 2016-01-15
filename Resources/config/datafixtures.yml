@@ -3,6 +3,7 @@ Chaplean\Bundle\UnitBundle\Entity\Client:
         name: <lastname()>
         code: <current()>ABC
         email: client<current()>.<email()>
+        details: <paragraph()>
         dateAdd: <(new \DateTime('-2 hours'))>
 
 Chaplean\Bundle\UnitBundle\Entity\Product:
