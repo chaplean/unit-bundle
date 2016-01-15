@@ -203,6 +203,18 @@ class RestClientTest extends LogicalTest
 
         $restClient->getContent();
     }
+
+    /**
+     * @return void
+     */
+    public function testSetCurrentRequest()
+    {
+        $restClient = $this->getContainer()->get('chaplean_unit.rest_client');
+
+        $restClient->setCurrentRequest(Request::create('', 'GET', array(), array(), array(), array('REMOTE_ADDR' => '82.226.243.129')));
+
+        $this->assertEquals('82.226.243.129', $restClient->getRequest()->getClientIp());
+    }
 }
 
 /**
