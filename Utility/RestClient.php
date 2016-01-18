@@ -6,6 +6,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Bundle\FrameworkBundle\Routing\Router;
 use Symfony\Component\Debug\Exception\ClassNotFoundException;
 use Symfony\Component\DependencyInjection\Container;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Response;
@@ -44,7 +45,7 @@ class RestClient
     /**
      * @var RequestStack
      */
-    private $requestStack;
+    public $requestStack;
 
     /**
      * @var array
@@ -54,24 +55,19 @@ class RestClient
     /**
      * RestClient constructor.
      *
-     * @param Router $router
+     * @param ContainerInterface $container
      * @throws ClassNotFoundException
      */
-    public function __construct(Router $router)
+    public function __construct(ContainerInterface $container)
     {
         if (!class_exists('FOS\RestBundle\FOSRestBundle')) {
-            throw new ClassNotFoundException('You must have \'FOS\RestBundle\FOSRestBundle\' for use \'chaplean_unit.rest_client\' service !', new \ErrorException());
+            throw new ClassNotFoundException('You must have \'FOS\RestBundle\FOSRestBundle\' for use \'RestClient\'!', new \ErrorException());
         }
 
-        $this->router = $router;
-        $this->container = ContainerUtility::getContainer('logical');
+        $this->router = $container->get('router');
+        $this->container = $container;
 
-        $this->requestStack = \Mockery::mock('Symfony\Component\HttpFoundation\RequestStack');
-        $this->container->set('request_stack', $this->requestStack);
-
-        $this->request = Request::create('', 'GET', array(), array(), array());
-        $this->request->setRequestFormat('json');
-        $this->requestStack->shouldReceive('getCurrentRequest')->andReturn($this->request);
+        $this->setCurrentRequest(Request::create('', 'GET'));
     }
 
     /**
@@ -139,14 +135,6 @@ class RestClient
         }
 
         throw new RouteNotFoundException(sprintf('%s \'%s\' not found route ! Check your routing ;)', strtoupper($type), $uri));
-    }
-
-    /**
-     * @return Request
-     */
-    public function getRequest()
-    {
-        return $this->request;
     }
 
     /**
@@ -226,6 +214,9 @@ class RestClient
     {
         $this->request  = $request;
         $this->request->setRequestFormat('json');
+
+        $this->requestStack = \Mockery::mock('Symfony\Component\HttpFoundation\RequestStack');
         $this->requestStack->shouldReceive('getCurrentRequest')->andReturn($this->request);
+        $this->container->set('request_stack', $this->requestStack);
     }
 }
