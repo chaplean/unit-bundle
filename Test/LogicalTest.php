@@ -85,7 +85,7 @@ class LogicalTest extends WebTestCase
      */
     public function createRestClient()
     {
-        $this->restClient = $this->getContainer()->get('chaplean_unit.rest_client');
+        $this->restClient = new RestClient($this->getContainer());
         return $this->restClient;
     }
 

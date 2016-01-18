@@ -30,7 +30,7 @@ class RestClientTest extends LogicalTest
      */
     public function testInstantiateRestClient()
     {
-        $restClient = $this->getContainer()->get('chaplean_unit.rest_client');
+        $restClient = $this->createRestClient();
 
         $this->assertInstanceOf(RestClient::class, $restClient);
     }
@@ -40,7 +40,7 @@ class RestClientTest extends LogicalTest
      */
     public function testGet200()
     {
-        $restClient = $this->getContainer()->get('chaplean_unit.rest_client');
+        $restClient = $this->createRestClient();
 
         $response = $restClient->requestGet('/rest/unit/200');
 
@@ -52,7 +52,7 @@ class RestClientTest extends LogicalTest
      */
     public function testGet404()
     {
-        $restClient = $this->getContainer()->get('chaplean_unit.rest_client');
+        $restClient = $this->createRestClient();
 
         $response = $restClient->requestGet('/rest/unit/404');
 
@@ -64,7 +64,7 @@ class RestClientTest extends LogicalTest
      */
     public function testGetObject()
     {
-        $restClient = $this->getContainer()->get('chaplean_unit.rest_client');
+        $restClient = $this->createRestClient();
 
         $response = $restClient->requestGet('/rest/unit/object');
 
@@ -80,7 +80,7 @@ class RestClientTest extends LogicalTest
      */
     public function testPost()
     {
-        $restClient = $this->getContainer()->get('chaplean_unit.rest_client');
+        $restClient = $this->createRestClient();
 
         $response = $restClient->requestPost('/rest/unit');
 
@@ -92,7 +92,7 @@ class RestClientTest extends LogicalTest
      */
     public function testGetWithoutRequestAction()
     {
-        $restClient = $this->getContainer()->get('chaplean_unit.rest_client');
+        $restClient = $this->createRestClient();
 
         $response = $restClient->requestGet('/rest/unit');
 
@@ -105,7 +105,7 @@ class RestClientTest extends LogicalTest
      */
     public function testGetWithoutRequestParameterAction()
     {
-        $restClient = $this->getContainer()->get('chaplean_unit.rest_client');
+        $restClient = $this->createRestClient();
 
         $response = $restClient->requestGet('/rest/unit/{id}', array('id' => 5));
 
@@ -118,7 +118,7 @@ class RestClientTest extends LogicalTest
      */
     public function testGetWithRequestAndParameterAction()
     {
-        $restClient = $this->getContainer()->get('chaplean_unit.rest_client');
+        $restClient = $this->createRestClient();
 
         $response = $restClient->requestGet('/rest/unit/request/{id}', array('id' => 5));
 
@@ -131,7 +131,7 @@ class RestClientTest extends LogicalTest
      */
     public function testGetWithQuery()
     {
-        $restClient = $this->getContainer()->get('chaplean_unit.rest_client');
+        $restClient = $this->createRestClient();
 
         $response = $restClient->requestGet('/rest/unit/query', array(), array('limit' => 150));
 
@@ -144,7 +144,7 @@ class RestClientTest extends LogicalTest
      */
     public function testPostWithRequest()
     {
-        $restClient = $this->getContainer()->get('chaplean_unit.rest_client');
+        $restClient = $this->createRestClient();
 
         $response = $restClient->requestPost('/rest/unit/request', array(), array(), array('name' => 'foo'));
 
@@ -157,7 +157,7 @@ class RestClientTest extends LogicalTest
      */
     public function testDelete()
     {
-        $restClient = $this->getContainer()->get('chaplean_unit.rest_client');
+        $restClient = $this->createRestClient();
 
         $response = $restClient->requestDelete('/rest/unit');
 
@@ -169,7 +169,7 @@ class RestClientTest extends LogicalTest
      */
     public function testPut()
     {
-        $restClient = $this->getContainer()->get('chaplean_unit.rest_client');
+        $restClient = $this->createRestClient();
 
         $response = $restClient->requestPut('/rest/unit');
 
@@ -184,7 +184,7 @@ class RestClientTest extends LogicalTest
      */
     public function testRouteNotFound()
     {
-        $restClient = $this->getContainer()->get('chaplean_unit.rest_client');
+        $restClient = $this->createRestClient();
 
         $response = $restClient->requestGet('/route/not/found');
 
@@ -199,7 +199,7 @@ class RestClientTest extends LogicalTest
      */
     public function testGetContentRestClient()
     {
-        $restClient = $this->getContainer()->get('chaplean_unit.rest_client');
+        $restClient = $this->createRestClient();
 
         $restClient->getContent();
     }
@@ -209,11 +209,11 @@ class RestClientTest extends LogicalTest
      */
     public function testSetCurrentRequest()
     {
-        $restClient = $this->getContainer()->get('chaplean_unit.rest_client');
+        $restClient = $this->createRestClient();
 
         $restClient->setCurrentRequest(Request::create('', 'GET', array(), array(), array(), array('REMOTE_ADDR' => '82.226.243.129')));
 
-        $this->assertEquals('82.226.243.129', $restClient->getRequest()->getClientIp());
+        $this->assertEquals('82.226.243.129', $this->getContainer()->get('request_stack')->getCurrentRequest()->getClientIp());
     }
 }
 
