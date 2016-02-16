@@ -38,6 +38,8 @@ class ChapleanContext extends MinkContext implements KernelAwareContext
      */
     protected static $databaseLoaded = false;
 
+    protected static $cookieAccepted = true;
+
     /**
      * @Given /^I set the datafixtures namespace as "(?P<namespace>(?:[^"]|\\")*)"$/
      *
@@ -151,7 +153,11 @@ class ChapleanContext extends MinkContext implements KernelAwareContext
      */
     public function beforeScenario()
     {
-//        $session = $this->getSession();
+        $session = $this->getSession();
+
+        if (self::$cookieAccepted) {
+            $session->setCookie('cookieconsent_dismissed', 'yes');
+        }
 //        $driver = $session->getDriver();
 //
 //        $driver->resizeWindow(1920, 1080);
@@ -169,6 +175,16 @@ class ChapleanContext extends MinkContext implements KernelAwareContext
     public function cleanMailDir()
     {
         $this->getContainer()->get('chaplean_unit.swiftmailer_cache')->cleanMailDir();
+    }
+
+    /**
+     * @Given /cookie not accepted$/
+     *
+     * @return void
+     */
+    public function cookieNotAccepted()
+    {
+        self::$cookieAccepted = false;
     }
 
     /**
@@ -507,6 +523,11 @@ class ChapleanContext extends MinkContext implements KernelAwareContext
     public static function resetLoadedDatabase()
     {
         self::$databaseLoaded = false;
+        self::$dataFixtures = array();
+
+        if (!self::$cookieAccepted) {
+            self::$cookieAccepted = true;
+        }
 
         $file = new \ReflectionClass(get_called_class());
         $name = $file->name;
