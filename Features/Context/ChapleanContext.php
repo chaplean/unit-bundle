@@ -157,6 +157,8 @@ class ChapleanContext extends MinkContext implements KernelAwareContext
 
         if (self::$cookieAccepted) {
             $session->setCookie('cookieconsent_dismissed', 'yes');
+        } else {
+            $session->setCookie('cookieconsent_dismissed');
         }
 //        $driver = $session->getDriver();
 //
