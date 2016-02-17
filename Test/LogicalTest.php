@@ -59,6 +59,11 @@ class LogicalTest extends WebTestCase
     protected static $databaseLoaded = false;
 
     /**
+     * @var string
+     */
+    protected static $hashFixtures;
+
+    /**
      * Construct
      */
     public function __construct()
@@ -70,6 +75,7 @@ class LogicalTest extends WebTestCase
 
         self::resetNamespaceFixtures();
         self::$databaseLoaded = false;
+        self::$iWantDefaultData = true;
     }
 
     /**
@@ -185,7 +191,10 @@ class LogicalTest extends WebTestCase
      */
     public static function loadStaticFixtures(array $classNames, $purgeMode = ORMPurger::PURGE_MODE_TRUNCATE)
     {
-        self::$fixtures = FixtureUtility::loadFixtures($classNames, 'logical', $purgeMode)->getReferenceRepository();
+        if (self::$hashFixtures != md5(serialize($classNames))) {
+            self::$fixtures = FixtureUtility::loadFixtures($classNames, 'logical', $purgeMode)->getReferenceRepository();
+            self::$hashFixtures = md5(serialize($classNames));
+        }
     }
 
     /**
