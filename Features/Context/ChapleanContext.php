@@ -496,25 +496,26 @@ class ChapleanContext extends MinkContext implements KernelAwareContext
     {
         $messages = $this->readMessages();
 
+        if ($messages === null) {
+            throw new Exception('No mail found');
+        }
+
         if (gettype($messages) == 'object') {
             $messages = array($messages);
         }
 
-        foreach ($messages as $message) {
-            /** @noinspection PhpUndefinedMethodInspection */
-            $body = array_keys($message->getBody());
+        $message = end($messages);
+        /** @noinspection PhpUndefinedMethodInspection */
+        $body = $message->getBody();
 
-            $matches = array();
-            preg_match('#<a[^>]*href="([^"]*)"[^>]*>.*</a>#', $body, $matches);
+        $matches = array();
+        preg_match('#<a[^>]*href="([^"]*)"[^>]*>.*</a>#', $body, $matches);
 
-            if (!isset($matches[1])) {
-                throw new Exception('No link found in the mail');
-            }
-
-            $this->visitPath($matches[1]);
+        if (!isset($matches[1])) {
+            throw new Exception('No link found in the mail');
         }
 
-        throw new Exception('No link found in the mail');
+        $this->visitPath($matches[1]);
     }
 
     /**
