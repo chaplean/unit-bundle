@@ -40,6 +40,8 @@ class ChapleanContext extends MinkContext implements KernelAwareContext
 
     protected static $cookieAccepted = true;
 
+    protected $doesntWaitAjax = false;
+
     /**
      * @Given /^I set the datafixtures namespace as "(?P<namespace>(?:[^"]|\\")*)"$/
      *
@@ -153,6 +155,7 @@ class ChapleanContext extends MinkContext implements KernelAwareContext
      */
     public function beforeScenario()
     {
+        $this->doesntWaitAjax = false;
         $session = $this->getSession();
 
         if (self::$cookieAccepted) {
@@ -560,6 +563,16 @@ class ChapleanContext extends MinkContext implements KernelAwareContext
     }
 
     /**
+     * @Given /^I don't wait Ajax$/
+     *
+     * @return void
+     */
+    public function iDontWaitAjax()
+    {
+        $this->doesntWaitAjax = true;
+    }
+
+    /**
      * @AfterStep
      *
      * @param AfterStepScope $scope
@@ -569,7 +582,7 @@ class ChapleanContext extends MinkContext implements KernelAwareContext
      */
     public function waitAjax(AfterStepScope $scope)
     {
-        if (preg_match('/^(?:|I )am on "(.?[^"]+)"$/', $scope->getStep()->getText()) || preg_match('/^(?:|I )am on (?:|the )homepage$/', $scope->getStep()->getText())) {
+        if ((preg_match('/^(?:|I )am on "(.?[^"]+)"$/', $scope->getStep()->getText()) || preg_match('/^(?:|I )am on (?:|the )homepage$/', $scope->getStep()->getText())) && !$this->doesntWaitAjax) {
             $this->iWaitAjax();
         }
     }
