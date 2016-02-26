@@ -285,7 +285,13 @@ class ChapleanContext extends MinkContext implements KernelAwareContext
             $element->click();
             $this->iWaitAjax();
         } else {
-            throw new \Exception(error_get_last() . ' ' . $page->getContent());
+            $errors = error_get_last();
+            if (!empty($errors)) {
+                $error = sprintf('%s:%s %s %s', $errors['file'], $errors['message'], $errors['line'], $page->getContent());
+            } else {
+                $error = $page->getContent();
+            }
+            throw new \Exception($error);
         }
     }
 
