@@ -29,7 +29,7 @@ class ContainerUtility
      *
      * @return void
      */
-    private static function loadContainer($typeTest)
+    public static function loadContainer($typeTest)
     {
         /** @var Kernel $kernel */
 
