@@ -32,6 +32,7 @@ class AppKernel extends Kernel
             $bundles[] = new FOS\RestBundle\FOSRestBundle();
             $bundles[] = new JMS\SerializerBundle\JMSSerializerBundle();
             $bundles[] = new Symfony\Bundle\TwigBundle\TwigBundle();
+            $bundles[] = new Symfony\Bundle\SecurityBundle\SecurityBundle();
         }
 
         return $bundles;

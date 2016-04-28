@@ -1,8 +1,12 @@
 imports:
     - { resource: parameters.yml }
+    - { resource: security.yml }
 
 framework:
+    test: ~
     secret: "S3cR€t"
+    session:
+        storage_id: session.storage.mock_file
     form:   ~
     router:
         resource: "%kernel.root_dir%/config/routing.yml"

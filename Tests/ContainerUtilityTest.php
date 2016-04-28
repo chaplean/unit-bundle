@@ -1,6 +1,6 @@
 <?php
 
-namespace Chaplean\Bundle\UnitBundle\Tests;
+namespace Tests\Chaplean\Bundle\UnitBundle;
 
 use Chaplean\Bundle\UnitBundle\Test\LogicalTest;
 use Chaplean\Bundle\UnitBundle\Utility\ContainerUtility;
@@ -29,5 +29,15 @@ class ContainerUtilityTest extends LogicalTest
         $container = ContainerUtility::getContainer('logical');
 
         $this->assertInstanceOf('\AppKernel', $container->get('kernel'));
+    }
+
+    /**
+     * @return void
+     */
+    public function testLoadContainer()
+    {
+        ContainerUtility::loadContainer('logical');
+
+        $this->assertInstanceOf('\AppKernel', ContainerUtility::getContainer('logical')->get('kernel'));
     }
 }

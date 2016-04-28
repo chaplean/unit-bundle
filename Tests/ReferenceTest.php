@@ -1,6 +1,6 @@
 <?php
 
-namespace Chaplean\Bundle\UnitBundle\Tests;
+namespace Tests\Chaplean\Bundle\UnitBundle;
 
 use Chaplean\Bundle\UnitBundle\Test\LogicalTest;
 use Chaplean\Bundle\UnitBundle\Utility\Reference;
