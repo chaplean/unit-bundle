@@ -1,6 +1,6 @@
 <?php
 
-namespace Chaplean\Bundle\UnitBundle\Tests;
+namespace Tests\Chaplean\Bundle\UnitBundle;
 
 use Chaplean\Bundle\UnitBundle\Entity\Product;
 use Chaplean\Bundle\UnitBundle\Test\LogicalTest;
@@ -29,6 +29,8 @@ class LoadByContextTest extends LogicalTest
     public function testProvider()
     {
         $this->assertCount(1, $this->em->getRepository('ChapleanUnitBundle:Provider')->findAll());
+        $this->assertCount(2, $this->em->getRepository('ChapleanUnitBundle:Product')->findAll());
+        $this->assertCount(2, $this->em->getRepository('ChapleanUnitBundle:Client')->findAll());
     }
 
     /**
@@ -39,7 +41,8 @@ class LoadByContextTest extends LogicalTest
         $this->loadPartialFixturesByContext('PartialContext');
 
         $this->assertCount(3, $this->em->getRepository('ChapleanUnitBundle:Product')->findAll());
-        $this->assertCount(4, $this->em->getRepository('ChapleanUnitBundle:Client')->findAll());
+        $this->assertCount(1, $this->em->getRepository('ChapleanUnitBundle:Provider')->findAll());
+
         $this->assertInstanceOf(Product::class, self::$fixtures->getReference('product-injected'));
 
         /** @var Product $product */

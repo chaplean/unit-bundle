@@ -1,6 +1,6 @@
 route_rest_tes:
     type: rest
-    resource: Chaplean\Bundle\UnitBundle\Tests\UnitController
+    resource: Tests\Chaplean\Bundle\UnitBundle\UnitController
     name_prefix: unit_rest_
     options:
         expose: true

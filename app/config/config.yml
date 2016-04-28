@@ -1,8 +1,12 @@
 imports:
     - { resource: parameters.yml }
+    - { resource: security.yml }
 
 framework:
+    test: ~
     secret: "S3cR€t"
+    session:
+        storage_id: session.storage.mock_file
     form:   ~
     router:
         resource: "%kernel.root_dir%/config/routing.yml"
@@ -37,7 +41,7 @@ doctrine:
         port:     3306
         dbname:   test_database
         user:     root
-        password: %database_password%
+        password: "%database_password%"
         charset:  UTF8
         server_version: 5.5
         mapping_types:

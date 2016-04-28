@@ -1,6 +1,6 @@
 <?php
 
-namespace Chaplean\Bundle\UnitBundle\Tests\Fixtures;
+namespace Tests\Chaplean\Bundle\UnitBundle\Fixtures;
 
 use Chaplean\Bundle\UnitBundle\Test\LogicalTest;
 

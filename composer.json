@@ -13,7 +13,7 @@
     "repositories": [
         {
             "type": "composer",
-            "url": "http://satis.chaplean.com"
+            "url": "https://satis.chaplean.com"
         }
     ],
     "require": {
@@ -42,7 +42,7 @@
         "chaplean/mailer-bundle": "^1.0",
         "friendsofsymfony/rest-bundle": "~1.5",
         "jms/serializer-bundle": "^1.1",
-        "sensio/generator-bundle": "~2.3"
+        "satooshi/php-coveralls": "^1.0"
     },
     "autoload": {
         "psr-0": {
