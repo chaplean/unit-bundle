@@ -2,6 +2,8 @@
 
 namespace Chaplean\Bundle\UnitBundle\Utility\Driver;
 
+use Doctrine\DBAL\Connection;
+
 /**
  * SqliteUtilityDriver.php.
  *
@@ -11,6 +13,18 @@ namespace Chaplean\Bundle\UnitBundle\Utility\Driver;
  */
 class SqliteUtilityDriver
 {
+    /**
+     * @param Connection $connection
+     *
+     * @return boolean
+     */
+    public static function exist($connection)
+    {
+        $file = $connection->getParams()['path'];
+
+        return file_exists($file);
+    }
+
     /**
      * Determine if the Fixtures that define a database backup have been
      * modified since the backup was made.

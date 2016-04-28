@@ -2,13 +2,13 @@
 
 namespace Chaplean\Bundle\UnitBundle\Utility;
 
+use Chaplean\Bundle\UnitBundle\Utility\Driver\MySqlUtilityDriver;
 use Chaplean\Bundle\UnitBundle\Utility\Driver\SqliteUtilityDriver;
 use Doctrine\Bundle\DoctrineBundle\Registry;
-use Doctrine\Common\DataFixtures\Executor\ORMExecutor;
-use Doctrine\Common\DataFixtures\ProxyReferenceRepository;
-use Doctrine\Common\DataFixtures\ReferenceRepository;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Driver;
+use Doctrine\DBAL\Driver\PDOMySql\Driver as MySqlDriver;
+use Doctrine\DBAL\Driver\PDOSqlite\Driver as SqliteDriver;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Tools\SchemaTool;
@@ -26,123 +26,176 @@ class DatabaseUtility
      * @var array
      */
     private static $cachedMetadatas = array();
+    
+    /**
+     * @var EntityManager[]
+     */
+    private static $cachedOm = array();
 
     /**
-     * @var string
+     * @var Driver
      */
-    private static $typeTest;
-
-    /**
-     * @var EntityManager
-     */
-    private static $om;
-
-    /**
-     * @var Connection
-     */
-    private static $connection;
+    private $driver;
 
     /**
      * @var array
      */
-    private static $params;
+    private $metadatas = null;
 
     /**
-     * @param string   $typeTest
-     * @param Registry $registry
+     * @var string
+     */
+    private $typeTest;
+
+    /**
+     * @var EntityManager
+     */
+    private $om;
+
+    /**
+     * @var array
+     */
+    private $params;
+
+    /**
+     * @var string
+     */
+    private $hash;
+
+    /**
+     * @return EntityManager
+     * @throws \Doctrine\DBAL\DBALException
+     */
+    private function buildTmpOm()
+    {
+        $params = $this->om->getConnection()->getParams();
+        if (isset($params['dbname'])) {
+            $params['dbname'] .= '_' . $this->hash;
+        } elseif (isset($params['path'])) {
+            $params['path'] = (str_replace('.db', ('_' . $this->hash), $params['path']) . '.db');
+        }
+
+        /** @var Connection $tmpConnection */
+        $tmpConnection = DriverManager::getConnection($params);
+
+        return EntityManager::create($tmpConnection, $this->om->getConfiguration());
+    }
+
+    /**
+     * @return void
+     * @throws \Doctrine\ORM\Tools\ToolsException
+     */
+    public function cleanDatabaseOrigin()
+    {
+        $schemaTool = new SchemaTool($this->om);
+        $schemaTool->dropDatabase();
+    }
+
+    /**
+     * @return void
+     * @throws \Doctrine\ORM\Tools\ToolsException
+     */
+    public function cleanDatabaseTemporary()
+    {
+        $schemaTool = new SchemaTool(self::$cachedOm[$this->hash]);
+        $schemaTool->dropDatabase();
+
+        if (!empty($this->metadatas)) {
+            $schemaTool->createSchema($this->metadatas);
+        }
+    }
+
+    /**
+     * @param array $params
      *
      * @return void
      */
-    public static function initDatabase($typeTest, $registry)
+    private static function checkParams($params)
     {
-        self::$typeTest = $typeTest;
-        self::$om = $registry->getManager();
-
-        /** @var Connection $connection */
-        $connection = self::$om->getConnection();
-        $params = $connection->getParams();
-
-        if (isset($params['master'])) {
-            $params = $params['master'];
-        }
-
         $name = isset($params['path']) ? $params['path'] : (isset($params['dbname']) ? $params['dbname'] : false);
         if (!$name) {
             throw new \InvalidArgumentException(
                 "Connection does not contain a 'path' or 'dbname' parameter and cannot be dropped."
             );
         }
-
-        self::$params = $params;
     }
 
     /**
-     * @param array $classNames
+     * @return boolean
+     * @throws \Exception
+     */
+    public function exist()
+    {
+        switch (true) {
+            case $this->driver instanceof SqliteDriver:
+                return SqliteUtilityDriver::exist(self::$cachedOm[$this->hash]->getConnection());
+                break;
+            case $this->driver instanceof MySqlDriver:
+                self::$cachedOm[$this->hash]->getConnection()->getDatabasePlatform()->registerDoctrineTypeMapping('enum', 'string');
+                return MySqlUtilityDriver::existDatabase(self::$cachedOm[$this->hash]->getConnection());
+                break;
+        }
+        
+        throw new \Exception(get_class($this->driver) . ' not supported driver.');
+    }
+
+    /**
+     * @param array    $classNames
+     * @param string   $typeTest
+     * @param Registry $registry
      *
-     * @return \Doctrine\Common\DataFixtures\Executor\ORMExecutor
-     */
-    public static function initSqliteDatabase($classNames)
-    {
-        $container = ContainerUtility::getContainer(self::$typeTest);
-        $referenceRepository = new ProxyReferenceRepository(self::$om);
-
-        if ($container->getParameter('liip_functional_test.cache_sqlite_db')) {
-            $backup = $container->getParameter('kernel.cache_dir') . '/test_' . md5(serialize(self::$cachedMetadatas['doctrine']) . serialize($classNames)) . '.db';
-            if (file_exists($backup) && file_exists($backup . '.ser') && SqliteUtilityDriver::isBackupUpToDate($classNames, $backup)) {
-                self::$om->flush();
-                self::$om->clear();
-
-                $executor = new ORMExecutor(self::$om);
-                $executor->setReferenceRepository($referenceRepository);
-                /** @var ReferenceRepository $referenceRepository */
-                $referenceRepository = $executor->getReferenceRepository();
-                /** @noinspection PhpUndefinedMethodInspection */
-                $referenceRepository->load($backup);
-
-                copy($backup, self::$params['path']);
-
-                return $executor;
-            }
-        }
-
-        self::createSchemaDatabase(self::$om);
-
-        $executor = new ORMExecutor(self::$om);
-        $executor->setReferenceRepository($referenceRepository);
-
-        return $executor;
-    }
-
-    /**
      * @return void
-     * @throws \Doctrine\DBAL\DBALException
      */
-    public static function initMySqlDatabase()
+    public function initDatabase($classNames, $typeTest, $registry)
     {
-        $params = self::$params;
-        $name = $params['dbname'];
+        $this->typeTest = $typeTest;
+        $this->om = $registry->getManager();
+        $this->metadatas = self::getMetadatas($this->om);
+        $this->hash = md5(serialize($classNames) . serialize($this->metadatas));
 
-        unset($params['dbname']);
+        if (!isset(self::$cachedOm[$this->hash])) {
+            /** @var Connection $orginalConnection */
+            $orginalConnection = $this->om->getConnection();
+            $params = $orginalConnection->getParams();
+            self::checkParams($params);
 
-        $tmpConnection = DriverManager::getConnection($params);
-        $shouldNotCreateDatabase = in_array($name, $tmpConnection->getSchemaManager()->listDatabases());
-
-        if (!$shouldNotCreateDatabase) {
-            $tmpConnection->getSchemaManager()->createDatabase($name);
+            self::$cachedOm[$this->hash] = self::buildTmpOm();
         }
-
-        self::createSchemaDatabase(self::$om);
+        $this->driver = self::$cachedOm[$this->hash]->getConnection()->getDriver();
     }
 
     /**
      * Create schema database
      *
-     * @param \Doctrine\ORM\EntityManagerInterface $om
-     *
      * @return void
      * @throws \Doctrine\ORM\Tools\ToolsException
      */
-    public static function createSchemaDatabase($om)
+    public function createSchemaDatabase()
+    {
+        switch (true) {
+            case $this->driver instanceof SqliteDriver:
+                break;
+            case $this->driver instanceof MySqlDriver:
+                MySqlUtilityDriver::createDatabase(self::$cachedOm[$this->hash]->getConnection());
+        }
+        
+        $schemaToolOriginal = new SchemaTool($this->om);
+        $schemaToolOriginal->dropDatabase();
+
+        $schemaTool = new SchemaTool(self::$cachedOm[$this->hash]);
+        $schemaTool->dropDatabase();
+
+        if (!empty($this->metadatas)) {
+            $schemaTool->createSchema($this->metadatas);
+        }
+    }
+
+    /**
+     * @param EntityManager $om
+     *
+     * @return mixed
+     */
+    private static function getMetadatas($om)
     {
         if (!isset(self::$cachedMetadatas['doctrine'])) {
             self::$cachedMetadatas['doctrine'] = $om->getMetadataFactory()->getAllMetadata();
@@ -153,14 +206,7 @@ class DatabaseUtility
                 }
             );
         }
-        $metadatas = self::$cachedMetadatas['doctrine'];
-
-        $schemaTool = new SchemaTool($om);
-        $schemaTool->dropDatabase();
-
-        if (!empty($metadatas)) {
-            $schemaTool->createSchema($metadatas);
-        }
+        return self::$cachedMetadatas['doctrine'];
     }
 
     /**
@@ -168,19 +214,17 @@ class DatabaseUtility
      *
      * @return EntityManager
      */
-    public static function getOm()
+    public function getOm()
     {
-        return self::$om;
+        return isset(self::$cachedOm[$this->hash]) ? self::$cachedOm[$this->hash] : $this->om;
     }
 
     /**
-     * Get connection.
-     *
-     * @return Connection
+     * @return string
      */
-    public static function getConnection()
+    public function getHash()
     {
-        return self::$connection;
+        return $this->hash;
     }
 
     /**
@@ -188,8 +232,21 @@ class DatabaseUtility
      *
      * @return array
      */
-    public static function getParams()
+    public function getParams()
     {
-        return self::$params;
+        return $this->params;
+    }
+
+    /**
+     * @return void
+     */
+    public function moveDatabase()
+    {
+        switch (true) {
+            case $this->driver instanceof SqliteDriver:
+                break;
+            case $this->driver instanceof MySqlDriver:
+                MySqlUtilityDriver::moveDatabase(self::$cachedOm[$this->hash], $this->om);
+        }
     }
 }

@@ -9,7 +9,6 @@ use Chaplean\Bundle\UnitBundle\Utility\RestClient;
 use Chaplean\Bundle\UnitBundle\Utility\SwiftMailerCacheUtility;
 use Doctrine\Common\DataFixtures\Purger\ORMPurger;
 use Doctrine\Common\DataFixtures\ReferenceRepository;
-use Doctrine\Entity;
 use Doctrine\ORM\EntityManager;
 use Liip\FunctionalTestBundle\Test\WebTestCase;
 use Symfony\Component\DependencyInjection\Container;
@@ -42,7 +41,7 @@ class LogicalTest extends WebTestCase
      * @var ReferenceRepository
      */
     protected static $fixtures;
-
+    
     /**
      * @var array
      */
@@ -51,7 +50,7 @@ class LogicalTest extends WebTestCase
     /**
      * @var boolean
      */
-    protected static $iWantDefaultData = true;
+    protected static $iWantDefaultData;
 
     /**
      * @var boolean
@@ -61,7 +60,7 @@ class LogicalTest extends WebTestCase
     /**
      * @var string
      */
-    protected static $hashFixtures;
+    public static $hashFixtures;
 
     /**
      * Construct
@@ -74,7 +73,6 @@ class LogicalTest extends WebTestCase
         $this->swiftmailerCacheUtility = $this->getContainer()->get('chaplean_unit.swiftmailer_cache');
 
         self::resetNamespaceFixtures();
-        self::$databaseLoaded = false;
         self::$iWantDefaultData = true;
     }
 
@@ -98,7 +96,7 @@ class LogicalTest extends WebTestCase
     /**
      * @param string $reference
      *
-     * @return Entity|null
+     * @return object|null
      */
     public function getRealEntity($reference)
     {
@@ -128,23 +126,6 @@ class LogicalTest extends WebTestCase
     }
 
     /**
-     * @param array    $classNames
-     * @param string   $omName
-     * @param string   $registryName
-     * @param int|null $purgeMode
-     *
-     * @return void
-     * @deprecated Use loadStaticFixtures ! Transaction is active by function test
-     */
-    public function loadFixtures(array $classNames, $omName = null, $registryName = 'doctrine', $purgeMode = ORMPurger::PURGE_MODE_TRUNCATE)
-    {
-        unset($omName);
-        unset($registryName);
-
-        self::$fixtures = FixtureUtility::loadFixtures($classNames, 'logical', $purgeMode)->getReferenceRepository();
-    }
-
-    /**
      * @param string $context
      *
      * @return void
@@ -154,11 +135,7 @@ class LogicalTest extends WebTestCase
         $defaultFixtures = NamespaceUtility::getClassNamesByContext(FixtureUtility::$namespace, $context);
 
         if (!empty($defaultFixtures)) {
-            if (empty(self::$fixtures)) {
-                self::loadStaticFixtures($defaultFixtures);
-            } else {
-                self::$fixtures = FixtureUtility::loadPartialFixtures($defaultFixtures, null)->getReferenceRepository();
-            }
+            self::loadStaticFixtures($defaultFixtures);
         }
     }
 
@@ -191,10 +168,14 @@ class LogicalTest extends WebTestCase
      */
     public static function loadStaticFixtures(array $classNames, $purgeMode = ORMPurger::PURGE_MODE_TRUNCATE)
     {
-        if (self::$hashFixtures != md5(serialize($classNames))) {
+        $hashFixtures = md5(serialize($classNames));
+
+        if ($hashFixtures != self::$hashFixtures) {
+            self::$hashFixtures = $hashFixtures;
             self::$fixtures = FixtureUtility::loadFixtures($classNames, 'logical', $purgeMode)->getReferenceRepository();
-            self::$hashFixtures = md5(serialize($classNames));
         }
+        
+        self::$databaseLoaded = true;
     }
 
     /**
@@ -252,7 +233,6 @@ class LogicalTest extends WebTestCase
         }
 
         self::loadStaticFixtures(self::$defaultFixtures);
-        self::$databaseLoaded = true;
     }
 
     /**
@@ -265,6 +245,7 @@ class LogicalTest extends WebTestCase
         if (self::$databaseLoaded) {
             $this->em->beginTransaction();
         }
+
         $this->cleanMailDir();
 
         parent::setUp();

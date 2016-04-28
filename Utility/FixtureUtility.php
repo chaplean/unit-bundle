@@ -2,15 +2,12 @@
 
 namespace Chaplean\Bundle\UnitBundle\Utility;
 
-use Chaplean\Bundle\UnitBundle\Utility\Driver\MySqlUtilityDriver;
 use Doctrine\Bundle\DoctrineBundle\Registry;
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 use Doctrine\Common\DataFixtures\Executor\ORMExecutor;
 use Doctrine\Common\DataFixtures\Loader;
 use Doctrine\Common\DataFixtures\ProxyReferenceRepository;
 use Doctrine\Common\DataFixtures\Purger\ORMPurger;
-use Doctrine\DBAL\Driver\PDOMySql\Driver as MySqlDriver;
-use Doctrine\DBAL\Driver\PDOSqlite\Driver as SqliteDriver;
 use Doctrine\ORM\EntityManager;
 use Symfony\Component\DependencyInjection\Container;
 
@@ -32,6 +29,11 @@ class FixtureUtility
      * @var ProxyReferenceRepository
      */
     private static $referenceRepository;
+    
+    /**
+     * @var ORMExecutor[]
+     */
+    protected static $cachedFixtures = array();
 
     /**
      * @var Container
@@ -100,63 +102,43 @@ class FixtureUtility
      */
     public static function loadFixtures(array $classNames, $typeTest, $purgeMode = ORMPurger::PURGE_MODE_DELETE)
     {
-        self::$container = ContainerUtility::getContainer($typeTest);
+        unset($purgeMode);
+        
+        $container = ContainerUtility::getContainer($typeTest);
         /** @var Registry $registry */
-        $registry = self::$container->get('doctrine');
-        /** @var EntityManager $om */
-        $om = $registry->getManager();
-
-        self::$referenceRepository = new ProxyReferenceRepository($om);
-
-        DatabaseUtility::initDatabase($typeTest, $registry);
-        $connection = $om->getConnection();
-        $driver = $connection->getDriver();
-        $name = DatabaseUtility::getParams()['dbname'];
-
+        $registry = $container->get('doctrine');
         $executor = null;
 
-        switch (true) {
-            case $driver instanceof SqliteDriver:
-                $executor = DatabaseUtility::initSqliteDatabase($classNames);
-                break;
-            case $driver instanceof MySqlDriver:
-                DatabaseUtility::initMySqlDatabase();
-                MySqlUtilityDriver::disableForeignKeyCheck($connection);
-                break;
-            default:
-                $executor = null;
-        }
+        $databaseUtility = new DatabaseUtility();
+        $databaseUtility->initDatabase($classNames, $typeTest, $registry);
 
-        if (empty($executor)) {
-            $purger = new ORMPurger();
-            if (null !== $purgeMode) {
-                $purger->setPurgeMode($purgeMode);
+        if (!$databaseUtility->exist()) {
+            $databaseUtility->createSchemaDatabase();
+        } else {
+            $databaseUtility->cleanDatabaseOrigin();
+
+            if (!isset(self::$cachedFixtures[$databaseUtility->getHash()])) {
+                $databaseUtility->cleanDatabaseTemporary();
             }
-
-            $executor = new ORMExecutor($om, $purger);
-
-            $executor->setReferenceRepository(self::$referenceRepository);
-            $executor->purge();
         }
 
-        $loader = self::getFixtureLoader(self::$container, $classNames);
-        self::$loaded = array();
-        foreach ($loader->getFixtures() as $fixture) {
-            self::$loaded[] = get_class($fixture);
+        if (!isset(self::$cachedFixtures[$databaseUtility->getHash()])) {
+            if (empty($executor)) {
+                $referenceRepository = new ProxyReferenceRepository($databaseUtility->getOm());
+
+                $executor = new ORMExecutor($databaseUtility->getOm(), new ORMPurger());
+                $executor->setReferenceRepository($referenceRepository);
+
+                $loader = self::getFixtureLoader($container, $classNames);
+                $executor->execute($loader->getFixtures(), true);
+
+                self::$cachedFixtures[$databaseUtility->getHash()] = $executor;
+            }
+        } else {
+            $executor = self::$cachedFixtures[$databaseUtility->getHash()];
         }
 
-        $executor->execute($loader->getFixtures(), true);
-
-        if (isset($name) && isset($backup)) {
-            /** @noinspection PhpUndefinedMethodInspection */
-            $executor->getReferenceRepository()->save($backup);
-            copy($name, $backup);
-        }
-
-        if ($driver instanceof MySqlDriver) {
-            MySqlUtilityDriver::enableForeignKeyCheck($connection);
-            $connection->close();
-        }
+        $databaseUtility->moveDatabase();
 
         return $executor;
     }

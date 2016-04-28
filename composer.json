@@ -13,7 +13,7 @@
     "repositories": [
         {
             "type": "composer",
-            "url": "http://satis.chaplean.com"
+            "url": "https://satis.chaplean.com"
         }
     ],
     "require": {

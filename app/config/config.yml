@@ -32,12 +32,8 @@ monolog:
 # Doctrine Configuration
 doctrine:
     dbal:
-        driver:   pdo_mysql
-        host:     127.0.0.1
-        port:     3306
-        dbname:   test_database
-        user:     root
-        password: %database_password%
+        driver:   pdo_sqlite
+        path:     "%kernel.cache_dir%/test.db"
         charset:  UTF8
         server_version: 5.5
         mapping_types:
