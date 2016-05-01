@@ -24,10 +24,10 @@ class LoadEnumData extends AbstractFixture
      */
     public function load(ObjectManager $manager)
     {
-        $type = new Enum();
-
-        $this->persist($type, $manager);
-
-        $manager->flush();
+//        $type = new Enum();
+//
+//        $this->persist($type, $manager);
+//
+//        $manager->flush();
     }
 }

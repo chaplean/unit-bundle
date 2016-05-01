@@ -37,7 +37,7 @@ class MySqlUtilityDriver
      *
      * @return boolean
      */
-    public static function existDatabase($connection)
+    public static function exist($connection)
     {
         $params = $connection->getParams();
         $dbname = $params['dbname'];

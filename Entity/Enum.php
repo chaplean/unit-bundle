@@ -12,7 +12,7 @@ use Doctrine\ORM\Mapping as ORM;
  * @since     2.0.0
  *
  * @ORM\Table(name="cl_type")
- * @ORM\Entity
+
  */
 class Enum
 {

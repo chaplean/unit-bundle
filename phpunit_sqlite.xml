@@ -5,23 +5,27 @@
          xsi:noNamespaceSchemaLocation="http://schema.phpunit.de/4.1/phpunit.xsd"
          backupGlobals="false"
          colors="true"
-         bootstrap="app/autoload.php"
+         convertWarningsToExceptions="false"
+         bootstrap="app/sqlite/autoload.php"
         >
     <testsuites>
         <testsuite name="Project Test Suite">
             <directory>Tests</directory>
+            <exclude>Tests/Chaplean/Bundle/UnitBundle/Client</exclude>
         </testsuite>
     </testsuites>
 
     <php>
-        <server name="KERNEL_DIR" value="app/" />
+        <server name="KERNEL_DIR" value="app/sqlite" />
     </php>
-
     <filter>
         <blacklist>
+            <directory>app/</directory>
+            <directory>DataFixtures/</directory>
             <directory>Entity/</directory>
             <directory>Resources/</directory>
             <directory>Repository/</directory>
+            <directory>Controller/</directory>
         </blacklist>
         <whitelist>
             <directory>Test/</directory>

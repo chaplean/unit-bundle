@@ -1,4 +1,0 @@
-app_intergros_api:
-    type: rest
-    resource: "routing_rest.yml"
-    prefix:   /rest/

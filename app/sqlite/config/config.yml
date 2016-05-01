@@ -1,0 +1,18 @@
+imports:
+    - { resource: ../../default/config/config.yml }
+
+# Doctrine Configuration
+doctrine:
+    dbal:
+        driver:   pdo_sqlite
+        path:     "%kernel.cache_dir%/test.db"
+        user:     root
+        password: "%database_password%"
+        charset:  UTF8
+        server_version: 5.5
+        mapping_types:
+            enum: string
+
+    orm:
+        auto_generate_proxy_classes: "%kernel.debug%"
+        auto_mapping: true

@@ -10,6 +10,7 @@ use Chaplean\Bundle\UnitBundle\Utility\RestClient;
 use Chaplean\Bundle\UnitBundle\Utility\SwiftMailerCacheUtility;
 use Doctrine\Common\DataFixtures\Purger\ORMPurger;
 use Doctrine\Common\DataFixtures\ReferenceRepository;
+use Doctrine\Common\Util\ClassUtils;
 use Doctrine\ORM\EntityManager;
 use Liip\FunctionalTestBundle\Test\WebTestCase;
 use Symfony\Bundle\FrameworkBundle\Client;
@@ -17,9 +18,6 @@ use Symfony\Component\BrowserKit\Cookie;
 use Symfony\Component\DependencyInjection\Container;
 use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
-use Symfony\Component\Security\Core\User\UserInterface;
-
-//Tests\\(.+)\\.+Test
 
 /**
  * LogicalTest.
@@ -66,12 +64,18 @@ class LogicalTest extends WebTestCase
     public static $hashFixtures;
 
     /**
+     * @var boolean
+     */
+    public static $overrideNamespace = false;
+
+    /**
      * Construct
      */
     public function __construct()
     {
         parent::__construct();
 
+        FixtureUtility::setContainer($this->getContainer());
         $this->em = $this->getContainer()->get('doctrine')->getManager();
         $this->swiftmailerCacheUtility = $this->getContainer()->get('chaplean_unit.swiftmailer_cache');
 
@@ -127,15 +131,26 @@ class LogicalTest extends WebTestCase
     }
 
     /**
-     * @param string $reference
-     *
-     * @return object|null
+     * @return string
      */
-    public function getRealEntity($reference)
+    public static function getCurrentNamespace()
     {
-        $entity = self::$fixtures->getReference($reference);
+        $file = new \ReflectionClass(get_called_class());
+        $name = $file->name;
+        $matches = null;
+        if (preg_match('/Tests\\\\(.+Bundle)\\\\.*Test/', $name, $matches)) {
+            return $matches[1] . '\\';
+        }
 
-        return $this->em->find(get_class($entity), $entity->getId());
+        return '';
+    }
+
+    /**
+     * @return EntityManager
+     */
+    public function getManager()
+    {
+        return $this->em;
     }
 
     /**
@@ -147,9 +162,22 @@ class LogicalTest extends WebTestCase
     }
 
     /**
+     * @param string $reference
+     *
+     * @return object|null
+     */
+    public function getRealEntity($reference)
+    {
+        $entity = self::$fixtures->getReference($reference);
+
+        return $this->em->find(ClassUtils::getRealClass(get_class($entity)), $entity->getId());
+    }
+
+    /**
      * Get the container
      *
      * @return Container
+     * @deprecated Is too dangerous !
      */
     public static function getStaticContainer()
     {
@@ -228,14 +256,9 @@ class LogicalTest extends WebTestCase
     /**
      * @return void
      */
-    public function resetNamespaceFixtures()
+    public static function resetNamespaceFixtures()
     {
-        $file = new \ReflectionClass(get_called_class());
-        $name = $file->name;
-        $matches = null;
-        if (preg_match('/Tests\\\\(.+Bundle)\\\\.*Test/', $name, $matches)) {
-            FixtureUtility::$namespace = $matches[1] . '\\';
-        }
+        FixtureUtility::$namespace = self::getCurrentNamespace();
     }
 
     /**
@@ -245,7 +268,18 @@ class LogicalTest extends WebTestCase
      */
     public static function setNamespaceFixtures($namespace)
     {
+        self::$overrideNamespace = true;
         FixtureUtility::$namespace = $namespace;
+    }
+
+    /**
+     * @return void
+     */
+    public static function tearDownAfterClass()
+    {
+        parent::tearDownAfterClass();
+
+        self::$overrideNamespace = false;
     }
 
     /**
@@ -260,6 +294,10 @@ class LogicalTest extends WebTestCase
             $datafixtures = $args[0];
         }
 
+        if (!self::$overrideNamespace && FixtureUtility::$namespace != self::getCurrentNamespace()) {
+            self::resetNamespaceFixtures();
+        }
+
         parent::setUpBeforeClass();
         self::$defaultFixtures = array();
 
@@ -269,7 +307,7 @@ class LogicalTest extends WebTestCase
             self::$iWantDefaultData = true;
         }
 
-        if (!empty($datafixtures)) {
+        if (isset($datafixtures)) {
             self::$defaultFixtures = array_merge(self::$defaultFixtures, $datafixtures);
         }
 
@@ -299,7 +337,7 @@ class LogicalTest extends WebTestCase
      */
     public function tearDown()
     {
-        if (!$this->em->getConnection()->isAutoCommit() && self::$databaseLoaded) {
+        if ($this->em->getConnection()->getTransactionNestingLevel() > 0 && self::$databaseLoaded) {
             $this->em->rollback();
         }
 

@@ -25,15 +25,12 @@ class AppKernel extends Kernel
             new Symfony\Bundle\MonologBundle\MonologBundle(),
             new Chaplean\Bundle\UnitBundle\ChapleanUnitBundle(),
             new Liip\FunctionalTestBundle\LiipFunctionalTestBundle(),
+            new Symfony\Bundle\SwiftmailerBundle\SwiftmailerBundle(),
+            new FOS\RestBundle\FOSRestBundle(),
+            new JMS\SerializerBundle\JMSSerializerBundle(),
+            new Symfony\Bundle\TwigBundle\TwigBundle(),
+            new Symfony\Bundle\SecurityBundle\SecurityBundle(),
         );
-
-        if (in_array($this->getEnvironment(), array('dev', 'test', 'behat'))) {
-            $bundles[] = new Symfony\Bundle\SwiftmailerBundle\SwiftmailerBundle();
-            $bundles[] = new FOS\RestBundle\FOSRestBundle();
-            $bundles[] = new JMS\SerializerBundle\JMSSerializerBundle();
-            $bundles[] = new Symfony\Bundle\TwigBundle\TwigBundle();
-            $bundles[] = new Symfony\Bundle\SecurityBundle\SecurityBundle();
-        }
 
         return $bundles;
     }

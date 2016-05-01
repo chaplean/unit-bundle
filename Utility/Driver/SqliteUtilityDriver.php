@@ -3,6 +3,7 @@
 namespace Chaplean\Bundle\UnitBundle\Utility\Driver;
 
 use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\DriverManager;
 
 /**
  * SqliteUtilityDriver.php.
@@ -16,11 +17,33 @@ class SqliteUtilityDriver
     /**
      * @param Connection $connection
      *
-     * @return boolean
+     * @return void
+     * @throws \Doctrine\DBAL\DBALException
      */
-    public static function exist($connection)
+    public static function createDatabase($connection)
+    {
+        $params = $connection->getParams();
+        $dbname = $params['path'];
+
+        unset($params['path']);
+
+        $tmpConnection = DriverManager::getConnection($params);
+        $tmpConnection->getSchemaManager()->createDatabase($dbname);
+    }
+
+    /**
+     * @param Connection $connection
+     * @param string     $hash
+     *
+     * @return mixed
+     */
+    public static function exist($connection, $hash = null)
     {
         $file = $connection->getParams()['path'];
+
+        if ($hash !== null) {
+            $file = (str_replace('.db', ('_' . $hash), $file) . '.db');
+        }
 
         return file_exists($file);
     }
@@ -73,5 +96,19 @@ class SqliteUtilityDriver
         }
 
         return $lastModifiedDateTime;
+    }
+
+    /**
+     * @param Connection $src
+     * @param Connection $dest
+     *
+     * @return void
+     */
+    public static function copyDatabase($src, $dest)
+    {
+        $fileSrc = $src->getParams()['path'];
+        $fileDest = $dest->getParams()['path'];
+
+        copy($fileSrc, $fileDest);
     }
 }

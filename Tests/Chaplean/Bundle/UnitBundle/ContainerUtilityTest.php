@@ -29,6 +29,28 @@ class ContainerUtilityTest extends LogicalTest
         $container = ContainerUtility::getContainer('logical');
 
         $this->assertInstanceOf('\AppKernel', $container->get('kernel'));
+        $this->assertEquals('test', $container->get('kernel')->getEnvironment());
+    }
+
+    /**
+     * @return void
+     */
+    public function testGetContainerWithoutType()
+    {
+        ContainerUtility::loadContainer('');
+        $container = ContainerUtility::getContainer('');
+
+        $this->assertInstanceOf('\AppKernel', $container->get('kernel'));
+        $this->assertEquals('test', $container->get('kernel')->getEnvironment());
+    }
+
+    /**
+     * @return void
+     * @expectedException \Exception
+     */
+    public function testGetContainerBehat()
+    {
+        ContainerUtility::loadContainer('behat');
     }
 
     /**

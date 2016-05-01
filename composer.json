@@ -46,7 +46,8 @@
     },
     "autoload": {
         "psr-0": {
-            "Chaplean\\Bundle\\UnitBundle": ""
+            "Chaplean\\Bundle\\UnitBundle": "",
+            "Foo\\Bundle\\FooBundle": ""
         }
     },
     "target-dir" : "Chaplean/Bundle/UnitBundle",

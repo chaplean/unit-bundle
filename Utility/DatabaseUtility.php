@@ -26,11 +26,6 @@ class DatabaseUtility
      * @var array
      */
     private static $cachedMetadatas = array();
-    
-    /**
-     * @var EntityManager[]
-     */
-    private static $cachedOm = array();
 
     /**
      * @var Driver
@@ -53,6 +48,11 @@ class DatabaseUtility
     private $om;
 
     /**
+     * @var EntityManager
+     */
+    private $tmpOm;
+
+    /**
      * @var array
      */
     private $params;
@@ -69,10 +69,10 @@ class DatabaseUtility
     private function buildTmpOm()
     {
         $params = $this->om->getConnection()->getParams();
-        if (isset($params['dbname'])) {
-            $params['dbname'] .= '_' . $this->hash;
-        } elseif (isset($params['path'])) {
+        if (isset($params['path'])) {
             $params['path'] = (str_replace('.db', ('_' . $this->hash), $params['path']) . '.db');
+        } elseif (isset($params['dbname'])) {
+            $params['dbname'] .= '_' . $this->hash;
         }
 
         /** @var Connection $tmpConnection */
@@ -82,13 +82,25 @@ class DatabaseUtility
     }
 
     /**
+     * @param EntityManager $om
+     *
      * @return void
      * @throws \Doctrine\ORM\Tools\ToolsException
      */
-    public function cleanDatabaseOrigin()
+    public function cleanDatabase($om = null)
     {
-        $schemaTool = new SchemaTool($this->om);
-        $schemaTool->dropDatabase();
+        if ($om === null && $this->driver instanceof MySqlDriver) {
+            $om = $this->om;
+        }
+
+        if ($om !== null) {
+            $schemaTool = new SchemaTool($om);
+            $schemaTool->dropDatabase();
+
+            if (!empty($this->metadatas)) {
+                $schemaTool->createSchema($this->metadatas);
+            }
+        }
     }
 
     /**
@@ -97,11 +109,8 @@ class DatabaseUtility
      */
     public function cleanDatabaseTemporary()
     {
-        $schemaTool = new SchemaTool(self::$cachedOm[$this->hash]);
-        $schemaTool->dropDatabase();
-
-        if (!empty($this->metadatas)) {
-            $schemaTool->createSchema($this->metadatas);
+        if ($this->driver instanceof SqliteDriver) {
+            $this->cleanDatabase($this->tmpOm);
         }
     }
 
@@ -126,14 +135,10 @@ class DatabaseUtility
      */
     public function exist()
     {
-        switch (true) {
-            case $this->driver instanceof SqliteDriver:
-                return SqliteUtilityDriver::exist(self::$cachedOm[$this->hash]->getConnection());
-                break;
-            case $this->driver instanceof MySqlDriver:
-                self::$cachedOm[$this->hash]->getConnection()->getDatabasePlatform()->registerDoctrineTypeMapping('enum', 'string');
-                return MySqlUtilityDriver::existDatabase(self::$cachedOm[$this->hash]->getConnection());
-                break;
+        if ($this->driver instanceof SqliteDriver) {
+            return SqliteUtilityDriver::exist($this->om->getConnection(), $this->hash);
+        } elseif ($this->driver instanceof MySqlDriver) {
+            return MySqlUtilityDriver::exist($this->om->getConnection());
         }
         
         throw new \Exception(get_class($this->driver) . ' not supported driver.');
@@ -148,20 +153,17 @@ class DatabaseUtility
      */
     public function initDatabase($classNames, $typeTest, $registry)
     {
-        $this->typeTest = $typeTest;
         $this->om = $registry->getManager();
+        self::checkParams($this->om->getConnection()->getParams());
+
+        $this->typeTest = $typeTest;
         $this->metadatas = self::getMetadatas($this->om);
         $this->hash = md5(serialize($classNames) . serialize($this->metadatas));
+        $this->driver = $this->om->getConnection()->getDriver();
 
-        if (!isset(self::$cachedOm[$this->hash])) {
-            /** @var Connection $orginalConnection */
-            $orginalConnection = $this->om->getConnection();
-            $params = $orginalConnection->getParams();
-            self::checkParams($params);
-
-            self::$cachedOm[$this->hash] = self::buildTmpOm();
+        if ($this->driver instanceof SqliteDriver) {
+            $this->tmpOm = $this->buildTmpOm();
         }
-        $this->driver = self::$cachedOm[$this->hash]->getConnection()->getDriver();
     }
 
     /**
@@ -169,25 +171,34 @@ class DatabaseUtility
      *
      * @return void
      * @throws \Doctrine\ORM\Tools\ToolsException
+     * @throws \Exception
      */
     public function createSchemaDatabase()
     {
-        switch (true) {
-            case $this->driver instanceof SqliteDriver:
-                break;
-            case $this->driver instanceof MySqlDriver:
-                MySqlUtilityDriver::createDatabase(self::$cachedOm[$this->hash]->getConnection());
+        if ($this->driver instanceof SqliteDriver) {
+            SqliteUtilityDriver::createDatabase($this->tmpOm->getConnection());
+            $om = $this->tmpOm;
+        } elseif ($this->driver instanceof MySqlDriver) {
+            MySqlUtilityDriver::createDatabase($this->om->getConnection());
+            $om = $this->om;
+        } else {
+            throw new \Exception(get_class($this->driver) . ' not supported driver.');
         }
-        
-        $schemaToolOriginal = new SchemaTool($this->om);
-        $schemaToolOriginal->dropDatabase();
 
-        $schemaTool = new SchemaTool(self::$cachedOm[$this->hash]);
+        $schemaTool = new SchemaTool($om);
         $schemaTool->dropDatabase();
 
         if (!empty($this->metadatas)) {
             $schemaTool->createSchema($this->metadatas);
         }
+    }
+
+    /**
+     * @return Driver
+     */
+    public function getDriver()
+    {
+        return $this->driver;
     }
 
     /**
@@ -216,7 +227,7 @@ class DatabaseUtility
      */
     public function getOm()
     {
-        return isset(self::$cachedOm[$this->hash]) ? self::$cachedOm[$this->hash] : $this->om;
+        return !empty($this->tmpOm) ? $this->tmpOm : $this->om;
     }
 
     /**
@@ -242,11 +253,8 @@ class DatabaseUtility
      */
     public function moveDatabase()
     {
-        switch (true) {
-            case $this->driver instanceof SqliteDriver:
-                break;
-            case $this->driver instanceof MySqlDriver:
-                MySqlUtilityDriver::moveDatabase(self::$cachedOm[$this->hash], $this->om);
+        if ($this->driver instanceof SqliteDriver) {
+            SqliteUtilityDriver::copyDatabase($this->tmpOm->getConnection(), $this->om->getConnection());
         }
     }
 }

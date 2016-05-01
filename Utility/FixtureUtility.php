@@ -8,8 +8,10 @@ use Doctrine\Common\DataFixtures\Executor\ORMExecutor;
 use Doctrine\Common\DataFixtures\Loader;
 use Doctrine\Common\DataFixtures\ProxyReferenceRepository;
 use Doctrine\Common\DataFixtures\Purger\ORMPurger;
+use Doctrine\DBAL\Driver\PDOMySql\Driver as MySqlDriver;
 use Doctrine\ORM\EntityManager;
 use Symfony\Component\DependencyInjection\Container;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * FixtureUtility.php.
@@ -21,19 +23,19 @@ use Symfony\Component\DependencyInjection\Container;
 class FixtureUtility
 {
     /**
+     * @var DatabaseUtility
+     */
+    private static $database;
+
+    /**
      * @var array
      */
     private static $loaded;
-
-    /**
-     * @var ProxyReferenceRepository
-     */
-    private static $referenceRepository;
     
     /**
      * @var ORMExecutor[]
      */
-    protected static $cachedFixtures = array();
+    protected static $cachedExecutor = array();
 
     /**
      * @var Container
@@ -72,7 +74,7 @@ class FixtureUtility
             }
         }
 
-        $executor->setReferenceRepository(self::$referenceRepository);
+        $executor->setReferenceRepository(self::$cachedExecutor[self::$database->getHash()]->getReferenceRepository());
         $executor->execute($fixtures, true);
 
         return $executor;
@@ -103,10 +105,8 @@ class FixtureUtility
     public static function loadFixtures(array $classNames, $typeTest, $purgeMode = ORMPurger::PURGE_MODE_DELETE)
     {
         unset($purgeMode);
-        
-        $container = ContainerUtility::getContainer($typeTest);
         /** @var Registry $registry */
-        $registry = $container->get('doctrine');
+        $registry = self::$container->get('doctrine');
         $executor = null;
 
         $databaseUtility = new DatabaseUtility();
@@ -115,30 +115,37 @@ class FixtureUtility
         if (!$databaseUtility->exist()) {
             $databaseUtility->createSchemaDatabase();
         } else {
-            $databaseUtility->cleanDatabaseOrigin();
+            $databaseUtility->cleanDatabase();
 
-            if (!isset(self::$cachedFixtures[$databaseUtility->getHash()])) {
+            if (!isset(self::$cachedExecutor[$databaseUtility->getHash()])) {
                 $databaseUtility->cleanDatabaseTemporary();
             }
         }
 
-        if (!isset(self::$cachedFixtures[$databaseUtility->getHash()])) {
+        if (!isset(self::$cachedExecutor[$databaseUtility->getHash()]) || $databaseUtility->getDriver() instanceof MySqlDriver) {
             if (empty($executor)) {
                 $referenceRepository = new ProxyReferenceRepository($databaseUtility->getOm());
 
                 $executor = new ORMExecutor($databaseUtility->getOm(), new ORMPurger());
                 $executor->setReferenceRepository($referenceRepository);
 
-                $loader = self::getFixtureLoader($container, $classNames);
+                $loader = self::getFixtureLoader(self::$container, $classNames);
+
+                self::$loaded = array();
+                foreach ($loader->getFixtures() as $fixture) {
+                    self::$loaded[] = get_class($fixture);
+                }
+
                 $executor->execute($loader->getFixtures(), true);
 
-                self::$cachedFixtures[$databaseUtility->getHash()] = $executor;
+                self::$cachedExecutor[$databaseUtility->getHash()] = $executor;
             }
         } else {
-            $executor = self::$cachedFixtures[$databaseUtility->getHash()];
+            $executor = self::$cachedExecutor[$databaseUtility->getHash()];
         }
 
         $databaseUtility->moveDatabase();
+        self::$database = $databaseUtility;
 
         return $executor;
     }
@@ -214,5 +221,15 @@ class FixtureUtility
         }
 
         return $dataFixtures;
+    }
+
+    /**
+     * @param Container|ContainerInterface $container
+     *
+     * @return void
+     */
+    public static function setContainer($container)
+    {
+        self::$container = $container;
     }
 }
