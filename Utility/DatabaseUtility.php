@@ -142,13 +142,15 @@ class DatabaseUtility
     }
 
     /**
+     * @param array $classNames
+     * 
      * @return boolean
      * @throws \Exception
      */
-    public function exist()
+    public function exist($classNames = array())
     {
         if ($this->driver instanceof SqliteDriver) {
-            return SqliteUtilityDriver::exist($this->om->getConnection(), $this->cachedSqlite ? $this->hash : null);
+            return SqliteUtilityDriver::exist($this->om->getConnection(), $classNames, $this->cachedSqlite ? $this->hash : null);
         } elseif ($this->driver instanceof MySqlDriver) {
             return MySqlUtilityDriver::exist($this->om->getConnection());
         }

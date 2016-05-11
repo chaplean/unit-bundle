@@ -33,11 +33,12 @@ class SqliteUtilityDriver
 
     /**
      * @param Connection $connection
+     * @param array      $classNames
      * @param string     $hash
      *
      * @return mixed
      */
-    public static function exist($connection, $hash = null)
+    public static function exist($connection, $classNames = null, $hash = null)
     {
         $file = $connection->getParams()['path'];
 
@@ -45,7 +46,13 @@ class SqliteUtilityDriver
             $file = (str_replace('.db', ('_' . $hash), $file) . '.db');
         }
 
-        return file_exists($file);
+        $exist = file_exists($file);
+        if ($exist && $classNames != null && !self::isBackupUpToDate($classNames, $file)) {
+            unlink($file);
+            $exist = false;
+        }
+
+        return $exist;
     }
 
     /**
@@ -63,7 +70,7 @@ class SqliteUtilityDriver
         $backupLastModifiedDateTime = new \DateTime();
         $backupLastModifiedDateTime->setTimestamp(filemtime($backup));
 
-        foreach ($classNames as &$className) {
+        foreach ($classNames as $className) {
             $fixtureLastModifiedDateTime = self::getFixtureLastModified($className);
             if ($backupLastModifiedDateTime < $fixtureLastModifiedDateTime) {
                 return false;

@@ -112,7 +112,7 @@ class FixtureUtility
         $databaseUtility = new DatabaseUtility();
         $databaseUtility->initDatabase($classNames, $typeTest, $registry, self::$container);
 
-        if (!$databaseUtility->exist()) {
+        if (!$databaseUtility->exist($classNames)) {
             $databaseUtility->createSchemaDatabase();
         } else {
             $databaseUtility->cleanDatabase();

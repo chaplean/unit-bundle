@@ -4,7 +4,6 @@ namespace Chaplean\Bundle\UnitBundle\Utility\Driver;
 
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DriverManager;
-use Doctrine\ORM\EntityManager;
 
 /**
  * MySqlUtilityDriver.php.
