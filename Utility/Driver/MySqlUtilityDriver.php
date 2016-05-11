@@ -48,47 +48,4 @@ class MySqlUtilityDriver
 
         return in_array($dbname, $tmpConnection->getSchemaManager()->listDatabases());
     }
-
-    /**
-     * @param Connection $connection
-     *
-     * @return void
-     */
-    public static function disableForeignKeyCheck(&$connection)
-    {
-        $connection->exec('SET FOREIGN_KEY_CHECKS=0');
-    }
-
-    /**
-     * @param Connection $connection
-     *
-     * @return void
-     */
-    public static function enableForeignKeyCheck(&$connection)
-    {
-        $connection->exec('SET FOREIGN_KEY_CHECKS=1');
-    }
-
-    /**
-     * @param EntityManager $tmpOm
-     * @param EntityManager $originalOm
-     *
-     * @return void
-     */
-    public static function moveDatabase($tmpOm, $originalOm)
-    {
-        $dbnameDest = $originalOm->getConnection()->getParams()['dbname'];
-        $dbnameSrc = $tmpOm->getConnection()->getParams()['dbname'];
-
-        $tables = $tmpOm->getConnection()->getSchemaManager()->listTables();
-        foreach ($tables as $table) {
-            $originalOm->getConnection()->exec(sprintf(
-                'CREATE TABLE %s.%s SELECT * FROM %s.%s',
-                $dbnameDest,
-                $table->getName(),
-                $dbnameSrc,
-                $table->getName()
-            ));
-        }
-    }
 }
