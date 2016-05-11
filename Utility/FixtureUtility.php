@@ -110,7 +110,7 @@ class FixtureUtility
         $executor = null;
 
         $databaseUtility = new DatabaseUtility();
-        $databaseUtility->initDatabase($classNames, $typeTest, $registry);
+        $databaseUtility->initDatabase($classNames, $typeTest, $registry, self::$container);
 
         if (!$databaseUtility->exist()) {
             $databaseUtility->createSchemaDatabase();
@@ -136,7 +136,7 @@ class FixtureUtility
                     self::$loaded[] = get_class($fixture);
                 }
 
-                $executor->execute($loader->getFixtures(), true);
+                $executor->execute($loader->getFixtures());
 
                 self::$cachedExecutor[$databaseUtility->getHash()] = $executor;
             }

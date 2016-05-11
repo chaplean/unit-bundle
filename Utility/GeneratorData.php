@@ -72,6 +72,20 @@ class GeneratorData
 
     /**
      * @param string $class
+     *
+     * @return array
+     */
+    public function getFieldsDefined($class)
+    {
+        if (isset($this->entityDefinition[$class])) {
+            return array_keys($this->entityDefinition[$class]['properties']);
+        } else {
+            return array();
+        }
+    }
+
+    /**
+     * @param string $class
      * @param string $fieldName
      *
      * @return mixed

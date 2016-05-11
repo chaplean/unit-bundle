@@ -28,6 +28,7 @@ class LogicalTestTest extends LogicalTest
      */
     public function setUp()
     {
+        $this->em->close();
     }
 
     /**
@@ -48,13 +49,14 @@ class LogicalTestTest extends LogicalTest
     public function testLoadDefaultFixtures()
     {
         $logicalTest = new LogicalTest();
-        $logicalTest->setUp();
 
         $this->assertCount(0, $logicalTest->getManager()->getRepository('ChapleanUnitBundle:Client')->findAll());
 
+        $logicalTest = new LogicalTest();
         $logicalTest->setNamespaceFixtures('Chaplean\Bundle\UnitBundle\\');
         $logicalTest->setUpBeforeClass();
-        
+        $logicalTest->setUp();
+
         $this->assertCount(1, $logicalTest->getManager()->getRepository('ChapleanUnitBundle:Client')->findAll());
         $this->assertCount(3, $logicalTest->getManager()->getRepository('ChapleanUnitBundle:Status')->findAll());
 

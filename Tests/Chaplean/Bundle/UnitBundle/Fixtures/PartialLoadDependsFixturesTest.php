@@ -30,7 +30,7 @@ class PartialLoadDependsFixturesTest extends LogicalTest
         $this->assertCount(1, $this->em->getRepository('ChapleanUnitBundle:Product')->findAll());
         $this->assertCount(0, $this->em->getRepository('ChapleanUnitBundle:Provider')->findAll());
 
-        $this->loadPartialFixtures(array('Chaplean\Bundle\UnitBundle\DataFixtures\Liip\LoadProviderData'));
+        $this->loadPartialFixtures(array('Chaplean\Bundle\UnitBundle\DataFixtures\Liip\PartialProvider\LoadProviderData'));
 
         $this->assertCount(1, $this->em->getRepository('ChapleanUnitBundle:Client')->findAll());
         $this->assertCount(1, $this->em->getRepository('ChapleanUnitBundle:Product')->findAll());

@@ -107,14 +107,6 @@ class LogicalTest extends WebTestCase
     }
 
     /**
-     * @return RestClient
-     */
-    public function createFrontClient()
-    {
-        return new FrontClient($this->getContainer());
-    }
-
-    /**
      * @return void
      */
     public function cleanMailDir()

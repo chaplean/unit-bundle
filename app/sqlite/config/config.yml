@@ -1,6 +1,9 @@
 imports:
     - { resource: ../../default/config/config.yml }
 
+chaplean_unit:
+    cache_sqlite_db: true
+
 # Doctrine Configuration
 doctrine:
     dbal:

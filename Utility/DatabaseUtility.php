@@ -12,6 +12,8 @@ use Doctrine\DBAL\Driver\PDOSqlite\Driver as SqliteDriver;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Tools\SchemaTool;
+use Symfony\Component\DependencyInjection\Container;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * DatabaseUtility.php.
@@ -22,6 +24,16 @@ use Doctrine\ORM\Tools\SchemaTool;
  */
 class DatabaseUtility
 {
+    /**
+     * @var boolean
+     */
+    private $cachedSqlite;
+
+    /**
+     * @var ContainerInterface
+     */
+    private $container;
+
     /**
      * @var array
      */
@@ -69,7 +81,7 @@ class DatabaseUtility
     private function buildTmpOm()
     {
         $params = $this->om->getConnection()->getParams();
-        if (isset($params['path'])) {
+        if (isset($params['path']) && $this->driver instanceof SqliteDriver) {
             $params['path'] = (str_replace('.db', ('_' . $this->hash), $params['path']) . '.db');
         } elseif (isset($params['dbname'])) {
             $params['dbname'] .= '_' . $this->hash;
@@ -89,7 +101,7 @@ class DatabaseUtility
      */
     public function cleanDatabase($om = null)
     {
-        if ($om === null && $this->driver instanceof MySqlDriver) {
+        if ($om === null && ($this->driver instanceof MySqlDriver || !$this->cachedSqlite)) {
             $om = $this->om;
         }
 
@@ -109,7 +121,7 @@ class DatabaseUtility
      */
     public function cleanDatabaseTemporary()
     {
-        if ($this->driver instanceof SqliteDriver) {
+        if ($this->driver instanceof SqliteDriver && $this->cachedSqlite) {
             $this->cleanDatabase($this->tmpOm);
         }
     }
@@ -136,7 +148,7 @@ class DatabaseUtility
     public function exist()
     {
         if ($this->driver instanceof SqliteDriver) {
-            return SqliteUtilityDriver::exist($this->om->getConnection(), $this->hash);
+            return SqliteUtilityDriver::exist($this->om->getConnection(), $this->cachedSqlite ? $this->hash : null);
         } elseif ($this->driver instanceof MySqlDriver) {
             return MySqlUtilityDriver::exist($this->om->getConnection());
         }
@@ -145,23 +157,26 @@ class DatabaseUtility
     }
 
     /**
-     * @param array    $classNames
-     * @param string   $typeTest
-     * @param Registry $registry
+     * @param array     $classNames
+     * @param string    $typeTest
+     * @param Registry  $registry
+     * @param Container $container
      *
      * @return void
      */
-    public function initDatabase($classNames, $typeTest, $registry)
+    public function initDatabase($classNames, $typeTest, $registry, $container)
     {
         $this->om = $registry->getManager();
         self::checkParams($this->om->getConnection()->getParams());
 
+        $this->container = $container;
         $this->typeTest = $typeTest;
         $this->metadatas = self::getMetadatas($this->om);
         $this->hash = md5(serialize($classNames) . serialize($this->metadatas));
         $this->driver = $this->om->getConnection()->getDriver();
+        $this->cachedSqlite = $this->container->getParameter('chaplean_unit.cache_sqlite_db');
 
-        if ($this->driver instanceof SqliteDriver) {
+        if ($this->driver instanceof SqliteDriver && $this->cachedSqlite) {
             $this->tmpOm = $this->buildTmpOm();
         }
     }
@@ -176,8 +191,8 @@ class DatabaseUtility
     public function createSchemaDatabase()
     {
         if ($this->driver instanceof SqliteDriver) {
-            SqliteUtilityDriver::createDatabase($this->tmpOm->getConnection());
-            $om = $this->tmpOm;
+            SqliteUtilityDriver::createDatabase($this->cachedSqlite ? $this->tmpOm->getConnection() : $this->om->getConnection());
+            $om = $this->cachedSqlite ? $this->tmpOm : $this->om;
         } elseif ($this->driver instanceof MySqlDriver) {
             MySqlUtilityDriver::createDatabase($this->om->getConnection());
             $om = $this->om;
@@ -253,7 +268,7 @@ class DatabaseUtility
      */
     public function moveDatabase()
     {
-        if ($this->driver instanceof SqliteDriver) {
+        if ($this->driver instanceof SqliteDriver && $this->cachedSqlite) {
             SqliteUtilityDriver::copyDatabase($this->tmpOm->getConnection(), $this->om->getConnection());
         }
     }

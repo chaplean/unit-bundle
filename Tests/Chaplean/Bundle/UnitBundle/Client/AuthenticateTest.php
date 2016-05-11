@@ -30,20 +30,6 @@ class AuthenticateTest extends LogicalTest
     /**
      * @return void
      */
-    public function testAuthenticateInFrontClient()
-    {
-        $user = new User('user', 'pwd');
-
-        $client = $this->createFrontClient();
-        $this->authenticate($user, $client);
-
-        $this->assertInstanceOf(User::class, $client->getContainer()->get('security.token_storage')->getToken()->getUser());
-        $this->assertEquals('user', $client->getContainer()->get('security.token_storage')->getToken()->getUser()->getUsername());
-    }
-
-    /**
-     * @return void
-     */
     public function testAuthenticateInClient()
     {
         $user = new User('user', 'pwd');
