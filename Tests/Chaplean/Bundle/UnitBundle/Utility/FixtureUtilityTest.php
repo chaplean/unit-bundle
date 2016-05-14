@@ -33,10 +33,10 @@ class FixtureUtilityTest extends LogicalTest
      */
     public function testLoadDefaultFixturesWithNamespace()
     {
-        $this->assertEquals(array(
-            'Chaplean\Bundle\UnitBundle\DataFixtures\Liip\DefaultData\LoadStatusData',
-            'Chaplean\Bundle\UnitBundle\DataFixtures\Liip\DefaultData\LoadClientData',
-        ), FixtureUtility::loadDefaultFixtures($this->getNamespace()));
+        $datas = FixtureUtility::loadDefaultFixtures($this->getNamespace());
+
+        $this->assertTrue(in_array('Chaplean\Bundle\UnitBundle\DataFixtures\Liip\DefaultData\LoadStatusData', $datas));
+        $this->assertTrue(in_array('Chaplean\Bundle\UnitBundle\DataFixtures\Liip\DefaultData\LoadClientData', $datas));
     }
 
     /**
