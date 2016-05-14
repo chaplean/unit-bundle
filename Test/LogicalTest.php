@@ -145,7 +145,7 @@ class LogicalTest extends WebTestCase
     public function getEntity($reference)
     {
         $entity = self::$fixtures->getReference($reference);
-
+        
         return $this->em->find(ClassUtils::getClass($entity), $entity->getId());
     }
 

@@ -57,7 +57,7 @@ class GeneratorData
      * @return void
      * @throws \Exception
      */
-    protected function classDefinitionExist($class, $fieldName)
+    public function classDefinitionExist($class, $fieldName)
     {
         if (empty($this->entityDefinition)) {
             throw new \Exception('No definition load !');
@@ -113,22 +113,6 @@ class GeneratorData
             return $this->references[$class . ':' . $fieldName]->getReferenceKey();
         } else {
             throw new \Exception(sprintf('Reference \'%s\' not exist', $class . ':' . $fieldName));
-        }
-    }
-
-    /**
-     * @param string $class
-     * @param string $fieldName
-     *
-     * @return bool
-     */
-    public function hasDefinition($class, $fieldName)
-    {
-        try {
-            $this->classDefinitionExist($class, $fieldName);
-            return true;
-        } catch (\Exception $e) {
-            return false;
         }
     }
 

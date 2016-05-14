@@ -43,4 +43,35 @@ class GeneratorDataTest extends LogicalTest
         $generator->hasReference('Chaplean\Bundle\UnitBundle\Entity\Client', 'name');
         $this->assertEquals(null, $generator->getReference('Chaplean\Bundle\UnitBundle\Entity\Client', 'name'));
     }
+
+    /**
+     * @return void
+     * @expectedExceptionMessage No definition load !
+     */
+    public function testClassDefinitionExistWithEmptyDefinition()
+    {
+        $mock = $this->getMockBuilder(GeneratorData::class)
+                ->disableOriginalConstructor()
+                ->getMock();
+
+        /** @noinspection PhpUndefinedMethodInspection */
+        $mock->classDefinitionExist('', '');
+    }
+
+    /**
+     * @return void
+     */
+    public function testHasReference()
+    {
+        $mock = $this->getMockBuilder('Chaplean\Bundle\UnitBundle\Utility\GeneratorData')
+            ->setConstructorArgs(array(__DIR__ . '/../../../../Resources/config/datafixtures.yml'))
+            ->setMethods(array('classDefinitionExist'))
+            ->getMock();
+
+        $mock->expects($this->any())
+            ->method('classDefinitionExist')
+            ->willThrowException(new \Exception());
+
+        $this->assertFalse($mock->hasReference('Chaplean\Bundle\UnitBundle\Entity\Client', 'name'));
+    }
 }

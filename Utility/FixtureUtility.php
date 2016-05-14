@@ -30,7 +30,7 @@ class FixtureUtility
     /**
      * @var array
      */
-    private static $loaded;
+    private static $loaded = array();
     
     /**
      * @var ORMExecutor[]

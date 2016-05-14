@@ -4,6 +4,7 @@ namespace Tests\Chaplean\Bundle\UnitBundle\Driver;
 
 use Chaplean\Bundle\UnitBundle\Test\LogicalTest;
 use Chaplean\Bundle\UnitBundle\Utility\Driver\SqliteUtilityDriver;
+use Doctrine\DBAL\DriverManager;
 
 /**
  * SqliteUtilityDriverTest.php.
@@ -14,6 +15,8 @@ use Chaplean\Bundle\UnitBundle\Utility\Driver\SqliteUtilityDriver;
  */
 class SqliteUtilityDriverTest extends LogicalTest
 {
+    private $params;
+
     /**
      * @return void
      */
@@ -26,7 +29,16 @@ class SqliteUtilityDriverTest extends LogicalTest
      */
     public function setUp()
     {
+        $this->params = array(
+            'driver'        => 'pdo_sqlite',
+            'host'          => '127.0.0.1',
+            'port'          => '3306',
+            'path'          => $this->getContainer()->getParameter('kernel.cache_dir') . '/test.db',
+            'charset'       => 'UTF8',
+            'serverVersion' => '5.5',
+        );
     }
+
 
     /**
      * @return void
@@ -41,37 +53,28 @@ class SqliteUtilityDriverTest extends LogicalTest
 
         $this->assertEquals($date, $lastUpdate);
     }
-//    /**
-//     * @return void
-//     */
-//    public function testGetFixtureLastModifiedWithoutFileClassDoesntExist()
-//    {
-//        $builder = new MockBuilder();
-//        $builder->setNamespace('Chaplean\Bundle\UnitBundle\Utility\Driver')
-//            ->setName('file_exists')
-//            ->setFunction(
-//                function () {
-//                    return false;
-//                }
-//            );
-//        $mock = $builder->build();
-//
-//        $mock->enable();
-//        $a = __NAMESPACE__;
-//        $lastUpdate = SqliteUtilityDriver::getFixtureLastModified($this);
-//        $mock->disable();
-//
-//        $this->assertNull($lastUpdate);
-//    }
 
-//    public function testIsBackupUpToDate()
-//    {
-//        $latest = new \DateTime('+2 months');
-//
-//        $mock = \Mockery::mock(SqliteUtilityDriver::class)
-//            ->shouldReceive('getFixtureLastModified')
-//            ->andReturn($latest)->getMock();
-//
-//        $this->assertFalse($mock->isBackupUpToDate(array('Chaplean\Bundle\UnitBundle\DataFixtures\Liip\LoadProviderData'), __FILE__));
-//    }
+    /**
+     * @return void
+     */
+    public function testIsBackupUpToDate()
+    {
+        $date = new \DateTime('-3 days');
+        touch(__FILE__, $date->getTimestamp());
+
+        $this->assertFalse(SqliteUtilityDriver::isBackupUpToDate(array('Chaplean\Bundle\UnitBundle\DataFixtures\Liip\LoadProviderData'), __FILE__));
+    }
+
+    /**
+     * @return void
+     */
+    public function testExistWithOlderDatabase()
+    {
+        $connection = DriverManager::getConnection($this->params);
+        $fileDatabse = $connection->getParams()['path'];
+        $date = new \DateTime('-3 days');
+        touch($fileDatabse, $date->getTimestamp());
+
+        $this->assertFalse(SqliteUtilityDriver::exist($connection, array('Chaplean\Bundle\UnitBundle\DataFixtures\Liip\LoadProviderData')));
+    }
 }
