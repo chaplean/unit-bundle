@@ -433,7 +433,7 @@ class ChapleanContext extends MinkContext implements KernelAwareContext
     {
         if (!self::$databaseLoaded) {
             self::$databaseLoaded = true;
-            FixtureUtility::loadFixtures(self::$dataFixtures, 'behat');
+            FixtureUtility::loadFixtures(self::$dataFixtures);
         }
     }
 

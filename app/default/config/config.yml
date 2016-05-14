@@ -4,12 +4,12 @@ imports:
 
 framework:
     test: ~
-    secret: "S3cR€t"
+    secret: 'S3cR€t'
     session:
         storage_id: session.storage.mock_file
     form:   ~
     router:
-        resource: "%kernel.root_dir%/config/routing.yml"
+        resource: '%kernel.root_dir%/config/routing.yml'
         strict_requirements: true
     validation: { enable_annotations: false }
     templating:
@@ -17,8 +17,8 @@ framework:
 
 # Twig Configuration
 twig:
-    debug:            "%kernel.debug%"
-    strict_variables: "%kernel.debug%"
+    debug:            '%kernel.debug%'
+    strict_variables: '%kernel.debug%'
 
 monolog:
     handlers:
@@ -28,7 +28,7 @@ monolog:
             handler:      nested
         nested:
             type:  stream
-            path:  "%kernel.logs_dir%/%kernel.environment%.log"
+            path:  '%kernel.logs_dir%/%kernel.environment%.log'
             level: info
         console:
             type:  console
@@ -36,21 +36,19 @@ monolog:
 # Doctrine Configuration
 doctrine:
     dbal:
-#        driver:   pdo_sqlite
-#        path:     "%kernel.cache_dir%/test.db"
         driver:   pdo_mysql
         host:     127.0.0.1
         port:     3306
         dbname:   test_database
-        user:     root
-        password: "%database_password%"
+        user:     '%database_user%'
+        password: '%database_password%'
         charset:  UTF8
         server_version: 5.5
         mapping_types:
             enum: string
 
     orm:
-        auto_generate_proxy_classes: "%kernel.debug%"
+        auto_generate_proxy_classes: '%kernel.debug%'
         auto_mapping: true
 
 parameters:
@@ -59,7 +57,7 @@ parameters:
         sender_address: 'unit@chaplean.com'
         sender_name: 'Chaplean'
         subject:
-            prefix: "[TEST]"
+            prefix: '[TEST]'
         test: true
 
 swiftmailer:

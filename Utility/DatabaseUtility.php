@@ -50,11 +50,6 @@ class DatabaseUtility
     private $metadatas = null;
 
     /**
-     * @var string
-     */
-    private $typeTest;
-
-    /**
      * @var EntityManager
      */
     private $om;
@@ -83,8 +78,6 @@ class DatabaseUtility
         $params = $this->om->getConnection()->getParams();
         if (isset($params['path']) && $this->driver instanceof SqliteDriver) {
             $params['path'] = (str_replace('.db', ('_' . $this->hash), $params['path']) . '.db');
-        } elseif (isset($params['dbname'])) {
-            $params['dbname'] .= '_' . $this->hash;
         }
 
         /** @var Connection $tmpConnection */
@@ -131,19 +124,17 @@ class DatabaseUtility
      *
      * @return void
      */
-    private static function checkParams($params)
+    public static function checkParams($params)
     {
         $name = isset($params['path']) ? $params['path'] : (isset($params['dbname']) ? $params['dbname'] : false);
         if (!$name) {
-            throw new \InvalidArgumentException(
-                "Connection does not contain a 'path' or 'dbname' parameter and cannot be dropped."
-            );
+            throw new \InvalidArgumentException('Connection does not contain a \'path\' or \'dbname\' parameter and cannot be dropped.');
         }
     }
 
     /**
      * @param array $classNames
-     * 
+     *
      * @return boolean
      * @throws \Exception
      */
@@ -160,19 +151,17 @@ class DatabaseUtility
 
     /**
      * @param array     $classNames
-     * @param string    $typeTest
      * @param Registry  $registry
      * @param Container $container
      *
      * @return void
      */
-    public function initDatabase($classNames, $typeTest, $registry, $container)
+    public function initDatabase($classNames, $registry, $container)
     {
         $this->om = $registry->getManager();
         self::checkParams($this->om->getConnection()->getParams());
 
         $this->container = $container;
-        $this->typeTest = $typeTest;
         $this->metadatas = self::getMetadatas($this->om);
         $this->hash = md5(serialize($classNames) . serialize($this->metadatas));
         $this->driver = $this->om->getConnection()->getDriver();

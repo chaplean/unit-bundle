@@ -90,14 +90,14 @@ class SqliteUtilityDriver
      *
      * @return \DateTime|null
      */
-    private static function getFixtureLastModified($class)
+    public static function getFixtureLastModified($class)
     {
         $lastModifiedDateTime = null;
 
         $reflClass = new \ReflectionClass($class);
         $classFileName = $reflClass->getFileName();
 
-        if (file_exists($classFileName)) {
+        if (\file_exists($classFileName)) {
             $lastModifiedDateTime = new \DateTime();
             $lastModifiedDateTime->setTimestamp(filemtime($classFileName));
         }

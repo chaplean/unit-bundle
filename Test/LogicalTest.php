@@ -166,6 +166,16 @@ class LogicalTest extends WebTestCase
     }
 
     /**
+     * @param string $reference
+     *
+     * @return object
+     */
+    public function getReference($reference)
+    {
+        return self::$fixtures->getReference($reference);
+    }
+
+    /**
      * Get the container
      *
      * @return Container
@@ -230,7 +240,7 @@ class LogicalTest extends WebTestCase
 
         if ($hashFixtures != self::$hashFixtures) {
             self::$hashFixtures = $hashFixtures;
-            self::$fixtures = FixtureUtility::loadFixtures($classNames, 'logical', $purgeMode)->getReferenceRepository();
+            self::$fixtures = FixtureUtility::loadFixtures($classNames, $purgeMode)->getReferenceRepository();
         }
         
         self::$databaseLoaded = true;

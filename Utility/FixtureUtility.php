@@ -97,12 +97,11 @@ class FixtureUtility
      * class path.
      *
      * @param array          $classNames List of fully qualified class names of fixtures to load
-     * @param string         $typeTest   Name of type test (logical, functional or behat)
      * @param integer|string $purgeMode  Sets the ORM purge mode
      *
      * @return ORMExecutor
      */
-    public static function loadFixtures(array $classNames, $typeTest, $purgeMode = ORMPurger::PURGE_MODE_DELETE)
+    public static function loadFixtures(array $classNames, $purgeMode = ORMPurger::PURGE_MODE_DELETE)
     {
         unset($purgeMode);
         /** @var Registry $registry */
@@ -110,7 +109,7 @@ class FixtureUtility
         $executor = null;
 
         $databaseUtility = new DatabaseUtility();
-        $databaseUtility->initDatabase($classNames, $typeTest, $registry, self::$container);
+        $databaseUtility->initDatabase($classNames, $registry, self::$container);
 
         if (!$databaseUtility->exist($classNames)) {
             $databaseUtility->createSchemaDatabase();
