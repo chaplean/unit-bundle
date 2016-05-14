@@ -30,7 +30,7 @@ class HelperReferenceTest extends LogicalTest
      */
     public function testFindClient()
     {
-        $client = $this->getRealEntity('client-1');
+        $client = $this->getEntity('client-1');
 
         $this->assertEquals('Chaplean\Bundle\UnitBundle\Entity\Client', get_class($client));
     }
@@ -39,7 +39,7 @@ class HelperReferenceTest extends LogicalTest
      */
     public function testFindProduct()
     {
-        $product = $this->getRealEntity('product-1');
+        $product = $this->getEntity('product-1');
 
         $this->assertEquals('Chaplean\Bundle\UnitBundle\Entity\Product', get_class($product));
     }
@@ -48,7 +48,7 @@ class HelperReferenceTest extends LogicalTest
      */
     public function testFindProvider()
     {
-        $provider = $this->getRealEntity('provider-1');
+        $provider = $this->getEntity('provider-1');
 
         $this->assertEquals('Chaplean\Bundle\UnitBundle\Entity\Provider', get_class($provider));
     }

@@ -4,7 +4,6 @@ namespace Chaplean\Bundle\UnitBundle\Test;
 
 use Chaplean\Bundle\UnitBundle\Utility\ContainerUtility;
 use Chaplean\Bundle\UnitBundle\Utility\FixtureUtility;
-use Chaplean\Bundle\UnitBundle\Utility\FrontClient;
 use Chaplean\Bundle\UnitBundle\Utility\NamespaceUtility;
 use Chaplean\Bundle\UnitBundle\Utility\RestClient;
 use Chaplean\Bundle\UnitBundle\Utility\SwiftMailerCacheUtility;
@@ -61,12 +60,12 @@ class LogicalTest extends WebTestCase
     /**
      * @var string
      */
-    public static $hashFixtures;
+    protected static $hashFixtures;
 
     /**
      * @var boolean
      */
-    public static $overrideNamespace = false;
+    protected static $overrideNamespace = false;
 
     /**
      * Construct
@@ -81,6 +80,7 @@ class LogicalTest extends WebTestCase
 
         self::resetNamespaceFixtures();
         self::$iWantDefaultData = true;
+        self::$overrideNamespace = false;
     }
 
     /**
@@ -138,6 +138,18 @@ class LogicalTest extends WebTestCase
     }
 
     /**
+     * @param string $reference
+     *
+     * @return null|object
+     */
+    public function getEntity($reference)
+    {
+        $entity = self::$fixtures->getReference($reference);
+
+        return $this->em->find(ClassUtils::getClass($entity), $entity->getId());
+    }
+
+    /**
      * @return EntityManager
      */
     public function getManager()
@@ -157,12 +169,11 @@ class LogicalTest extends WebTestCase
      * @param string $reference
      *
      * @return object|null
+     * @deprecated Use getEntity now !
      */
     public function getRealEntity($reference)
     {
-        $entity = self::$fixtures->getReference($reference);
-
-        return $this->em->find(ClassUtils::getRealClass(get_class($entity)), $entity->getId());
+        return $this->getEntity($reference);
     }
 
     /**
@@ -184,6 +195,14 @@ class LogicalTest extends WebTestCase
     public static function getStaticContainer()
     {
         return ContainerUtility::getContainer('logical');
+    }
+
+    /**
+     * @return boolean
+     */
+    public function isOverrideNamespace()
+    {
+        return self::$overrideNamespace;
     }
 
     /**
@@ -261,6 +280,16 @@ class LogicalTest extends WebTestCase
     public static function resetNamespaceFixtures()
     {
         FixtureUtility::$namespace = self::getCurrentNamespace();
+    }
+
+    /**
+     * @param boolean $iWantDefaultData
+     *
+     * @return void
+     */
+    public static function setIWantDefaultData($iWantDefaultData)
+    {
+        self::$iWantDefaultData = $iWantDefaultData;
     }
 
     /**
