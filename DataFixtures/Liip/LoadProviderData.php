@@ -23,13 +23,13 @@ class LoadProviderData extends AbstractFixture implements DependentFixtureInterf
      */
     public function load(ObjectManager $manager)
     {
-        $product = new Provider();
+        $provider = new Provider();
 
-        $product->setName('Stylo');
-        $product->setProduct($this->getEntity('product-1', $manager));
+        $provider->setName('Stylo');
+        $provider->setProduct($this->getEntity('product-1', $manager));
 
-        $this->persist($product, $manager);
-        $this->setReference('provider-1', $product);
+        $this->persist($provider, $manager);
+        $this->setReference('provider-1', $provider);
 
         $manager->flush();
     }

@@ -1,11 +1,4 @@
 <?php
-/**
- * Client.php.
- *
- * @author    Valentin - Chaplean <valentin@chaplean.com>
- * @copyright 2014 - 2016 Chaplean (http://www.chaplean.com)
- * @since     X.Y.Z
- */
 
 namespace Chaplean\Bundle\UnitBundle\Utility;
 
@@ -14,7 +7,6 @@ use Symfony\Bundle\FrameworkBundle\Routing\Router;
 use Symfony\Component\Debug\Exception\ClassNotFoundException;
 use Symfony\Component\DependencyInjection\Container;
 use Symfony\Component\DependencyInjection\ContainerInterface;
-use Symfony\Component\DependencyInjection\Exception\BadMethodCallException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Response;
@@ -28,11 +20,6 @@ use Symfony\Component\Routing\Route;
  * @author    Valentin - Chaplean <valentin@chaplean.com>
  * @copyright 2014 - 2016 Chaplean (http://www.chaplean.com)
  * @since     2.2.0
- *
- * @method Response requestDelete($uri, array $params = array(), array $query = array(), array $request = array(), array $attributes = array(), array $cookies = array(), array $files = array(), array $server = array(), $content = null)
- * @method Response requestGet($uri, array $params = array(), array $query = array(), array $request = array(), array $attributes = array(), array $cookies = array(), array $files = array(), array $server = array(), $content = null)
- * @method Response requestPost($uri, array $params = array(), array $query = array(), array $request = array(), array $attributes = array(), array $cookies = array(), array $files = array(), array $server = array(), $content = null)
- * @method Response requestPut($uri, array $params = array(), array $query = array(), array $request = array(), array $attributes = array(), array $cookies = array(), array $files = array(), array $server = array(), $content = null)
  */
 class Client
 {
@@ -65,29 +52,7 @@ class Client
      * @var array
      */
     protected $parametersRequest;
-
-    /**
-     * @param string $name
-     * @param array  $arguments
-     *
-     * @return mixed
-     */
-    public function __call($name, $arguments)
-    {
-        switch ($name) {
-            case 'requestDelete':
-                return $this->callRequest('DELETE', $arguments);
-            case 'requestGet':
-                return $this->callRequest('GET', $arguments);
-            case 'requestPost':
-                return $this->callRequest('POST', $arguments);
-            case 'requestPut':
-                return $this->callRequest('PUT', $arguments);
-        }
-
-        throw new BadMethodCallException(sprintf('%s method not exist !', $name));
-    }
-
+    
     /**
      * RestClient constructor.
      *
@@ -104,17 +69,6 @@ class Client
         $this->container = $container;
 
         $this->setCurrentRequest(Request::create('', 'GET'));
-    }
-
-    /**
-     * @param string $type
-     * @param array  $arguments
-     *
-     * @return mixed
-     */
-    public function callRequest($type, $arguments)
-    {
-        return call_user_func_array(array($this, 'request'), array_merge(array($type), $arguments));
     }
 
     /**
@@ -224,6 +178,8 @@ class Client
 
         $this->requestStack = \Mockery::mock('Symfony\Component\HttpFoundation\RequestStack');
         $this->requestStack->shouldReceive('getCurrentRequest')->andReturn($this->request);
+        $this->requestStack->shouldReceive('getMasterRequest')->andReturn($this->request);
+        
         $this->container->set('request_stack', $this->requestStack);
     }
 }

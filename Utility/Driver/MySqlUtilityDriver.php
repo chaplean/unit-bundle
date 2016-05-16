@@ -3,6 +3,7 @@
 namespace Chaplean\Bundle\UnitBundle\Utility\Driver;
 
 use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\DriverManager;
 
 /**
  * MySqlUtilityDriver.php.
@@ -17,19 +18,33 @@ class MySqlUtilityDriver
      * @param Connection $connection
      *
      * @return void
+     * @throws \Doctrine\DBAL\DBALException
      */
-    public static function enableForeignKeyCheck($connection)
+    public static function createDatabase($connection)
     {
-        $connection->query(sprintf('SET FOREIGN_KEY_CHECKS=1'));
+        $params = $connection->getParams();
+        $dbname = $params['dbname'];
+
+        unset($params['dbname']);
+
+        $tmpConnection = DriverManager::getConnection($params);
+        $tmpConnection->getSchemaManager()->createDatabase($dbname);
     }
 
     /**
      * @param Connection $connection
      *
-     * @return void
+     * @return boolean
      */
-    public static function disableForeignKeyCheck($connection)
+    public static function exist($connection)
     {
-        $connection->query(sprintf('SET FOREIGN_KEY_CHECKS=0'));
+        $params = $connection->getParams();
+        $dbname = $params['dbname'];
+
+        unset($params['dbname']);
+
+        $tmpConnection = DriverManager::getConnection($params);
+
+        return in_array($dbname, $tmpConnection->getSchemaManager()->listDatabases());
     }
 }

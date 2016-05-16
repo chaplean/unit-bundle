@@ -9,12 +9,24 @@ Chaplean\Bundle\UnitBundle\Entity\Client:
 Chaplean\Bundle\UnitBundle\Entity\Product:
     properties:
         name: <firstname()>
+        client: '@new()'
 
 Chaplean\Bundle\UnitBundle\Entity\Provider:
     properties:
         name: <firstname()>
+        product: '@new()'
 
 Chaplean\Bundle\UnitBundle\Entity\User:
     properties:
         email: <email()>
-        status: @status-[active, inactive, deleted]
+        status: '@status-[active, inactive, deleted]'
+
+
+Chaplean\Bundle\UnitBundle\Entity\Invoice:
+    properties:
+        client: '@client-1'
+        embed: ~
+
+Chaplean\Bundle\UnitBundle\Entity\EmbedMe:
+    properties:
+        code: <current()>

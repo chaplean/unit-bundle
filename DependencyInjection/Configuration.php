@@ -25,7 +25,7 @@ class Configuration implements ConfigurationInterface
         // more information on that topic.
         $rootNode
             ->children()
-            ->booleanNode('cache_sqlite_db')->defaultFalse()
+                ->booleanNode('cache_sqlite_db')->defaultFalse()
             ->end();
 
         return $treeBuilder;

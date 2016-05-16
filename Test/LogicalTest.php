@@ -4,12 +4,12 @@ namespace Chaplean\Bundle\UnitBundle\Test;
 
 use Chaplean\Bundle\UnitBundle\Utility\ContainerUtility;
 use Chaplean\Bundle\UnitBundle\Utility\FixtureUtility;
-use Chaplean\Bundle\UnitBundle\Utility\FrontClient;
 use Chaplean\Bundle\UnitBundle\Utility\NamespaceUtility;
 use Chaplean\Bundle\UnitBundle\Utility\RestClient;
 use Chaplean\Bundle\UnitBundle\Utility\SwiftMailerCacheUtility;
 use Doctrine\Common\DataFixtures\Purger\ORMPurger;
 use Doctrine\Common\DataFixtures\ReferenceRepository;
+use Doctrine\Common\Util\ClassUtils;
 use Doctrine\ORM\EntityManager;
 use Liip\FunctionalTestBundle\Test\WebTestCase;
 use Symfony\Bundle\FrameworkBundle\Client;
@@ -17,9 +17,6 @@ use Symfony\Component\BrowserKit\Cookie;
 use Symfony\Component\DependencyInjection\Container;
 use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
-use Symfony\Component\Security\Core\User\UserInterface;
-
-//Tests\\(.+)\\.+Test
 
 /**
  * LogicalTest.
@@ -44,7 +41,7 @@ class LogicalTest extends WebTestCase
      * @var ReferenceRepository
      */
     protected static $fixtures;
-
+    
     /**
      * @var array
      */
@@ -53,7 +50,7 @@ class LogicalTest extends WebTestCase
     /**
      * @var boolean
      */
-    protected static $iWantDefaultData = true;
+    protected static $iWantDefaultData;
 
     /**
      * @var boolean
@@ -66,18 +63,24 @@ class LogicalTest extends WebTestCase
     protected static $hashFixtures;
 
     /**
+     * @var boolean
+     */
+    protected static $overrideNamespace = false;
+
+    /**
      * Construct
      */
     public function __construct()
     {
         parent::__construct();
 
+        FixtureUtility::setContainer($this->getContainer());
         $this->em = $this->getContainer()->get('doctrine')->getManager();
         $this->swiftmailerCacheUtility = $this->getContainer()->get('chaplean_unit.swiftmailer_cache');
 
         self::resetNamespaceFixtures();
-        self::$databaseLoaded = false;
         self::$iWantDefaultData = true;
+        self::$overrideNamespace = false;
     }
 
     /**
@@ -104,14 +107,6 @@ class LogicalTest extends WebTestCase
     }
 
     /**
-     * @return RestClient
-     */
-    public function createFrontClient()
-    {
-        return new FrontClient($this->getContainer());
-    }
-
-    /**
      * @return void
      */
     public function cleanMailDir()
@@ -128,15 +123,38 @@ class LogicalTest extends WebTestCase
     }
 
     /**
+     * @return string
+     */
+    public static function getCurrentNamespace()
+    {
+        $file = new \ReflectionClass(get_called_class());
+        $name = $file->name;
+        $matches = null;
+        if (preg_match('/Tests\\\\(.+Bundle)\\\\.*Test/', $name, $matches)) {
+            return $matches[1] . '\\';
+        }
+
+        return '';
+    }
+
+    /**
      * @param string $reference
      *
-     * @return object|null
+     * @return null|object
      */
-    public function getRealEntity($reference)
+    public function getEntity($reference)
     {
         $entity = self::$fixtures->getReference($reference);
+        
+        return $this->em->find(ClassUtils::getClass($entity), $entity->getId());
+    }
 
-        return $this->em->find(get_class($entity), $entity->getId());
+    /**
+     * @return EntityManager
+     */
+    public function getManager()
+    {
+        return $this->em;
     }
 
     /**
@@ -148,13 +166,43 @@ class LogicalTest extends WebTestCase
     }
 
     /**
+     * @param string $reference
+     *
+     * @return object|null
+     * @deprecated Use getEntity now !
+     */
+    public function getRealEntity($reference)
+    {
+        return $this->getEntity($reference);
+    }
+
+    /**
+     * @param string $reference
+     *
+     * @return object
+     */
+    public function getReference($reference)
+    {
+        return self::$fixtures->getReference($reference);
+    }
+
+    /**
      * Get the container
      *
      * @return Container
+     * @deprecated Is too dangerous !
      */
     public static function getStaticContainer()
     {
         return ContainerUtility::getContainer('logical');
+    }
+
+    /**
+     * @return boolean
+     */
+    public function isOverrideNamespace()
+    {
+        return self::$overrideNamespace;
     }
 
     /**
@@ -165,23 +213,6 @@ class LogicalTest extends WebTestCase
     public static function loadDefaultFixtures($namespace = null)
     {
         self::$defaultFixtures = FixtureUtility::loadDefaultFixtures($namespace);
-    }
-
-    /**
-     * @param array    $classNames
-     * @param string   $omName
-     * @param string   $registryName
-     * @param int|null $purgeMode
-     *
-     * @return void
-     * @deprecated Use loadStaticFixtures ! Transaction is active by function test
-     */
-    public function loadFixtures(array $classNames, $omName = null, $registryName = 'doctrine', $purgeMode = ORMPurger::PURGE_MODE_TRUNCATE)
-    {
-        unset($omName);
-        unset($registryName);
-
-        self::$fixtures = FixtureUtility::loadFixtures($classNames, 'logical', $purgeMode)->getReferenceRepository();
     }
 
     /**
@@ -224,10 +255,13 @@ class LogicalTest extends WebTestCase
      */
     public static function loadStaticFixtures(array $classNames, $purgeMode = ORMPurger::PURGE_MODE_TRUNCATE)
     {
-        if (self::$hashFixtures != md5(serialize($classNames))) {
-            self::$fixtures = FixtureUtility::loadFixtures($classNames, 'logical', $purgeMode)->getReferenceRepository();
-            self::$hashFixtures = md5(serialize($classNames));
+        $hashFixtures = md5(serialize($classNames));
+
+        if ($hashFixtures != self::$hashFixtures) {
+            self::$hashFixtures = $hashFixtures;
+            self::$fixtures = FixtureUtility::loadFixtures($classNames, $purgeMode)->getReferenceRepository();
         }
+        
         self::$databaseLoaded = true;
     }
 
@@ -243,14 +277,19 @@ class LogicalTest extends WebTestCase
     /**
      * @return void
      */
-    public function resetNamespaceFixtures()
+    public static function resetNamespaceFixtures()
     {
-        $file = new \ReflectionClass(get_called_class());
-        $name = $file->name;
-        $matches = null;
-        if (preg_match('/Tests\\\\(.+Bundle)\\\\.*Test/', $name, $matches)) {
-            FixtureUtility::$namespace = $matches[1] . '\\';
-        }
+        FixtureUtility::$namespace = self::getCurrentNamespace();
+    }
+
+    /**
+     * @param boolean $iWantDefaultData
+     *
+     * @return void
+     */
+    public static function setIWantDefaultData($iWantDefaultData)
+    {
+        self::$iWantDefaultData = $iWantDefaultData;
     }
 
     /**
@@ -260,7 +299,18 @@ class LogicalTest extends WebTestCase
      */
     public static function setNamespaceFixtures($namespace)
     {
+        self::$overrideNamespace = true;
         FixtureUtility::$namespace = $namespace;
+    }
+
+    /**
+     * @return void
+     */
+    public static function tearDownAfterClass()
+    {
+        parent::tearDownAfterClass();
+
+        self::$overrideNamespace = false;
     }
 
     /**
@@ -275,6 +325,10 @@ class LogicalTest extends WebTestCase
             $datafixtures = $args[0];
         }
 
+        if (!self::$overrideNamespace && FixtureUtility::$namespace != self::getCurrentNamespace()) {
+            self::resetNamespaceFixtures();
+        }
+
         parent::setUpBeforeClass();
         self::$defaultFixtures = array();
 
@@ -284,7 +338,7 @@ class LogicalTest extends WebTestCase
             self::$iWantDefaultData = true;
         }
 
-        if (!empty($datafixtures)) {
+        if (isset($datafixtures)) {
             self::$defaultFixtures = array_merge(self::$defaultFixtures, $datafixtures);
         }
 
@@ -301,6 +355,7 @@ class LogicalTest extends WebTestCase
         if (self::$databaseLoaded) {
             $this->em->beginTransaction();
         }
+
         $this->cleanMailDir();
 
         parent::setUp();
@@ -313,7 +368,7 @@ class LogicalTest extends WebTestCase
      */
     public function tearDown()
     {
-        if (!$this->em->getConnection()->isAutoCommit() && self::$databaseLoaded) {
+        if ($this->em->getConnection()->getTransactionNestingLevel() > 0 && self::$databaseLoaded) {
             $this->em->rollback();
         }
 
