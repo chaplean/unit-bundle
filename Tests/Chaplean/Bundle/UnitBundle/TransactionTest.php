@@ -41,6 +41,9 @@ class TransactionTest extends LogicalTest
         $client->setName('pony');
         $client->setEmail('e@e.fr');
         $client->setDateAdd(new \DateTime());
+        $client->setIsActive(false);
+        $client->setIsPrivateMember(false);
+        $client->setHasCode(false);
         $this->em->persist($client);
         $this->em->flush($client);
 
