@@ -59,7 +59,7 @@ abstract class AbstractFixture extends BaseAbstractFixture
                 $fieldDefinition['type'] = '';
             }
         
-            list($getter, $setter) = $this->getAccessor($fieldDefinition);
+            list($getter, $setter) = $this->getAccessor($fieldDefinition, $entity);
             if (!empty($entity->$getter()) || $entity->$getter() !== null) {
                 continue;
             }
@@ -161,16 +161,24 @@ abstract class AbstractFixture extends BaseAbstractFixture
     /**
      * Get accessor for a attributes entity
      *
-     * @param array $field
+     * @param array  $field
+     * @param string $class
      *
      * @return array
      */
-    public function getAccessor($field)
+    public function getAccessor($field, $class)
     {
         $fieldName = ucfirst(str_replace(' ', '', ucwords(str_replace('_', ' ', $field['fieldName']))));
-        $getter = ($field['type'] == 'boolean' ? 'is' : 'get') . $fieldName;
+        if ($field['type'] == 'boolean') {
+            if (method_exists($class, $field['fieldName'])) {
+                $getter = $field['fieldName'];
+            } else {
+                $getter = 'is' . $fieldName;
+            }
+        } else {
+            $getter = 'get' . $fieldName;
+        }
         $setter = 'set' . $fieldName;
-
         return array($getter, $setter);
     }
 

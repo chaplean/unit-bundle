@@ -70,6 +70,27 @@ class Client
     private $dateAdd;
 
     /**
+     * @var boolean
+     *
+     * @ORM\Column(name="is_active", type="boolean", nullable=false)
+     */
+    private $isActive;
+
+    /**
+     * @var boolean
+     *
+     * @ORM\Column(name="is_private_member", type="boolean", nullable=false)
+     */
+    private $isPrivateMember;
+    
+    /**
+     * @var boolean
+     *
+     * @ORM\Column(name="has_code", type="boolean", nullable=false)
+     */
+    private $hasCode;
+
+    /**
      *
      */
     public function __construct()
@@ -227,6 +248,78 @@ class Client
     public function setDateAdd($dateAdd)
     {
         $this->dateAdd = $dateAdd;
+
+        return $this;
+    }
+
+    /**
+     * Get isActive.
+     *
+     * @return boolean
+     */
+    public function isActive()
+    {
+        return $this->isActive;
+    }
+
+    /**
+     * Set isActive.
+     *
+     * @param boolean $isActive
+     *
+     * @return self
+     */
+    public function setIsActive($isActive)
+    {
+        $this->isActive = $isActive;
+
+        return $this;
+    }
+
+    /**
+     * Get isPrivateMember.
+     *
+     * @return boolean
+     */
+    public function isIsPrivateMember()
+    {
+        return $this->isPrivateMember;
+    }
+
+    /**
+     * Set isPrivateMember.
+     *
+     * @param boolean $isPrivateMember
+     *
+     * @return self
+     */
+    public function setIsPrivateMember($isPrivateMember)
+    {
+        $this->isPrivateMember = $isPrivateMember;
+
+        return $this;
+    }
+
+    /**
+     * Get hasCode.
+     *
+     * @return boolean
+     */
+    public function hasCode()
+    {
+        return $this->hasCode;
+    }
+
+    /**
+     * Set hasCode.
+     *
+     * @param boolean $hasCode
+     *
+     * @return self
+     */
+    public function setHasCode($hasCode)
+    {
+        $this->hasCode = $hasCode;
 
         return $this;
     }
