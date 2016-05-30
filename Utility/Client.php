@@ -52,7 +52,7 @@ class Client
      * @var array
      */
     protected $parametersRequest;
-    
+
     /**
      * RestClient constructor.
      *
@@ -75,10 +75,11 @@ class Client
      * @param string $class
      * @param string $method
      * @param array  $parameters
+     * @param string $type
      *
      * @return array
      */
-    protected function getArguments($class, $method, $parameters)
+    protected function getArguments($class, $method, $parameters, $type)
     {
         $reflectionMethod = new \ReflectionMethod($class, $method);
 
@@ -88,7 +89,9 @@ class Client
 
         foreach ($arguments as $arg) {
             if ($arg->name == 'request') {
-                $args[] = new Request($query, $request, $attributes, $cookies, $files, $server, $content);
+                $request = new Request($query, $request, $attributes, $cookies, $files, $server, $content);
+                $request->setMethod($type);
+                $args[] = $request;
             } else {
                 if (isset($parameters[$arg->name])) {
                     $args[] = $parameters[$arg->name];
@@ -150,13 +153,14 @@ class Client
      */
     public function request($type, $uri, array $params = array(), array $query = array(), array $request = array(), array $attributes = array(), array $cookies = array(), array $files = array(), array $server = array(), $content = null)
     {
+        $this->setCurrentRequest(Request::create('', $type));
         $this->parametersRequest = array($query, $request, $attributes, $cookies, $files, $server, $content);
         $route = $this->getRouteByUri($type, $uri);
 
         $controller = $route->getDefault('_controller');
         list($class, $method) = explode('::', $controller, 2);
 
-        $args = $this->getArguments($class, $method, $params);
+        $args = $this->getArguments($class, $method, $params, $type);
 
         /** @var Controller $controller */
         $controller = new $class();
@@ -175,10 +179,8 @@ class Client
     {
         $this->request  = $request;
         $this->request->setRequestFormat('json');
-
         $this->requestStack = \Mockery::mock('Symfony\Component\HttpFoundation\RequestStack');
         $this->requestStack->shouldReceive('getCurrentRequest')->andReturn($this->request);
-        $this->requestStack->shouldReceive('getMasterRequest')->andReturn($this->request);
         
         $this->container->set('request_stack', $this->requestStack);
     }
