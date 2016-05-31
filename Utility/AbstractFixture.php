@@ -5,6 +5,7 @@ namespace Chaplean\Bundle\UnitBundle\Utility;
 use Doctrine\Common\DataFixtures\AbstractFixture as BaseAbstractFixture;
 use Doctrine\Common\Persistence\ObjectManager;
 use Doctrine\ORM\Mapping\ClassMetadata;
+use Symfony\Component\Debug\Exception\ContextErrorException;
 
 /**
  * AbstractFixture.php.
@@ -37,7 +38,13 @@ abstract class AbstractFixture extends BaseAbstractFixture
      */
     public function generateEntity($entity)
     {
-        $this->initGenerator($entity);
+        if (empty($this->generator)) {
+            try {
+                $this->initGenerator($entity);
+            } catch (ContextErrorException $e) {
+                return $entity;
+            }
+        }
 
         $this->getEmbeddedClass($entity);
         /** @var ClassMetadata $classMetadata */
@@ -101,7 +108,7 @@ abstract class AbstractFixture extends BaseAbstractFixture
      */
     public function getEntity($name, $manager)
     {
-        $entity = $this->referenceRepository->getReference($name);
+        $entity = $this->getReference($name);
 
         return $manager->find(get_class($entity), $entity->getId());
     }
@@ -180,6 +187,25 @@ abstract class AbstractFixture extends BaseAbstractFixture
         }
         $setter = 'set' . $fieldName;
         return array($getter, $setter);
+    }
+
+    /**
+     * Loads an object using stored reference
+     * named by $name
+     *
+     * @param string $name
+     * @see Doctrine\Common\DataFixtures\ReferenceRepository::getReference
+     * @return object
+     * @throws \Exception
+     */
+    public function getReference($name)
+    {
+        $reference = $this->referenceRepository->getReference($name);
+        if ($reference->getId() == null) {
+            throw new \Exception(sprintf('\'%s\' is not persisted !', $name));
+        }
+
+        return $reference;
     }
 
     /**
