@@ -41,7 +41,7 @@ abstract class AbstractFixture extends BaseAbstractFixture
         if (empty($this->generator)) {
             try {
                 $this->initGenerator($entity);
-            } catch (ContextErrorException $e) {
+            } catch (\Exception $e) {
                 return $entity;
             }
         }
