@@ -67,8 +67,6 @@ class Client
 
         $this->router = $container->get('router');
         $this->container = $container;
-
-        $this->setCurrentRequest(Request::create('', 'GET'));
     }
 
     /**
@@ -84,13 +82,15 @@ class Client
         $reflectionMethod = new \ReflectionMethod($class, $method);
 
         list($query, $request, $attributes, $cookies, $files, $server, $content) = $this->parametersRequest;
+        $request = new Request($query, $request, $attributes, $cookies, $files, $server, $content);
+        $request->setMethod($type);
+        $this->setCurrentRequest($request);
+
         $args = array();
         $arguments = $reflectionMethod->getParameters();
 
         foreach ($arguments as $arg) {
             if ($arg->name == 'request') {
-                $request = new Request($query, $request, $attributes, $cookies, $files, $server, $content);
-                $request->setMethod($type);
                 $args[] = $request;
             } else {
                 if (isset($parameters[$arg->name])) {
@@ -153,7 +153,6 @@ class Client
      */
     public function request($type, $uri, array $params = array(), array $query = array(), array $request = array(), array $attributes = array(), array $cookies = array(), array $files = array(), array $server = array(), $content = null)
     {
-        $this->setCurrentRequest(Request::create('', $type));
         $this->parametersRequest = array($query, $request, $attributes, $cookies, $files, $server, $content);
         $route = $this->getRouteByUri($type, $uri);
 
@@ -181,7 +180,7 @@ class Client
         $this->request->setRequestFormat('json');
         $this->requestStack = \Mockery::mock('Symfony\Component\HttpFoundation\RequestStack');
         $this->requestStack->shouldReceive('getCurrentRequest')->andReturn($this->request);
-        
+
         $this->container->set('request_stack', $this->requestStack);
     }
 }
