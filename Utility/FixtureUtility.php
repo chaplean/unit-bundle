@@ -149,15 +149,22 @@ class FixtureUtility
                     self::$loaded[] = get_class($fixture);
                 }
 
+                $sqlDirectory = self::$container->getParameter('kernel.cache_dir') . '/sql';
+
                 if (isset(self::$cachedExecutor[$databaseUtility->getHash()])) {
-                    exec('mysql -u' . $user . ' -p' . $password . ' ' . $database . ' < ' . self::$container->getParameter('kernel.cache_dir') . '/test_' . $databaseHash . '.sql');
+                    exec('mysql -u' . $user . ' -p' . $password . ' ' . $database . ' < ' . $sqlDirectory . '/' . $databaseHash . '.sql');
                     
                     $executor = self::$cachedExecutor[$databaseUtility->getHash()];
                 } else {
                     $executor->execute($loader->getFixtures());
 
                     self::$cachedExecutor[$databaseUtility->getHash()] = $executor;
-                    exec('mysqldump -u' . $user . ' -p' . $password . ' ' . $database . ' > ' . self::$container->getParameter('kernel.cache_dir') . '/test_' . $databaseHash . '.sql');
+
+                    if (!file_exists($sqlDirectory)) {
+                        mkdir($sqlDirectory);
+                    }
+
+                    exec('mysqldump -u' . $user . ' -p' . $password . ' ' . $database . ' > ' . $sqlDirectory . '/' . $databaseHash . '.sql');
                 }
             }
         } else {
