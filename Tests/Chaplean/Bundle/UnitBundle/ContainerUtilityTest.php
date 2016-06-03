@@ -46,15 +46,6 @@ class ContainerUtilityTest extends LogicalTest
 
     /**
      * @return void
-     * @expectedException \Exception
-     */
-    public function testGetContainerBehat()
-    {
-        ContainerUtility::loadContainer('behat');
-    }
-
-    /**
-     * @return void
      */
     public function testLoadContainer()
     {

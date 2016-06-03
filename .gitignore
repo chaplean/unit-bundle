@@ -1,5 +1,40 @@
-vendor
+# Cache and logs (Symfony3 directory structure)
+/var/*
+!var/.gitkeep
+
+# Parameters
+/app/config/parameters.yml
+/app/default/config/parameters.yml
+
+# Managed by Composer
+/bin/*
+!bin/console
+/vendor/
+
+# Assets and user uploads
+/web/bundles/
+/web/uploads/
+
+# PHPUnit
+/phpunit.xml
+
+# Auto-saved files
+*~
+
+# Mac
+.DS_store
+
+# PhpStorm
 .idea
-phpunit.xml
-app/config/parameters.yml
-build/
+
+# Compass
+.sass-cache/
+
+# Composer
+/composer.phar
+
+# Build data
+/build/
+
+# Karma coverage
+coverage/

@@ -31,7 +31,7 @@ class FixtureUtility
      * @var array
      */
     private static $loaded = array();
-    
+
     /**
      * @var ORMExecutor[]
      */
@@ -114,15 +114,29 @@ class FixtureUtility
         if (!$databaseUtility->exist($classNames)) {
             $databaseUtility->createSchemaDatabase();
         } else {
-            $databaseUtility->cleanDatabase();
+            if (!($databaseUtility->getDriver() instanceof MySqlDriver)) {
+                $databaseUtility->cleanDatabase();
 
-            if (!isset(self::$cachedExecutor[$databaseUtility->getHash()])) {
-                $databaseUtility->cleanDatabaseTemporary();
+                if (!isset(self::$cachedExecutor[$databaseUtility->getHash()])) {
+                    $databaseUtility->cleanDatabaseTemporary();
+                }
             }
         }
 
-        if (!isset(self::$cachedExecutor[$databaseUtility->getHash()]) || $databaseUtility->getDriver() instanceof MySqlDriver) {
+        $databaseHash = $databaseUtility->getHash();
+
+        if (!isset(self::$cachedExecutor[$databaseHash]) || $databaseUtility->getDriver() instanceof MySqlDriver) {
             if (empty($executor)) {
+                $database = $databaseUtility->getOm()
+                    ->getConnection()
+                    ->getDatabase();
+                $user = $databaseUtility->getOm()
+                    ->getConnection()
+                    ->getUsername();
+                $password = $databaseUtility->getOm()
+                    ->getConnection()
+                    ->getPassword();
+
                 $referenceRepository = new ProxyReferenceRepository($databaseUtility->getOm());
 
                 $executor = new ORMExecutor($databaseUtility->getOm(), new ORMPurger());
@@ -135,9 +149,16 @@ class FixtureUtility
                     self::$loaded[] = get_class($fixture);
                 }
 
-                $executor->execute($loader->getFixtures());
+                if (isset(self::$cachedExecutor[$databaseUtility->getHash()])) {
+                    exec('mysql -u' . $user . ' -p' . $password . ' ' . $database . ' < ' . self::$container->getParameter('kernel.cache_dir') . '/test_' . $databaseHash . '.sql');
+                    
+                    $executor = self::$cachedExecutor[$databaseUtility->getHash()];
+                } else {
+                    $executor->execute($loader->getFixtures());
 
-                self::$cachedExecutor[$databaseUtility->getHash()] = $executor;
+                    self::$cachedExecutor[$databaseUtility->getHash()] = $executor;
+                    exec('mysqldump -u' . $user . ' -p' . $password . ' ' . $database . ' > ' . self::$container->getParameter('kernel.cache_dir') . '/test_' . $databaseHash . '.sql');
+                }
             }
         } else {
             $executor = self::$cachedExecutor[$databaseUtility->getHash()];
