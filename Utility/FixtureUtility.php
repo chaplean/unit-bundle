@@ -112,21 +112,24 @@ class FixtureUtility
         $databaseUtility = new DatabaseUtility();
         $databaseUtility->initDatabase($classNames, $registry, self::$container);
 
+        $driverIsMysql = $databaseUtility->getDriver() instanceof MySqlDriver;
+
+        $databaseHash = $databaseUtility->getHash();
+        $sqlDirectory = self::$container->getParameter('kernel.cache_dir') . '/sql';
+
         if (!$databaseUtility->exist($classNames)) {
             $databaseUtility->createSchemaDatabase();
         } else {
-            if (!($databaseUtility->getDriver() instanceof MySqlDriver)) {
+            if (!$driverIsMysql || !array_key_exists($databaseHash, self::$cachedExecutor)) {
                 $databaseUtility->cleanDatabase();
 
-                if (!isset(self::$cachedExecutor[$databaseUtility->getHash()])) {
+                if (!array_key_exists($databaseHash, self::$cachedExecutor)) {
                     $databaseUtility->cleanDatabaseTemporary();
                 }
             }
         }
 
-        $databaseHash = $databaseUtility->getHash();
-
-        if (!isset(self::$cachedExecutor[$databaseHash]) || $databaseUtility->getDriver() instanceof MySqlDriver) {
+        if (!array_key_exists($databaseHash, self::$cachedExecutor) || $driverIsMysql) {
             if ($executor === null) {
                 $connection = $databaseUtility->getOm()
                     ->getConnection();
@@ -149,26 +152,30 @@ class FixtureUtility
                     self::$loaded[] = get_class($fixture);
                 }
 
-                $sqlDirectory = self::$container->getParameter('kernel.cache_dir') . '/sql';
+                if (array_key_exists($databaseHash, self::$cachedExecutor)) {
+                    if ($driverIsMysql) {
+                        exec('mysql -h' . $host . ' -P' . $port . ' -u' . $user . ' -p' . $password . ' ' . $databaseName . ' < ' . $sqlDirectory . '/' . $databaseHash . '.sql');
+                    }
 
-                if (isset(self::$cachedExecutor[$databaseUtility->getHash()])) {
-                    exec('mysql -h' . $host . ' -P' . $port . ' -u' . $user . ' -p' . $password . ' ' . $databaseName . ' < ' . $sqlDirectory . '/' . $databaseHash . '.sql');
-
-                    $executor = self::$cachedExecutor[$databaseUtility->getHash()];
+                    $executor = self::$cachedExecutor[$databaseHash];
                 } else {
                     $executor->execute($loader->getFixtures());
 
-                    self::$cachedExecutor[$databaseUtility->getHash()] = $executor;
+                    self::$cachedExecutor[$databaseHash] = $executor;
 
-                    if (!@mkdir($sqlDirectory) && !is_dir($sqlDirectory)) {
-                        throw new FileException('Directory is not created: ' . $sqlDirectory);
+                    if ($driverIsMysql) {
+                        if (!@mkdir($sqlDirectory) && !is_dir($sqlDirectory)) {
+                            throw new FileException('Directory is not created: ' . $sqlDirectory);
+                        }
+
+                        exec(
+                            'mysqldump -h' . $host . ' -P' . $port . ' -u' . $user . ' -p' . $password . ' ' . $databaseName . ' > ' . $sqlDirectory . '/' . $databaseHash . '.sql'
+                        );
                     }
-
-                    exec('mysqldump -h' . $host . ' -P' . $port . ' -u' . $user . ' -p' . $password . ' ' . $databaseName . ' > ' . $sqlDirectory . '/' . $databaseHash . '.sql');
                 }
             }
         } else {
-            $executor = self::$cachedExecutor[$databaseUtility->getHash()];
+            $executor = self::$cachedExecutor[$databaseHash];
         }
 
         $databaseUtility->moveDatabase();
