@@ -8,10 +8,12 @@ use Doctrine\Common\DataFixtures\Executor\ORMExecutor;
 use Doctrine\Common\DataFixtures\Loader;
 use Doctrine\Common\DataFixtures\ProxyReferenceRepository;
 use Doctrine\Common\DataFixtures\Purger\ORMPurger;
+use Doctrine\Common\Persistence\ObjectManager;
 use Doctrine\DBAL\Driver\PDOMySql\Driver as MySqlDriver;
 use Doctrine\ORM\EntityManager;
 use Symfony\Component\DependencyInjection\Container;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\HttpFoundation\File\Exception\FileException;
 
 /**
  * FixtureUtility.php.
@@ -48,17 +50,17 @@ class FixtureUtility
     public static $namespace;
 
     /**
-     * @param array              $classNames    List of fully qualified class names of fixtures to load
-     * @param EntityManager|null $entityManager EntityManager to use
+     * @param array                            $classNames    List of fully qualified class names of fixtures to load
+     * @param EntityManager|ObjectManager|null $entityManager EntityManager to use
      *
      * @return ORMExecutor
+     * @throws \Exception
      */
     public static function loadPartialFixtures(array $classNames, $entityManager)
     {
-        if (empty($entityManager)) {
+        if ($entityManager === null) {
             /** @var Registry $registry */
             $registry = self::$container->get('doctrine');
-            /** @var EntityManager $om */
             $entityManager = $registry->getManager();
         }
 
@@ -96,14 +98,13 @@ class FixtureUtility
      * Depends on the doctrine data-fixtures library being available in the
      * class path.
      *
-     * @param array          $classNames List of fully qualified class names of fixtures to load
-     * @param integer|string $purgeMode  Sets the ORM purge mode
+     * @param array $classNames List of fully qualified class names of fixtures to load
      *
      * @return ORMExecutor
+     * @throws \Exception
      */
-    public static function loadFixtures(array $classNames, $purgeMode = ORMPurger::PURGE_MODE_DELETE)
+    public static function loadFixtures(array $classNames)
     {
-        unset($purgeMode);
         /** @var Registry $registry */
         $registry = self::$container->get('doctrine');
         $executor = null;
@@ -126,16 +127,15 @@ class FixtureUtility
         $databaseHash = $databaseUtility->getHash();
 
         if (!isset(self::$cachedExecutor[$databaseHash]) || $databaseUtility->getDriver() instanceof MySqlDriver) {
-            if (empty($executor)) {
-                $database = $databaseUtility->getOm()
-                    ->getConnection()
-                    ->getDatabase();
-                $user = $databaseUtility->getOm()
-                    ->getConnection()
-                    ->getUsername();
-                $password = $databaseUtility->getOm()
-                    ->getConnection()
-                    ->getPassword();
+            if ($executor === null) {
+                $connection = $databaseUtility->getOm()
+                    ->getConnection();
+
+                $host = $connection->getHost();
+                $port = $connection->getPort();
+                $databaseName = $connection->getDatabase();
+                $user = $connection->getUsername();
+                $password = $connection->getPassword();
 
                 $referenceRepository = new ProxyReferenceRepository($databaseUtility->getOm());
 
@@ -152,19 +152,19 @@ class FixtureUtility
                 $sqlDirectory = self::$container->getParameter('kernel.cache_dir') . '/sql';
 
                 if (isset(self::$cachedExecutor[$databaseUtility->getHash()])) {
-                    exec('mysql -u' . $user . ' -p' . $password . ' ' . $database . ' < ' . $sqlDirectory . '/' . $databaseHash . '.sql');
-                    
+                    exec('mysql -h' . $host . ' -P' . $port . ' -u' . $user . ' -p' . $password . ' ' . $databaseName . ' < ' . $sqlDirectory . '/' . $databaseHash . '.sql');
+
                     $executor = self::$cachedExecutor[$databaseUtility->getHash()];
                 } else {
                     $executor->execute($loader->getFixtures());
 
                     self::$cachedExecutor[$databaseUtility->getHash()] = $executor;
 
-                    if (!file_exists($sqlDirectory)) {
-                        mkdir($sqlDirectory);
+                    if (!@mkdir($sqlDirectory) && !is_dir($sqlDirectory)) {
+                        throw new FileException('Directory is not created: ' . $sqlDirectory);
                     }
 
-                    exec('mysqldump -u' . $user . ' -p' . $password . ' ' . $database . ' > ' . $sqlDirectory . '/' . $databaseHash . '.sql');
+                    exec('mysqldump -h' . $host . ' -P' . $port . ' -u' . $user . ' -p' . $password . ' ' . $databaseName . ' > ' . $sqlDirectory . '/' . $databaseHash . '.sql');
                 }
             }
         } else {
@@ -187,11 +187,13 @@ class FixtureUtility
      */
     protected static function getFixtureLoader(Container $container, array $classNames)
     {
-        $loaderClass = class_exists(
-            'Symfony\Bridge\Doctrine\DataFixtures\ContainerAwareLoader'
-        ) ? 'Symfony\Bridge\Doctrine\DataFixtures\ContainerAwareLoader' : (class_exists(
-            'Doctrine\Bundle\FixturesBundle\Common\DataFixtures\Loader'
-        ) ? 'Doctrine\Bundle\FixturesBundle\Common\DataFixtures\Loader' : 'Symfony\Bundle\DoctrineFixturesBundle\Common\DataFixtures\Loader');
+        $loaderClass = 'Symfony\Bundle\DoctrineFixturesBundle\Common\DataFixtures\Loader';
+
+        if (class_exists('Symfony\Bridge\Doctrine\DataFixtures\ContainerAwareLoader')) {
+            $loaderClass = 'Symfony\Bridge\Doctrine\DataFixtures\ContainerAwareLoader';
+        } elseif (class_exists('Doctrine\Bundle\FixturesBundle\Common\DataFixtures\Loader')) {
+            $loaderClass = 'Doctrine\Bundle\FixturesBundle\Common\DataFixtures\Loader';
+        }
 
         $loader = new $loaderClass($container);
 
@@ -236,15 +238,17 @@ class FixtureUtility
      */
     public static function loadDefaultFixtures($namespace = null)
     {
-        if (!empty($namespace)) {
-            $namespaceBckup = self::$namespace;
+        $namespaceBackup = null;
+
+        if ($namespace !== null) {
+            $namespaceBackup = self::$namespace;
             self::$namespace = $namespace;
         }
 
         $dataFixtures = NamespaceUtility::getClassNamesByContext(self::$namespace, NamespaceUtility::DIR_DEFAULT_DATA);
 
-        if (isset($namespaceBckup)) {
-            self::$namespace = $namespaceBckup;
+        if ($namespaceBackup !== null) {
+            self::$namespace = $namespaceBackup;
         }
 
         return $dataFixtures;
