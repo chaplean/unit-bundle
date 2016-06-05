@@ -152,9 +152,15 @@ class FixtureUtility
                     self::$loaded[] = get_class($fixture);
                 }
 
+                $cmdArgs = '-h' . $host . ' -P' . $port . ' -u' . $user . ' -p' . $password . ' ' . $databaseName;
+
                 if (array_key_exists($databaseHash, self::$cachedExecutor)) {
                     if ($driverIsMysql) {
-                        exec('mysql -h' . $host . ' -P' . $port . ' -u' . $user . ' -p' . $password . ' ' . $databaseName . ' < ' . $sqlDirectory . '/' . $databaseHash . '.sql');
+                        $mysqlCmd = 'mysql ' . $cmdArgs . ' < ' . $sqlDirectory . '/' . $databaseHash . '.sql';
+
+                        exec($mysqlCmd, $output, $returnVar);
+
+                        $databaseUtility->getOm()->getUnitOfWork()->clear();
                     }
 
                     $executor = self::$cachedExecutor[$databaseHash];
@@ -168,9 +174,9 @@ class FixtureUtility
                             throw new FileException('Directory is not created: ' . $sqlDirectory);
                         }
 
-                        exec(
-                            'mysqldump -h' . $host . ' -P' . $port . ' -u' . $user . ' -p' . $password . ' ' . $databaseName . ' > ' . $sqlDirectory . '/' . $databaseHash . '.sql'
-                        );
+                        $mysqlDumpCmd = 'mysqldump ' . $cmdArgs . ' > ' . $sqlDirectory . '/' . $databaseHash . '.sql';
+
+                        exec($mysqlDumpCmd, $output, $returnVar);
                     }
                 }
             }

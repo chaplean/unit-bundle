@@ -259,7 +259,7 @@ class LogicalTest extends WebTestCase
 
         if ($hashFixtures != self::$hashFixtures) {
             self::$hashFixtures = $hashFixtures;
-            self::$fixtures = FixtureUtility::loadFixtures($classNames, $purgeMode)->getReferenceRepository();
+            self::$fixtures = FixtureUtility::loadFixtures($classNames)->getReferenceRepository();
         }
         
         self::$databaseLoaded = true;
