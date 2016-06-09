@@ -50,7 +50,7 @@ class SwiftMailerCacheUtility
     }
 
     /**
-     * @return mixed
+     * @return array
      * @throws \Exception
      */
     public function readMessages()
@@ -58,15 +58,22 @@ class SwiftMailerCacheUtility
         $messages = array();
         $finder = Finder::create()->files()->in($this->swiftmailerCacheDir);
 
-        if ($finder->count() == 0) {
+        if ($finder->count() === 0) {
             return null;
         }
 
         /** @var SplFileInfo $file */
         foreach ($finder as $file) {
-            $messages[] = unserialize($file->getContents());
+            $message = unserialize($file->getContents());
+
+            if (method_exists($message, 'getTime')) {
+                $messages[$message->getTime()] = $message;
+            } else {
+                $messages[] = $message;
+            }
         }
 
-        return count($messages) == 1 ? $messages[0] : $messages;
+        ksort($messages);
+        return array_values($messages);
     }
 }
