@@ -57,17 +57,30 @@ class GeneratorData
      * @return void
      * @throws \Exception
      */
-    protected function classDefinitionExist($class, $fieldName)
+    public function classDefinitionExist($class, $fieldName)
     {
-        switch (true) {
-            case empty($this->entityDefinition):
-                throw new \Exception('No definition load !');
-            case !isset($this->entityDefinition[$class]):
-                throw new \Exception('Missing defintion for entity (\'' . $class . '\')');
-            case !isset($this->entityDefinition[$class]['properties']):
-                throw new \Exception('Unvalid format in definition, \'properties\' not found');
-            case !isset($this->entityDefinition[$class]['properties'][$fieldName]):
-                throw new \Exception('Missing definition for required field (\'' . $fieldName . '\')');
+        if (empty($this->entityDefinition)) {
+            throw new \Exception('No definition load !');
+        } elseif (!isset($this->entityDefinition[$class])) {
+            throw new \Exception('Missing defintion for entity (\'' . $class . '\')');
+        } elseif (!isset($this->entityDefinition[$class]['properties'])) {
+            throw new \Exception('Unvalid format in definition, \'properties\' not found');
+        } elseif (!isset($this->entityDefinition[$class]['properties'][$fieldName])) {
+            throw new \Exception('Missing definition for required field (\'' . $fieldName . '\')');
+        }
+    }
+
+    /**
+     * @param string $class
+     *
+     * @return array
+     */
+    public function getFieldsDefined($class)
+    {
+        if (isset($this->entityDefinition[$class])) {
+            return array_keys($this->entityDefinition[$class]['properties']);
+        } else {
+            return array();
         }
     }
 
@@ -99,23 +112,7 @@ class GeneratorData
         if (isset($this->references[$class . ':' . $fieldName])) {
             return $this->references[$class . ':' . $fieldName]->getReferenceKey();
         } else {
-            throw new \Exception();
-        }
-    }
-
-    /**
-     * @param string $class
-     * @param string $fieldName
-     *
-     * @return bool
-     */
-    public function hasDefinition($class, $fieldName)
-    {
-        try {
-            $this->classDefinitionExist($class, $fieldName);
-            return true;
-        } catch (\Exception $e) {
-            return false;
+            throw new \Exception(sprintf('Reference \'%s\' not exist', $class . ':' . $fieldName));
         }
     }
 

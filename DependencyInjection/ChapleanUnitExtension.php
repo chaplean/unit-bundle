@@ -23,18 +23,37 @@ class ChapleanUnitExtension extends Extension
      */
     public function load(array $configs, ContainerBuilder $container)
     {
-        $config = array();
-        foreach ($configs as $subConfig) {
-            $config = array_merge($config, $subConfig);
-        }
+        $configuration = new Configuration();
+        $config = $this->processConfiguration($configuration, $configs);
 
         $loader = new Loader\YamlFileLoader($container, new FileLocator(__DIR__ . '/../Resources/config'));
         $loader->load('services.yml');
 
-        $container->setParameter($this->getAlias(), $config);
+//        $container->setParameter($this->getAlias(), $config);
+//
+//        $classLoader = new Psr4ClassLoader();
+//        $classLoader->addPrefix('Mockery\\', $container->getParameter('kernel.root_dir') . '/../vendor/mockery/mockery/library/');
+//        $classLoader->register();
 
-        $classLoader = new Psr4ClassLoader();
-        $classLoader->addPrefix('Mockery\\', $container->getParameter('kernel.root_dir') . '/../vendor/mockery/mockery/library/');
-        $classLoader->register();
+        $container->setParameter('chaplean_unit', $config);
+        $this->setParameters($container, 'chaplean_unit', $config);
+    }
+
+    /**
+     * @param ContainerBuilder $container
+     * @param string           $name
+     * @param array            $config
+     *
+     * @return void
+     */
+    public function setParameters($container, $name, $config)
+    {
+        foreach ($config as $key => $parameter) {
+            $container->setParameter($name . '.' . $key, $parameter);
+
+            if (is_array($parameter)) {
+                $this->setParameters($container, $name . '.' . $key, $parameter);
+            }
+        }
     }
 }

@@ -9,10 +9,14 @@ use Chaplean\Bundle\UnitBundle\Utility\RestClient;
 use Chaplean\Bundle\UnitBundle\Utility\SwiftMailerCacheUtility;
 use Doctrine\Common\DataFixtures\Purger\ORMPurger;
 use Doctrine\Common\DataFixtures\ReferenceRepository;
-use Doctrine\Entity;
+use Doctrine\Common\Util\ClassUtils;
 use Doctrine\ORM\EntityManager;
 use Liip\FunctionalTestBundle\Test\WebTestCase;
+use Symfony\Bundle\FrameworkBundle\Client;
+use Symfony\Component\BrowserKit\Cookie;
 use Symfony\Component\DependencyInjection\Container;
+use Symfony\Component\HttpFoundation\Session\Session;
+use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
 
 /**
  * LogicalTest.
@@ -34,15 +38,10 @@ class LogicalTest extends WebTestCase
     protected $swiftmailerCacheUtility;
 
     /**
-     * @var RestClient
-     */
-    public $restClient = null;
-
-    /**
      * @var ReferenceRepository
      */
     protected static $fixtures;
-
+    
     /**
      * @var array
      */
@@ -51,7 +50,7 @@ class LogicalTest extends WebTestCase
     /**
      * @var boolean
      */
-    protected static $iWantDefaultData = true;
+    protected static $iWantDefaultData;
 
     /**
      * @var boolean
@@ -64,18 +63,47 @@ class LogicalTest extends WebTestCase
     protected static $hashFixtures;
 
     /**
+     * @var boolean
+     */
+    protected static $overrideNamespace = false;
+
+    /**
      * Construct
      */
     public function __construct($name = null, array $data = array(), $dataName = '')
     {
         parent::__construct($name, $data, $dataName);
 
+        FixtureUtility::setContainer($this->getContainer());
         $this->em = $this->getContainer()->get('doctrine')->getManager();
         $this->swiftmailerCacheUtility = $this->getContainer()->get('chaplean_unit.swiftmailer_cache');
 
         self::resetNamespaceFixtures();
-        self::$databaseLoaded = false;
         self::$iWantDefaultData = true;
+        self::$overrideNamespace = false;
+    }
+
+    /**
+     * @param mixed  $user
+     * @param Client $client
+     *
+     * @return void
+     */
+    public function authenticate($user, $client = null)
+    {
+        $usernameTokenPassword = new UsernamePasswordToken($user, null, 'main', $user->getRoles());
+        $this->getContainer()->get('security.token_storage')->setToken($usernameTokenPassword);
+
+        if ($client instanceof Client) {
+            $client->getContainer()->get('security.token_storage')->setToken($usernameTokenPassword);
+            /** @var Session $session */
+            $session = $client->getContainer()->get('session');
+            $session->set('_security_main', serialize($usernameTokenPassword));
+            $session->save();
+
+            $cookie = new Cookie($session->getName(), $session->getId());
+            $client->getCookieJar()->set($cookie);
+        }
     }
 
     /**
@@ -91,30 +119,90 @@ class LogicalTest extends WebTestCase
      */
     public function createRestClient()
     {
-        $this->restClient = new RestClient($this->getContainer());
-        return $this->restClient;
+        return new RestClient($this->getContainer());
+    }
+
+    /**
+     * @return string
+     */
+    public static function getCurrentNamespace()
+    {
+        $file = new \ReflectionClass(get_called_class());
+        $name = $file->name;
+        $matches = null;
+        if (preg_match('/Tests\\\\(.+Bundle)\\\\.*Test/', $name, $matches)) {
+            return $matches[1] . '\\';
+        }
+
+        return '';
     }
 
     /**
      * @param string $reference
      *
-     * @return Entity|null
+     * @return null|object
+     */
+    public function getEntity($reference)
+    {
+        $entity = self::$fixtures->getReference($reference);
+        
+        return $this->em->find(ClassUtils::getClass($entity), $entity->getId());
+    }
+
+    /**
+     * @return EntityManager
+     */
+    public function getManager()
+    {
+        return $this->em;
+    }
+
+    /**
+     * @return string
+     */
+    public function getNamespace()
+    {
+        return FixtureUtility::$namespace;
+    }
+
+    /**
+     * @param string $reference
+     *
+     * @return object|null
+     * @deprecated Use getEntity now !
      */
     public function getRealEntity($reference)
     {
-        $entity = self::$fixtures->getReference($reference);
+        return $this->getEntity($reference);
+    }
 
-        return $this->em->find(get_class($entity), $entity->getId());
+    /**
+     * @param string $reference
+     *
+     * @return object
+     */
+    public function getReference($reference)
+    {
+        return self::$fixtures->getReference($reference);
     }
 
     /**
      * Get the container
      *
      * @return Container
+     * @deprecated Is too dangerous !
      */
     public static function getStaticContainer()
     {
         return ContainerUtility::getContainer('logical');
+    }
+
+    /**
+     * @return boolean
+     */
+    public function isOverrideNamespace()
+    {
+        return self::$overrideNamespace;
     }
 
     /**
@@ -128,23 +216,6 @@ class LogicalTest extends WebTestCase
     }
 
     /**
-     * @param array    $classNames
-     * @param string   $omName
-     * @param string   $registryName
-     * @param int|null $purgeMode
-     *
-     * @return void
-     * @deprecated Use loadStaticFixtures ! Transaction is active by function test
-     */
-    public function loadFixtures(array $classNames, $omName = null, $registryName = 'doctrine', $purgeMode = ORMPurger::PURGE_MODE_TRUNCATE)
-    {
-        unset($omName);
-        unset($registryName);
-
-        self::$fixtures = FixtureUtility::loadFixtures($classNames, 'logical', $purgeMode)->getReferenceRepository();
-    }
-
-    /**
      * @param string $context
      *
      * @return void
@@ -152,14 +223,7 @@ class LogicalTest extends WebTestCase
     public static function loadFixturesByContext($context)
     {
         $defaultFixtures = NamespaceUtility::getClassNamesByContext(FixtureUtility::$namespace, $context);
-
-        if (!empty($defaultFixtures)) {
-            if (empty(self::$fixtures)) {
-                self::loadStaticFixtures($defaultFixtures);
-            } else {
-                self::$fixtures = FixtureUtility::loadPartialFixtures($defaultFixtures, null)->getReferenceRepository();
-            }
-        }
+        self::loadStaticFixtures($defaultFixtures);
     }
 
     /**
@@ -191,10 +255,14 @@ class LogicalTest extends WebTestCase
      */
     public static function loadStaticFixtures(array $classNames, $purgeMode = ORMPurger::PURGE_MODE_TRUNCATE)
     {
-        if (self::$hashFixtures != md5(serialize($classNames))) {
-            self::$fixtures = FixtureUtility::loadFixtures($classNames, 'logical', $purgeMode)->getReferenceRepository();
-            self::$hashFixtures = md5(serialize($classNames));
+        $hashFixtures = md5(serialize($classNames));
+
+        if ($hashFixtures != self::$hashFixtures) {
+            self::$hashFixtures = $hashFixtures;
+            self::$fixtures = FixtureUtility::loadFixtures($classNames, $purgeMode)->getReferenceRepository();
         }
+        
+        self::$databaseLoaded = true;
     }
 
     /**
@@ -209,21 +277,40 @@ class LogicalTest extends WebTestCase
     /**
      * @return void
      */
-    public function resetNamespaceFixtures()
+    public static function resetNamespaceFixtures()
     {
-        $file = new \ReflectionClass(get_called_class());
-        $name = $file->name;
-        FixtureUtility::$namespace = substr($name, 0, strpos($name, 'Tests'));
+        FixtureUtility::$namespace = self::getCurrentNamespace();
     }
 
     /**
-     * @param string $namespace
+     * @param boolean $iWantDefaultData
+     *
+     * @return void
+     */
+    public static function setIWantDefaultData($iWantDefaultData)
+    {
+        self::$iWantDefaultData = $iWantDefaultData;
+    }
+
+    /**
+     * @param string $namespace Namespace parent of folder DataFixtures (example: 'App\\Bundle\\FrontBundle\\')
      *
      * @return void
      */
     public static function setNamespaceFixtures($namespace)
     {
+        self::$overrideNamespace = true;
         FixtureUtility::$namespace = $namespace;
+    }
+
+    /**
+     * @return void
+     */
+    public static function tearDownAfterClass()
+    {
+        parent::tearDownAfterClass();
+
+        self::$overrideNamespace = false;
     }
 
     /**
@@ -238,6 +325,10 @@ class LogicalTest extends WebTestCase
             $datafixtures = $args[0];
         }
 
+        if (!self::$overrideNamespace && FixtureUtility::$namespace != self::getCurrentNamespace()) {
+            self::resetNamespaceFixtures();
+        }
+
         parent::setUpBeforeClass();
         self::$defaultFixtures = array();
 
@@ -247,12 +338,11 @@ class LogicalTest extends WebTestCase
             self::$iWantDefaultData = true;
         }
 
-        if (!empty($datafixtures)) {
+        if (isset($datafixtures)) {
             self::$defaultFixtures = array_merge(self::$defaultFixtures, $datafixtures);
         }
 
         self::loadStaticFixtures(self::$defaultFixtures);
-        self::$databaseLoaded = true;
     }
 
     /**
@@ -265,6 +355,7 @@ class LogicalTest extends WebTestCase
         if (self::$databaseLoaded) {
             $this->em->beginTransaction();
         }
+
         $this->cleanMailDir();
 
         parent::setUp();
@@ -277,7 +368,7 @@ class LogicalTest extends WebTestCase
      */
     public function tearDown()
     {
-        if (!$this->em->getConnection()->isAutoCommit() && self::$databaseLoaded) {
+        if ($this->em->getConnection()->getTransactionNestingLevel() > 0 && self::$databaseLoaded) {
             $this->em->rollback();
         }
 

@@ -16,12 +16,16 @@
     <php>
         <server name="KERNEL_DIR" value="app/" />
     </php>
+
     <filter>
-        <whitelist>
+        <blacklist>
             <directory>Entity/</directory>
-            <directory>Fixtures/</directory>
             <directory>Resources/</directory>
             <directory>Repository/</directory>
+        </blacklist>
+        <whitelist>
+            <directory>Test/</directory>
+            <directory>Fixtures/</directory>
             <directory>Utility/</directory>
         </whitelist>
     </filter>

@@ -5,6 +5,7 @@ namespace Chaplean\Bundle\UnitBundle\Utility;
 use Doctrine\Common\DataFixtures\AbstractFixture as BaseAbstractFixture;
 use Doctrine\Common\Persistence\ObjectManager;
 use Doctrine\ORM\Mapping\ClassMetadata;
+use Symfony\Component\Debug\Exception\ContextErrorException;
 
 /**
  * AbstractFixture.php.
@@ -28,11 +29,6 @@ abstract class AbstractFixture extends BaseAbstractFixture
     /**
      * @var array
      */
-    private $matches;
-
-    /**
-     * @var array
-     */
     private $embeddedClass;
 
     /**
@@ -42,46 +38,60 @@ abstract class AbstractFixture extends BaseAbstractFixture
      */
     public function generateEntity($entity)
     {
-        $this->initGenerator($entity);
+        if (empty($this->generator)) {
+            try {
+                $this->initGenerator($entity);
+            } catch (\Exception $e) {
+                return $entity;
+            }
+        }
 
         $this->getEmbeddedClass($entity);
-        $fields = $this->getRequiredField($entity);
+        /** @var ClassMetadata $classMetadata */
+        $classMetadata = $this->em->getClassMetadata(get_class($entity));
+        $fields = $this->generator->getFieldsDefined(get_class($entity));
 
         foreach ($fields as $field) {
-            if ($this->isFieldRequired($field) || $this->generator->hasDefinition(get_class($entity), $field['fieldName'])) {
-                // filed is a embedded
-                if (isset($field['originalClass'])) {
-                    $field['fieldName'] = $field['declaredField'];
-                    $field['isEmbeddedField'] = true;
-                }
+            if ($classMetadata->hasAssociation($field)) {
+                $fieldDefinition = $classMetadata->getAssociationMapping($field);
+            } elseif (isset($classMetadata->embeddedClasses[$field])) {
+                $fieldDefinition = $classMetadata->embeddedClasses[$field];
+            } else {
+                $fieldDefinition = $classMetadata->getFieldMapping($field);
+            }
 
-                list($getter, $setter) = $this->getAccessor($field);
+            if (isset($fieldDefinition['class'])) {
+                $fieldDefinition['isEmbeddedField'] = true;
+                $fieldDefinition['fieldName'] = $field;
+                $fieldDefinition['type'] = '';
+            }
+        
+            list($getter, $setter) = $this->getAccessor($fieldDefinition, $entity);
+            if (!empty($entity->$getter()) || $entity->$getter() !== null) {
+                continue;
+            }
 
-                if (!empty($entity->$getter()) || $entity->$getter() !== null) {
-                    continue;
-                }
-
-                switch (true) {
-                    case $this->isEnum($field):
-                        $value = $this->getEnum($this->matches[1][0]);
-                        break;
-                    case isset($field['joinColumns']):
-                        if ($this->generator->hasReference(get_class($entity), $field['fieldName'])) {
-                            $reference = $this->generator->getReference(get_class($entity), $field['fieldName']);
+            switch (true) {
+                case isset($fieldDefinition['joinColumns']):
+                    if ($this->generator->hasReference(get_class($entity), $field)) {
+                        $reference = $this->generator->getReference(get_class($entity), $field);
+                        if ($reference !== null) {
                             $value = $this->getReference($reference);
                         } else {
-                            $value = $this->saveDependency($field['targetEntity']);
+                            $value = $this->saveDependency($fieldDefinition['targetEntity']);
                         }
-                        break;
-                    case isset($field['isEmbeddedField']) && $field['isEmbeddedField']:
-                        $value = $this->generateEntity(new $this->embeddedClass[$field['fieldName']]());
-                        break;
-                    default:
-                        $value = $this->generator->getData(get_class($entity), $field['fieldName']);
-                }
-
-                $entity->$setter($value);
+                    } else {
+                        $value = $this->saveDependency($fieldDefinition['targetEntity']);
+                    }
+                    break;
+                case isset($fieldDefinition['isEmbeddedField']) && $fieldDefinition['isEmbeddedField']:
+                    $value = $this->generateEntity(new $this->embeddedClass[$field]());
+                    break;
+                default:
+                    $value = $this->generator->getData(get_class($entity), $field);
             }
+
+            $entity->$setter($value);
         }
 
         return $entity;
@@ -98,7 +108,7 @@ abstract class AbstractFixture extends BaseAbstractFixture
      */
     public function getEntity($name, $manager)
     {
-        $entity = $this->referenceRepository->getReference($name);
+        $entity = $this->getReference($name);
 
         return $manager->find(get_class($entity), $entity->getId());
     }
@@ -139,21 +149,6 @@ abstract class AbstractFixture extends BaseAbstractFixture
     }
 
     /**
-     * @param array $field
-     *
-     * @return boolean
-     */
-    public function isEnum($field)
-    {
-        if (isset($field['columnDefinition'])) {
-            preg_match_all('/enum\((.*)\)/i', $field['columnDefinition'], $this->matches);
-            return !empty($this->matches) && count($this->matches) > 0;
-        } else {
-            return false;
-        }
-    }
-
-    /**
      * @param object $entity
      *
      * @return void
@@ -171,68 +166,46 @@ abstract class AbstractFixture extends BaseAbstractFixture
     }
 
     /**
-     * Get a possible value for a enum
-     *
-     * @param string $enum
-     *
-     * @return string
-     */
-    public function getEnum($enum)
-    {
-        $possibleValues = explode(',', str_replace('\'', '', $enum));
-
-        $index = rand(0, count($possibleValues) - 1);
-
-        return $possibleValues[$index];
-    }
-
-    /**
-     * Parse ORM annotations for get not nullable field
-     *
-     * @param mixed $entity
-     *
-     * @return array
-     */
-    public function getRequiredField($entity)
-    {
-        /** @var ClassMetadata $classMetadata */
-        $classMetadata = $this->em->getClassMetadata(get_class($entity));
-
-        $fieldMappings = $classMetadata->fieldMappings;
-        $associationMappings = $classMetadata->associationMappings;
-
-        return $fieldMappings + $associationMappings;
-    }
-
-    /**
-     * @param array $field
-     *
-     * @return boolean
-     */
-    public function isFieldRequired($field)
-    {
-        return (!isset($field['joinColumns']) && isset($field['nullable']) && !$field['nullable'] && !isset($field['id']))
-            || (isset($field['joinColumns']) && count(
-                array_filter($field['joinColumns'], function ($joinColumn) {
-                    return isset($joinColumn['nullable']) && !$joinColumn['nullable'];
-                })
-            ));
-    }
-
-    /**
      * Get accessor for a attributes entity
      *
-     * @param array $field
+     * @param array  $field
+     * @param string $class
      *
      * @return array
      */
-    public function getAccessor($field)
+    public function getAccessor($field, $class)
     {
         $fieldName = ucfirst(str_replace(' ', '', ucwords(str_replace('_', ' ', $field['fieldName']))));
-        $getter = ($field['type'] == 'boolean' ? 'is' : 'get') . $fieldName;
+        if ($field['type'] == 'boolean') {
+            if (method_exists($class, $field['fieldName'])) {
+                $getter = $field['fieldName'];
+            } else {
+                $getter = 'is' . $fieldName;
+            }
+        } else {
+            $getter = 'get' . $fieldName;
+        }
         $setter = 'set' . $fieldName;
-
         return array($getter, $setter);
+    }
+
+    /**
+     * Loads an object using stored reference
+     * named by $name
+     *
+     * @param string $name
+     * @see Doctrine\Common\DataFixtures\ReferenceRepository::getReference
+     * @return object
+     * @throws \Exception
+     */
+    public function getReference($name)
+    {
+        $reference = $this->referenceRepository->getReference($name);
+        if ($reference->getId() == null) {
+            throw new \Exception(sprintf('\'%s\' is not persisted !', $name));
+        }
+
+        return $reference;
     }
 
     /**

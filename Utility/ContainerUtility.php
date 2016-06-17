@@ -29,18 +29,13 @@ class ContainerUtility
      *
      * @return void
      */
-    private static function loadContainer($typeTest)
+    public static function loadContainer($typeTest)
     {
         /** @var Kernel $kernel */
 
         switch ($typeTest) {
             case 'behat':
-                /** @noinspection PhpIncludeInspection */
-                require_once 'vendor/chaplean/unit-bundle/Chaplean/Bundle/UnitBundle/BehatKernel.php';
-                $kernelClass = self::BEHAT_KERNEL;
-                $kernel = new $kernelClass('behat', true);
-                break;
-
+                return trigger_error('Behat type test is no longer available', E_USER_WARNING);
             case 'functional':
             case 'logical':
             default:

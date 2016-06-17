@@ -1,0 +1,72 @@
+imports:
+    - { resource: parameters.yml }
+    - { resource: security.yml }
+
+framework:
+    test: ~
+    secret: 'S3cR€t'
+    session:
+        storage_id: session.storage.mock_file
+    form:   ~
+    router:
+        resource: '%kernel.root_dir%/config/routing.yml'
+        strict_requirements: true
+    validation: { enable_annotations: false }
+    templating:
+        engines: ['twig']
+
+# Twig Configuration
+twig:
+    debug:            '%kernel.debug%'
+    strict_variables: '%kernel.debug%'
+
+monolog:
+    handlers:
+        main:
+            type:         fingers_crossed
+            action_level: error
+            handler:      nested
+        nested:
+            type:  stream
+            path:  '%kernel.logs_dir%/%kernel.environment%.log'
+            level: info
+        console:
+            type:  console
+
+# Doctrine Configuration
+doctrine:
+    dbal:
+        driver:   pdo_mysql
+        host:     127.0.0.1
+        port:     3306
+        dbname:   test_database
+        user:     '%database_user%'
+        password: '%database_password%'
+        charset:  UTF8
+        server_version: 5.5
+        mapping_types:
+            enum: string
+
+    orm:
+        auto_generate_proxy_classes: '%kernel.debug%'
+        auto_mapping: true
+
+parameters:
+    chaplean_mailer:
+        bcc_address: 'unit@chaplean.com'
+        sender_address: 'unit@chaplean.com'
+        sender_name: 'Chaplean'
+        subject:
+            prefix: '[TEST]'
+        test: true
+
+swiftmailer:
+    spool:
+        type: file
+
+fos_rest:
+    routing_loader:
+        default_format: json
+        include_format: false
+    serializer:
+        serialize_null: true
