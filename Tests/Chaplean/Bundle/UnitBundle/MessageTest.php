@@ -25,7 +25,7 @@ class MessageTest extends LogicalTest
         $result = $this->getContainer()->get('swiftmailer.mailer.default')->send($message);
 
         $this->assertEquals(1, $result);
-        $this->assertInstanceOf(Message::class, $this->readMessages());
+        $this->assertInstanceOf(Message::class, $this->readMessages()[0]);
     }
 
     /**
@@ -61,7 +61,7 @@ class MessageTest extends LogicalTest
         $this->assertEquals(1, $result);
 
         /** @var Message $messageSended */
-        $messageSended = $this->readMessages();
+        $messageSended = $this->readMessages()[0];
 
         $this->assertTrue(array_key_exists('foo_bar_com@yopmail.com', $messageSended->getTo()));
         $this->assertEquals(array('unit@chaplean.com' => 'Chaplean'), $messageSended->getFrom());
