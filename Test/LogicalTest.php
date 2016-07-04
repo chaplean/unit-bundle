@@ -257,7 +257,7 @@ class LogicalTest extends WebTestCase
     {
         $hashFixtures = md5(serialize($classNames));
 
-        if ($hashFixtures != self::$hashFixtures) {
+        if ($hashFixtures !== self::$hashFixtures) {
             self::$hashFixtures = $hashFixtures;
             self::$fixtures = FixtureUtility::loadFixtures($classNames)->getReferenceRepository();
         }
