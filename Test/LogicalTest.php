@@ -70,9 +70,9 @@ class LogicalTest extends WebTestCase
     /**
      * Construct
      */
-    public function __construct()
+    public function __construct($name = null, array $data = array(), $dataName = '')
     {
-        parent::__construct();
+        parent::__construct($name, $data, $dataName);
 
         FixtureUtility::setContainer($this->getContainer());
         $this->em = $this->getContainer()->get('doctrine')->getManager();
