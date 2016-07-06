@@ -7,7 +7,6 @@ use Chaplean\Bundle\UnitBundle\Utility\FixtureUtility;
 use Chaplean\Bundle\UnitBundle\Utility\NamespaceUtility;
 use Chaplean\Bundle\UnitBundle\Utility\RestClient;
 use Chaplean\Bundle\UnitBundle\Utility\SwiftMailerCacheUtility;
-use Doctrine\Common\DataFixtures\Purger\ORMPurger;
 use Doctrine\Common\DataFixtures\ReferenceRepository;
 use Doctrine\Common\Util\ClassUtils;
 use Doctrine\ORM\EntityManager;
@@ -41,7 +40,7 @@ class LogicalTest extends WebTestCase
      * @var ReferenceRepository
      */
     protected static $fixtures;
-    
+
     /**
      * @var array
      */
@@ -69,14 +68,21 @@ class LogicalTest extends WebTestCase
 
     /**
      * Construct
+     *
+     * @param string|null $name
+     * @param array       $data
+     * @param string      $dataName
      */
     public function __construct($name = null, array $data = array(), $dataName = '')
     {
         parent::__construct($name, $data, $dataName);
 
         FixtureUtility::setContainer($this->getContainer());
-        $this->em = $this->getContainer()->get('doctrine')->getManager();
-        $this->swiftmailerCacheUtility = $this->getContainer()->get('chaplean_unit.swiftmailer_cache');
+        $this->em = $this->getContainer()
+            ->get('doctrine')
+            ->getManager();
+        $this->swiftmailerCacheUtility = $this->getContainer()
+            ->get('chaplean_unit.swiftmailer_cache');
 
         self::resetNamespaceFixtures();
         self::$iWantDefaultData = true;
@@ -92,17 +98,25 @@ class LogicalTest extends WebTestCase
     public function authenticate($user, $client = null)
     {
         $usernameTokenPassword = new UsernamePasswordToken($user, null, 'main', $user->getRoles());
-        $this->getContainer()->get('security.token_storage')->setToken($usernameTokenPassword);
+        $this->getContainer()
+            ->get('security.token_storage')
+            ->setToken($usernameTokenPassword);
 
         if ($client instanceof Client) {
-            $client->getContainer()->get('security.token_storage')->setToken($usernameTokenPassword);
+            $client->getContainer()
+                ->get('security.token_storage')
+                ->setToken($usernameTokenPassword);
+
             /** @var Session $session */
-            $session = $client->getContainer()->get('session');
+            $session = $client->getContainer()
+                ->get('session');
+
             $session->set('_security_main', serialize($usernameTokenPassword));
             $session->save();
 
             $cookie = new Cookie($session->getName(), $session->getId());
-            $client->getCookieJar()->set($cookie);
+            $client->getCookieJar()
+                ->set($cookie);
         }
     }
 
@@ -145,7 +159,7 @@ class LogicalTest extends WebTestCase
     public function getEntity($reference)
     {
         $entity = self::$fixtures->getReference($reference);
-        
+
         return $this->em->find(ClassUtils::getClass($entity), $entity->getId());
     }
 
@@ -233,7 +247,8 @@ class LogicalTest extends WebTestCase
      */
     public function loadPartialFixtures(array $classNames)
     {
-        self::$fixtures = FixtureUtility::loadPartialFixtures($classNames, $this->em)->getReferenceRepository();
+        self::$fixtures = FixtureUtility::loadPartialFixtures($classNames, $this->em)
+            ->getReferenceRepository();
     }
 
     /**
@@ -244,24 +259,26 @@ class LogicalTest extends WebTestCase
     public function loadPartialFixturesByContext($context)
     {
         $classNames = NamespaceUtility::getClassNamesByContext(FixtureUtility::$namespace, $context);
-        self::$fixtures = FixtureUtility::loadPartialFixtures($classNames, $this->em)->getReferenceRepository();
+
+        self::$fixtures = FixtureUtility::loadPartialFixtures($classNames, $this->em)
+            ->getReferenceRepository();
     }
 
     /**
      * @param array $classNames
-     * @param int   $purgeMode
      *
      * @return void
      */
-    public static function loadStaticFixtures(array $classNames, $purgeMode = ORMPurger::PURGE_MODE_TRUNCATE)
+    public static function loadStaticFixtures(array $classNames)
     {
         $hashFixtures = md5(serialize($classNames));
 
         if ($hashFixtures !== self::$hashFixtures) {
             self::$hashFixtures = $hashFixtures;
-            self::$fixtures = FixtureUtility::loadFixtures($classNames)->getReferenceRepository();
+            self::$fixtures = FixtureUtility::loadFixtures($classNames)
+                ->getReferenceRepository();
         }
-        
+
         self::$databaseLoaded = true;
     }
 
@@ -368,11 +385,14 @@ class LogicalTest extends WebTestCase
      */
     public function tearDown()
     {
-        if ($this->em->getConnection()->getTransactionNestingLevel() > 0 && self::$databaseLoaded) {
+        if ($this->em->getConnection()
+                ->getTransactionNestingLevel() > 0 && self::$databaseLoaded
+        ) {
             $this->em->rollback();
         }
 
-        $this->em->getConnection()->close();
+        $this->em->getConnection()
+            ->close();
 
         parent::tearDown();
     }
