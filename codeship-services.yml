@@ -1,5 +1,4 @@
 application:
-    container_name: unit_application
     build: .
     expose:
         - "9000"
@@ -8,7 +7,6 @@ application:
     links:
         - mysql:mysql
 mysql:
-    container_name: unit_mysql
     image: chaplean/mysql
     volumes:
         - ./bin/docker-mysql.sh:/usr/local/bin/docker-mysql.sh:rw
