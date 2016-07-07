@@ -12,4 +12,4 @@ parameters:
     mailer_password: null
 
     locale: fr
-    secret: Pl3as3Chang3Th1sS3cr3tT0k3n
+    secret: Secr3tTok3nForChapleanUnitBun2le

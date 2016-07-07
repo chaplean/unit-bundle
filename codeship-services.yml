@@ -9,7 +9,6 @@ application:
 mysql:
     image: chaplean/mysql
     volumes:
-        - ./bin/docker-mysql.sh:/usr/local/bin/docker-mysql.sh:rw
         - ./.db:/var/lib/mysql:rw
     environment:
         MYSQL_ROOT_PASSWORD: root
