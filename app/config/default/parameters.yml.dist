@@ -1,6 +1,6 @@
 parameters:
     database_driver: pdo_mysql
-    database_host: unit_mysql
+    database_host: mysql
     database_port: 3306
     database_name: test_database
     database_user: root
@@ -13,5 +13,3 @@ parameters:
 
     locale: fr
     secret: Pl3as3Chang3Th1sS3cr3tT0k3n
-    database_user: root
-    database_password: test
