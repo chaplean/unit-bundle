@@ -14,7 +14,7 @@ services:
         image: chaplean/mysql
         volumes:
             - ./bin/docker-mysql.sh:/usr/local/bin/docker-mysql.sh:rw
-            - ./var/db:/var/lib/mysql:rw
+            - ./.db:/var/lib/mysql:rw
         restart: always
         environment:
             MYSQL_ROOT_PASSWORD: root

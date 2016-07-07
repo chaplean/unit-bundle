@@ -1,6 +1,12 @@
 FROM chaplean/phpunit
 MAINTAINER Tom - Chaplean <tom@chaplean.com>
 
+# Update the default apache site with the config of the project.
+ADD app/config/apache-vhost.conf /etc/apache2/sites-enabled/000-default.conf
+
+# Set VirtualHost
+ENV VIRTUAL_HOST unit-bundle.chaplean.fr
+
 VOLUME /var/www/symfony
 WORKDIR /var/www/symfony/
 
