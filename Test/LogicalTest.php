@@ -78,13 +78,16 @@ class LogicalTest extends WebTestCase
         parent::__construct($name, $data, $dataName);
 
         FixtureUtility::setContainer($this->getContainer());
+        
         $this->em = $this->getContainer()
             ->get('doctrine')
             ->getManager();
+        
         $this->swiftmailerCacheUtility = $this->getContainer()
             ->get('chaplean_unit.swiftmailer_cache');
 
         self::resetNamespaceFixtures();
+        
         self::$iWantDefaultData = true;
         self::$overrideNamespace = false;
     }
@@ -144,6 +147,7 @@ class LogicalTest extends WebTestCase
         $file = new \ReflectionClass(get_called_class());
         $name = $file->name;
         $matches = null;
+        
         if (preg_match('/Tests\\\\(.+Bundle)\\\\.*Test/', $name, $matches)) {
             return $matches[1] . '\\';
         }

@@ -16,7 +16,6 @@ class MessageTest extends LogicalTest
 {
     /**
      * @return void
-     * @throws \Exception
      */
     public function testSendMail()
     {
@@ -30,17 +29,15 @@ class MessageTest extends LogicalTest
 
     /**
      * @return void
-     * @throws \Exception
      */
     public function testSendMultiMail()
     {
         $message = new Message($this->getContainer()->getParameter('chaplean_mailer'));
         $message->setTo('foo@bar.com');
 
-        /** @noinspection PhpUndefinedMethodInspection */
         $result = $this->getContainer()->get('swiftmailer.mailer.default')->send($message);
         $result += $this->getContainer()->get('swiftmailer.mailer.default')->send($message);
-
+        
         $this->assertEquals(2, $result);
         $this->assertCount(2, $this->readMessages());
     }
@@ -64,8 +61,8 @@ class MessageTest extends LogicalTest
         $messageSended = $this->readMessages()[0];
 
         $this->assertTrue(array_key_exists('foo_bar_com@yopmail.com', $messageSended->getTo()));
-        $this->assertEquals(array('unit@chaplean.com' => 'Chaplean'), $messageSended->getFrom());
-        $this->assertEquals('[TEST]message test', $messageSended->getSubject());
+        $this->assertEquals(array('staff@chaplean.com' => 'Chaplean'), $messageSended->getFrom());
+        $this->assertEquals('[TEST] message test', $messageSended->getSubject());
         $this->assertEquals('Chaplean is Awesome !!', $messageSended->getBody());
     }
 

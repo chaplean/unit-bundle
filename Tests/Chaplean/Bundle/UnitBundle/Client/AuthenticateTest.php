@@ -23,11 +23,21 @@ class AuthenticateTest extends LogicalTest
 
         $this->authenticate($user);
 
-        $this->assertInstanceOf(User::class, $this->getContainer()->get('security.token_storage')->getToken()->getUser());
-        $this->assertEquals('user', $this->getContainer()->get('security.token_storage')->getToken()->getUser()->getUsername());
+        $token = $this->getContainer()
+            ->get('security.token_storage')
+            ->getToken();
+
+        $this->assertInstanceOf(User::class, $token->getUser());
+        $this->assertEquals(
+            'user',
+            $token->getUser()
+                ->getUsername()
+        );
     }
 
     /**
+     * @runInSeparateProcess
+     *
      * @return void
      */
     public function testAuthenticateInClient()
@@ -37,8 +47,24 @@ class AuthenticateTest extends LogicalTest
         $client = self::createClient();
         $this->authenticate($user, $client);
 
-        $this->assertInstanceOf(User::class, $client->getContainer()->get('security.token_storage')->getToken()->getUser());
-        $this->assertEquals('user', $client->getContainer()->get('security.token_storage')->getToken()->getUser()->getUsername());
-        $this->assertInstanceOf(UsernamePasswordToken::class, unserialize($client->getContainer()->get('session')->get('_security_main')));
+        $token = $client->getContainer()
+            ->get('security.token_storage')
+            ->getToken();
+
+        $this->assertInstanceOf(User::class, $token->getUser());
+        $this->assertEquals(
+            'user',
+            $token->getUser()
+                ->getUsername()
+        );
+        
+        $this->assertInstanceOf(
+            UsernamePasswordToken::class,
+            unserialize(
+                $client->getContainer()
+                    ->get('session')
+                    ->get('_security_main')
+            )
+        );
     }
 }

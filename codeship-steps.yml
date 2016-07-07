@@ -1,0 +1,12 @@
+# Commands to execute in CodeShip
+- type: serial
+  services:
+  - unit_application
+  steps:
+    - type: serial
+      steps:
+      - command: composer install --prefer-dist --no-interaction
+      - command: cp ./app/config/default/parameters.yml.dist ./app/config/default/parameters.yml
+      - command: phpunit -c ./phpunit_default.xml --coverage-php build/logs/clover-default.xml
+      - command: phpunit -c ./phpunit_sqlite.xml --coverage-php build/logs/clover-sqlite.xml
+      - command: php bin/coveralls

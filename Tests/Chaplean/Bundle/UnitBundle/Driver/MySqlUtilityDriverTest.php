@@ -34,13 +34,13 @@ class MySqlUtilityDriverTest extends LogicalTest
     {
         $this->params = array(
             'driver'        => 'pdo_mysql',
-            'host'          => 'localhost',
-            'port'          => '3306',
+            'host'          => $this->getContainer()->getParameter('database_host'),
+            'port'          => $this->getContainer()->getParameter('database_port'),
             'dbname'        => 'test_database_doesnt_exist',
             'user'          => $this->getContainer()->getParameter('database_user'),
             'password'      => $this->getContainer()->getParameter('database_password'),
             'charset'       => 'UTF8',
-            'serverVersion' => '5.5',
+            'serverVersion' => '5.6',
         );
     }
 

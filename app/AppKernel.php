@@ -30,19 +30,18 @@ class AppKernel extends Kernel
             new JMS\SerializerBundle\JMSSerializerBundle(),
             new Symfony\Bundle\TwigBundle\TwigBundle(),
             new Symfony\Bundle\SecurityBundle\SecurityBundle(),
+            new Chaplean\Bundle\MailerBundle\ChapleanMailerBundle(),
         );
 
         return $bundles;
     }
 
     /**
-     * @param LoaderInterface $loader
-     *
-     * @return void
+     * @return string
      */
-    public function registerContainerConfiguration(LoaderInterface $loader)
+    public function getRootDir()
     {
-        $loader->load(__DIR__.'/config/config.yml');
+        return __DIR__;
     }
 
     /**
@@ -50,12 +49,7 @@ class AppKernel extends Kernel
      */
     public function getCacheDir()
     {
-        $cacheDir = sys_get_temp_dir().'/cache';
-        if (!is_dir($cacheDir)) {
-            mkdir($cacheDir, 0777, true);
-        }
-
-        return $cacheDir;
+        return dirname(__DIR__) . '/var/cache/' . $this->getEnvironment();
     }
 
     /**
@@ -63,11 +57,22 @@ class AppKernel extends Kernel
      */
     public function getLogDir()
     {
-        $logDir = sys_get_temp_dir().'/logs';
-        if (!is_dir($logDir)) {
-            mkdir($logDir, 0777, true);
+        return dirname(__DIR__) . '/var/logs';
+    }
+
+    /**
+     * @param LoaderInterface $loader Resource loader.
+     *
+     * @return void
+     */
+    public function registerContainerConfiguration(LoaderInterface $loader)
+    {
+        $configType = $_SERVER['CONFIG_TYPE'] ?? null;
+
+        if (!in_array($configType, array('default', 'sqlite'))) {
+            $configType = 'default';
         }
 
-        return $logDir;
+        $loader->load($this->getRootDir() . '/config/' . $configType . '/config.yml');
     }
 }

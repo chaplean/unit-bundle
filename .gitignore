@@ -3,8 +3,8 @@
 !var/.gitkeep
 
 # Parameters
-/app/config/parameters.yml
-/app/default/config/parameters.yml
+/app/config/default/parameters.yml
+/app/config/sqlite/parameters.yml
 
 # Managed by Composer
 /bin/*
@@ -38,3 +38,9 @@
 
 # Karma coverage
 coverage/
+
+# Codeship
+codeship.aes
+
+# Database
+/.db

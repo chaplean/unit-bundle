@@ -97,7 +97,7 @@ class SqliteUtilityDriver
         $reflClass = new \ReflectionClass($class);
         $classFileName = $reflClass->getFileName();
 
-        if (\file_exists($classFileName)) {
+        if (file_exists($classFileName)) {
             $lastModifiedDateTime = new \DateTime();
             $lastModifiedDateTime->setTimestamp(filemtime($classFileName));
         }
