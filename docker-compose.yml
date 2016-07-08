@@ -9,6 +9,8 @@ services:
             - .:/var/www/symfony
         links:
             - mysql:mysql
+        environment:
+            XDEBUG_CONFIG: remote_host=172.19.0.1
     mysql:
         container_name: unit_mysql
         image: chaplean/mysql

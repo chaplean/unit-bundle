@@ -33,7 +33,7 @@ class FixtureUtilityTest extends LogicalTest
      */
     public function testLoadDefaultFixturesWithNamespace()
     {
-        $datas = FixtureUtility::loadDefaultFixtures($this->getNamespace());
+        $datas = FixtureUtility::getInstance()->loadDefaultFixtures();
 
         $this->assertTrue(in_array('Chaplean\Bundle\UnitBundle\DataFixtures\Liip\DefaultData\LoadStatusData', $datas));
         $this->assertTrue(in_array('Chaplean\Bundle\UnitBundle\DataFixtures\Liip\DefaultData\LoadClientData', $datas));
@@ -44,9 +44,9 @@ class FixtureUtilityTest extends LogicalTest
      */
     public function testLoadPartialFixturesWithoutEntityManager()
     {
-        FixtureUtility::setContainer($this->getContainer());
-        FixtureUtility::loadFixtures(array());
-        FixtureUtility::loadPartialFixtures(array(
+        FixtureUtility::getInstance()->setContainer($this->getContainer());
+        FixtureUtility::getInstance()->loadFixtures(array());
+        FixtureUtility::getInstance()->loadPartialFixtures(array(
             'Chaplean\Bundle\UnitBundle\DataFixtures\Liip\DefaultData\LoadClientData',
             'Chaplean\Bundle\UnitBundle\DataFixtures\Liip\DefaultData\LoadStatusData',
         ), null);

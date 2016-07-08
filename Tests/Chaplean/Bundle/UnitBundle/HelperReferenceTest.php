@@ -2,6 +2,9 @@
 
 namespace Tests\Chaplean\Bundle\UnitBundle;
 
+use Chaplean\Bundle\UnitBundle\Entity\Client;
+use Chaplean\Bundle\UnitBundle\Entity\Product;
+use Chaplean\Bundle\UnitBundle\Entity\Provider;
 use Chaplean\Bundle\UnitBundle\Test\LogicalTest;
 
 /**
@@ -32,7 +35,7 @@ class HelperReferenceTest extends LogicalTest
     {
         $client = $this->getEntity('client-1');
 
-        $this->assertEquals('Chaplean\Bundle\UnitBundle\Entity\Client', get_class($client));
+        $this->assertInstanceOf(Client::class, $client);
     }
     /**
      * @return void
@@ -41,7 +44,7 @@ class HelperReferenceTest extends LogicalTest
     {
         $product = $this->getEntity('product-1');
 
-        $this->assertEquals('Chaplean\Bundle\UnitBundle\Entity\Product', get_class($product));
+        $this->assertInstanceOf(Product::class, $product);
     }
     /**
      * @return void
@@ -50,6 +53,6 @@ class HelperReferenceTest extends LogicalTest
     {
         $provider = $this->getEntity('provider-1');
 
-        $this->assertEquals('Chaplean\Bundle\UnitBundle\Entity\Provider', get_class($provider));
+        $this->assertInstanceOf(Provider::class, $provider);
     }
 }

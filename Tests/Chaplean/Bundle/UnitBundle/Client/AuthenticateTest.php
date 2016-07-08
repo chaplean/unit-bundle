@@ -2,6 +2,7 @@
 namespace Tests\Chaplean\Bundle\UnitBundle;
 
 use Chaplean\Bundle\UnitBundle\Test\LogicalTest;
+use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
 use Symfony\Component\Security\Core\User\User;
 
@@ -10,7 +11,7 @@ use Symfony\Component\Security\Core\User\User;
  *
  * @author    Valentin - Chaplean <valentin@chaplean.com>
  * @copyright 2014 - 2016 Chaplean (http://www.chaplean.com)
- * @since     2.
+ * @since     2.1.0
  */
 class AuthenticateTest extends LogicalTest
 {
@@ -47,6 +48,7 @@ class AuthenticateTest extends LogicalTest
         $client = self::createClient();
         $this->authenticate($user, $client);
 
+        /** @var TokenInterface $token */
         $token = $client->getContainer()
             ->get('security.token_storage')
             ->getToken();

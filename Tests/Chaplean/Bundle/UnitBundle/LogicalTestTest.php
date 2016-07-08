@@ -6,6 +6,7 @@ use Chaplean\Bundle\UnitBundle\Entity\Client;
 use Chaplean\Bundle\UnitBundle\Test\LogicalTest;
 use Chaplean\Bundle\UnitBundle\Utility\FixtureUtility;
 use Doctrine\ORM\EntityManager;
+use Liip\FunctionalTestBundle\Test\WebTestCase;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -15,24 +16,8 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  * @copyright 2014 - 2016 Chaplean (http://www.chaplean.com)
  * @since     3.0.0
  */
-class LogicalTestTest extends LogicalTest
+class LogicalTestTest extends WebTestCase
 {
-    /**
-     * @return void
-     */
-    public static function setUpBeforeClass()
-    {
-        parent::loadStaticFixtures(array());
-    }
-
-    /**
-     * @return void
-     */
-    public function setUp()
-    {
-        $this->em->close();
-    }
-
     /**
      * @return void
      */
@@ -50,10 +35,6 @@ class LogicalTestTest extends LogicalTest
      */
     public function testLoadDefaultFixtures()
     {
-        $logicalTest = new LogicalTest();
-
-        $this->assertCount(0, $logicalTest->getManager()->getRepository('ChapleanUnitBundle:Client')->findAll());
-
         $logicalTest = new LogicalTest();
         $logicalTest->setNamespaceFixtures('Chaplean\Bundle\UnitBundle\\');
         $logicalTest->setUpBeforeClass();
@@ -106,7 +87,7 @@ class LogicalTestTest extends LogicalTest
     public function testResetNamespaceInSetUpBeforeClass()
     {
         $logicalTest = new LogicalTest();
-        FixtureUtility::$namespace = 'Foo';
+        FixtureUtility::getInstance()->setNamespace('Foo');
 
         $logicalTest->setIWantDefaultData(false);
         $logicalTest->setUpBeforeClass();
@@ -167,7 +148,7 @@ class LogicalTestTest extends LogicalTest
     /**
      * @return void
      */
-    public function testtearDownAfterClass()
+    public function testTearDownAfterClass()
     {
         $logicalTest = new LogicalTest();
         $logicalTest->setNamespaceFixtures('Chaplean\Bundle\UnitBundle\\');
