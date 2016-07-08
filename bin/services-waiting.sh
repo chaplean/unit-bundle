@@ -14,5 +14,5 @@ do
     echo "Services didn't become ready in time"
     exit 1
   fi
-  sleep 0.5
+  sleep 1.0
 done
