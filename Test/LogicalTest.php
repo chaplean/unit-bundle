@@ -28,6 +28,11 @@ use Symfony\Component\Security\Core\User\User;
 class LogicalTest extends WebTestCase
 {
     /**
+     * @var \Symfony\Component\DependencyInjection\ContainerInterface
+     */
+    protected static $container;
+
+    /**
      * @var ReferenceRepository
      */
     protected static $fixtures;
@@ -36,16 +41,6 @@ class LogicalTest extends WebTestCase
      * @var FixtureUtility
      */
     private static $fixtureUtility = null;
-
-    /**
-     * @var array
-     */
-    protected static $defaultFixtures;
-
-    /**
-     * @var boolean
-     */
-    protected static $iWantDefaultData = true;
 
     /**
      * @var boolean
@@ -58,7 +53,7 @@ class LogicalTest extends WebTestCase
     protected static $hashFixtures;
 
     /**
-     * @var \Doctrine\Common\Persistence\ObjectManager|object
+     * @var EntityManager
      */
     private static $manager = null;
 
@@ -78,6 +73,16 @@ class LogicalTest extends WebTestCase
     private static $swiftmailerCacheUtility = null;
 
     /**
+     * @var array
+     */
+    private static $userFixtures = array();
+
+    /**
+     * @var boolean
+     */
+    protected static $withDefaultData = true;
+
+    /**
      * Construct
      *
      * @param string|null $name
@@ -88,34 +93,24 @@ class LogicalTest extends WebTestCase
     {
         parent::__construct($name, $data, $dataName);
 
-        if (self::$fixtureUtility === null) {
-            $container = $this->getContainer();
-
-            self::$fixtureUtility = FixtureUtility::getInstance();
-            self::$fixtureUtility->setContainer($container);
-
-            self::$swiftmailerCacheUtility = $container->get('chaplean_unit.swiftmailer_cache');
-
-            self::$manager = $container->get('doctrine')
-                ->getManager();
+        if (self::$container === null) {
+            self::$container = $this->getContainer();
         }
-
-        self::resetNamespaceFixtures();
-
-        self::$iWantDefaultData = true;
-        self::$overrideNamespace = false;
     }
 
     /**
      * @param string $name Property name.
      *
      * @return \Doctrine\ORM\EntityManager
+     * @throws \Exception
      */
     public function __get($name)
     {
         if ($name == 'em') {
             return $this->getManager();
         }
+
+        throw new \Exception('Undefined property ' . $name);
     }
 
     /**
@@ -234,22 +229,16 @@ class LogicalTest extends WebTestCase
     }
 
     /**
-     * @return void
-     */
-    public static function loadDefaultFixtures()
-    {
-        self::$defaultFixtures = self::$fixtureUtility->loadDefaultFixtures();
-    }
-
-    /**
-     * @param string $context
+     * @param string  $context
+     * @param boolean $withDefaultData
      *
      * @return void
      */
-    public static function loadFixturesByContext($context)
+    public static function loadFixturesByContext($context, $withDefaultData = false)
     {
-        $defaultFixtures = NamespaceUtility::getClassNamesByContext(self::$fixtureUtility->getNamespace(), $context);
-        self::loadStaticFixtures($defaultFixtures);
+        $contextFixtures = NamespaceUtility::getClassNamesByContext(self::$fixtureUtility->getNamespace(), $context);
+
+        self::loadStaticFixtures($contextFixtures, $withDefaultData);
     }
 
     /**
@@ -281,7 +270,7 @@ class LogicalTest extends WebTestCase
      *
      * @return void
      */
-    public static function loadStaticFixtures(array $classNames)
+    private static function loadFixturesOnSetUp(array $classNames)
     {
         $hashFixtures = md5(serialize($classNames));
 
@@ -292,6 +281,18 @@ class LogicalTest extends WebTestCase
         }
 
         self::$databaseLoaded = true;
+    }
+
+    /**
+     * @param array   $fixtures
+     * @param boolean $withDefaultData
+     *
+     * @return void
+     */
+    public static function loadStaticFixtures(array $fixtures = array(), $withDefaultData = false)
+    {
+        self::$userFixtures = $fixtures;
+        self::$withDefaultData = $withDefaultData;
     }
 
     /**
@@ -309,16 +310,6 @@ class LogicalTest extends WebTestCase
     public static function resetNamespaceFixtures()
     {
         self::$fixtureUtility->setNamespace(self::getCurrentNamespace());
-    }
-
-    /**
-     * @param boolean $iWantDefaultData
-     *
-     * @return void
-     */
-    public static function setIWantDefaultData($iWantDefaultData)
-    {
-        self::$iWantDefaultData = $iWantDefaultData;
     }
 
     /**
@@ -355,29 +346,29 @@ class LogicalTest extends WebTestCase
      */
     public static function setUpBeforeClass()
     {
-        $args = func_get_args();
-        if (!empty($args)) {
-            $datafixtures = $args[0];
+        parent::setUpBeforeClass();
+
+        if (self::$fixtureUtility === null) {
+            self::$fixtureUtility = FixtureUtility::getInstance();
+            self::$fixtureUtility->setContainer(self::$container);
         }
+
+        self::$swiftmailerCacheUtility = self::$container->get('chaplean_unit.swiftmailer_cache');
+
+        self::$manager = self::$container->get('doctrine')
+            ->getManager();
 
         if (!self::$overrideNamespace && self::$fixtureUtility->getNamespace() != self::getCurrentNamespace()) {
             self::resetNamespaceFixtures();
         }
 
-        parent::setUpBeforeClass();
-        self::$defaultFixtures = array();
+        $dataFixturesToLoad = self::$userFixtures;
 
-        if (self::$iWantDefaultData) {
-            self::loadDefaultFixtures();
-        } else {
-            self::$iWantDefaultData = true;
+        if (self::$withDefaultData) {
+            $dataFixturesToLoad = array_merge(self::$fixtureUtility->loadDefaultFixtures(), $dataFixturesToLoad);
         }
 
-        if (isset($datafixtures)) {
-            self::$defaultFixtures = array_merge(self::$defaultFixtures, $datafixtures);
-        }
-
-        self::loadStaticFixtures(self::$defaultFixtures);
+        self::loadFixturesOnSetUp($dataFixturesToLoad);
     }
 
     /**
@@ -406,5 +397,7 @@ class LogicalTest extends WebTestCase
         parent::tearDownAfterClass();
 
         self::$overrideNamespace = false;
+        self::$userFixtures = array();
+        self::$withDefaultData = true;
     }
 }

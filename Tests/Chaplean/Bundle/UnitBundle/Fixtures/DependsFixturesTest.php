@@ -16,9 +16,18 @@ class DependsFixturesTest extends LogicalTest
     /**
      * @return void
      */
+    public static function setUpBeforeClass()
+    {
+        self::loadStaticFixtures();
+        parent::setUpBeforeClass();
+    }
+
+    /**
+     * @return void
+     */
     public function testLoadFixturesWithoutDependencies()
     {
-        self::loadStaticFixtures(array(
+        $this->loadPartialFixtures(array(
             'Chaplean\Bundle\UnitBundle\DataFixtures\Liip\LoadClientData'
         ));
 
@@ -34,7 +43,7 @@ class DependsFixturesTest extends LogicalTest
      */
     public function testLoadFixturesWithDependencies()
     {
-        self::loadStaticFixtures(array(
+        $this->loadPartialFixtures(array(
             'Chaplean\Bundle\UnitBundle\DataFixtures\Liip\LoadProductData'
         ));
 
@@ -52,7 +61,7 @@ class DependsFixturesTest extends LogicalTest
      */
     public function testLoadFixturesWithMultipleDependencies()
     {
-        self::loadStaticFixtures(array(
+        $this->loadPartialFixtures(array(
             'Chaplean\Bundle\UnitBundle\DataFixtures\Liip\LoadProviderData'
         ));
 

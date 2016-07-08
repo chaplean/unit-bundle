@@ -19,9 +19,11 @@ class IrreleventDataWithReferenceTest extends LogicalTest
      */
     public static function setUpBeforeClass()
     {
-        parent::setUpBeforeClass(array(
+        self::loadStaticFixtures(array(
             'Chaplean\Bundle\UnitBundle\DataFixtures\Liip\UserIrreleventWithReference\LoadUserData'
-        ));
+        ), true);
+        
+        parent::setUpBeforeClass();
     }
 
     /**

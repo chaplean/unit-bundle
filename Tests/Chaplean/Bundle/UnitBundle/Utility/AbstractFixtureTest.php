@@ -18,6 +18,8 @@ class AbstractFixtureTest extends LogicalTest
      */
     public static function setUpBeforeClass()
     {
+        self::loadStaticFixtures();
+        parent::setUpBeforeClass();
     }
 
     /**

@@ -21,6 +21,8 @@ class LoadFixturesAliceNelmioTest extends LogicalTest
         self::loadStaticFixtures(array(
             'Chaplean\Bundle\UnitBundle\DataFixtures\Liip\LoadFixturesData'
         ));
+
+        parent::setUpBeforeClass();
     }
 
     /**

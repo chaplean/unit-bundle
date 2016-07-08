@@ -19,7 +19,7 @@ class IrreleventDependenciesTest extends LogicalTest
      */
     public static function setUpBeforeClass()
     {
-        self::$iWantDefaultData = false;
+        self::loadStaticFixtures();
         parent::setUpBeforeClass();
     }
 

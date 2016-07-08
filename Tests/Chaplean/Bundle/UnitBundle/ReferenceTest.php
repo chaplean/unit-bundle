@@ -20,6 +20,8 @@ class ReferenceTest extends LogicalTest
      */
     public static function setUpBeforeClass()
     {
+        self::loadStaticFixtures();
+        parent::setUpBeforeClass();
     }
 
     /**

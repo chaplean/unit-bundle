@@ -27,7 +27,6 @@ class LogicalTestTest extends WebTestCase
 
         $this->assertInstanceOf(ContainerInterface::class, $logicalTest->getContainer());
         $this->assertInstanceOf(EntityManager::class, $logicalTest->getManager());
-        $this->assertEquals('', $logicalTest->getNamespace());
     }
 
     /**
@@ -84,20 +83,6 @@ class LogicalTestTest extends WebTestCase
     /**
      * @return void
      */
-    public function testResetNamespaceInSetUpBeforeClass()
-    {
-        $logicalTest = new LogicalTest();
-        FixtureUtility::getInstance()->setNamespace('Foo');
-
-        $logicalTest->setIWantDefaultData(false);
-        $logicalTest->setUpBeforeClass();
-
-        $this->assertEquals('', $logicalTest->getNamespace());
-    }
-
-    /**
-     * @return void
-     */
     public function testTransactionIsActive()
     {
         $logicalTest = new LogicalTest();
@@ -121,8 +106,8 @@ class LogicalTestTest extends WebTestCase
         $logicalTest = new LogicalTest();
 
         $logicalTest->setNamespaceFixtures('Chaplean\Bundle\UnitBundle\\');
-        $logicalTest->setIWantDefaultData(false);
-        $logicalTest->setUpBeforeClass(array('Chaplean\Bundle\UnitBundle\DataFixtures\Liip\LoadProviderData'));
+        $logicalTest->loadStaticFixtures(array('Chaplean\Bundle\UnitBundle\DataFixtures\Liip\LoadProviderData'));
+        $logicalTest->setUpBeforeClass();
         $logicalTest->setUp();
 
         $this->assertCount(1, $logicalTest->getManager()->getRepository('ChapleanUnitBundle:Provider')->findAll());

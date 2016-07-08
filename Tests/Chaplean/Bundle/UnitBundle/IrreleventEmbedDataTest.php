@@ -19,9 +19,10 @@ class IrreleventEmbedDataTest extends LogicalTest
      */
     public static function setUpBeforeClass()
     {
-        parent::loadStaticFixtures(array(
+        self::loadStaticFixtures(array(
             'Chaplean\Bundle\UnitBundle\DataFixtures\Liip\LoadInvoiceData'
         ));
+        parent::setUpBeforeClass();
     }
 
     /**

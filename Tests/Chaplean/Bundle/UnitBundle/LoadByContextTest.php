@@ -19,8 +19,8 @@ class LoadByContextTest extends LogicalTest
      */
     public static function setUpBeforeClass()
     {
-        parent::setUpBeforeClass();
         self::loadFixturesByContext('ForIrreleventDependencies');
+        parent::setUpBeforeClass();
     }
 
     /**

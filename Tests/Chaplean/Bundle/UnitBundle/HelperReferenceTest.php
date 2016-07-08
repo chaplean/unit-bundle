@@ -6,6 +6,9 @@ use Chaplean\Bundle\UnitBundle\Entity\Client;
 use Chaplean\Bundle\UnitBundle\Entity\Product;
 use Chaplean\Bundle\UnitBundle\Entity\Provider;
 use Chaplean\Bundle\UnitBundle\Test\LogicalTest;
+use Doctrine\DBAL\Query\QueryBuilder;
+use Doctrine\ORM\AbstractQuery;
+use Doctrine\ORM\Query;
 
 /**
  * HelperReferenceTest.php.
@@ -26,6 +29,8 @@ class HelperReferenceTest extends LogicalTest
                 'Chaplean\Bundle\UnitBundle\DataFixtures\Liip\LoadProviderData'
             )
         );
+
+        parent::setUpBeforeClass();
     }
 
     /**
@@ -33,6 +38,7 @@ class HelperReferenceTest extends LogicalTest
      */
     public function testFindClient()
     {
+        /** @var Client $client */
         $client = $this->getEntity('client-1');
 
         $this->assertInstanceOf(Client::class, $client);
@@ -47,7 +53,7 @@ class HelperReferenceTest extends LogicalTest
 
         $this->assertInstanceOf(Product::class, $product);
     }
-    
+
     /**
      * @return void
      */

@@ -19,7 +19,7 @@ class TransactionTest extends LogicalTest
      */
     public static function setUpBeforeClass()
     {
-        self::$iWantDefaultData = false;
+        self::loadStaticFixtures();
         parent::setUpBeforeClass();
     }
 
