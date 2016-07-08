@@ -9,6 +9,7 @@
 # Managed by Composer
 /bin/*
 !bin/console
+!bin/services-waiting.sh
 /vendor/
 
 # Assets and user uploads
