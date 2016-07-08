@@ -37,6 +37,7 @@ class HelperReferenceTest extends LogicalTest
 
         $this->assertInstanceOf(Client::class, $client);
     }
+
     /**
      * @return void
      */
@@ -46,6 +47,7 @@ class HelperReferenceTest extends LogicalTest
 
         $this->assertInstanceOf(Product::class, $product);
     }
+    
     /**
      * @return void
      */
