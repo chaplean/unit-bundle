@@ -12,6 +12,7 @@ use Doctrine\ORM\EntityManager;
 use Liip\FunctionalTestBundle\Test\WebTestCase;
 use Symfony\Bundle\FrameworkBundle\Client;
 use Symfony\Component\BrowserKit\Cookie;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
 
@@ -27,7 +28,7 @@ use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
 class LogicalTest extends WebTestCase
 {
     /**
-     * @var \Symfony\Component\DependencyInjection\ContainerInterface
+     * @var ContainerInterface
      */
     protected static $container;
 
@@ -93,7 +94,7 @@ class LogicalTest extends WebTestCase
         parent::__construct($name, $data, $dataName);
 
         if (self::$container === null) {
-            self::$container = $this->getContainer();
+            self::$container = parent::getContainer();
         }
 
         if (self::$fixtureUtility === null) {
@@ -130,7 +131,7 @@ class LogicalTest extends WebTestCase
             ->get('security.token_storage')
             ->setToken($usernameTokenPassword);
 
-        if ($client instanceof Client) {
+        if ($client !== null) {
             $client->getContainer()
                 ->get('security.token_storage')
                 ->setToken($usernameTokenPassword);
@@ -176,14 +177,22 @@ class LogicalTest extends WebTestCase
             $name = $file->name;
             $matches = null;
 
+            self::$namespaceForClass[$className] = '';
+
             if (preg_match('/Tests\\\\(.+Bundle)\\\\.*Test/', $name, $matches)) {
                 self::$namespaceForClass[$className] = $matches[1] . '\\';
-            } else {
-                self::$namespaceForClass[$className] = '';
             }
         }
 
         return self::$namespaceForClass[$className];
+    }
+
+    /**
+     * @return ContainerInterface
+     */
+    public function getContainer()
+    {
+        return self::$container;
     }
 
     /**
@@ -196,6 +205,14 @@ class LogicalTest extends WebTestCase
         $entity = self::$fixtures->getReference($reference);
 
         return self::$manager->find(ClassUtils::getClass($entity), $entity->getId());
+    }
+
+    /**
+     * @return FixtureUtility
+     */
+    public function getFixtureUtility()
+    {
+        return self::$fixtureUtility;
     }
 
     /**

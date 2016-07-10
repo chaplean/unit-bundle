@@ -5,13 +5,13 @@ namespace Chaplean\Bundle\UnitBundle\Utility;
 use Chaplean\Bundle\UnitBundle\Fixtures\Loader;
 
 /**
- * GeneratorData.php.
+ * GeneratorDataUtility.php.
  *
  * @author    Valentin - Chaplean <valentin@chaplean.com>
  * @copyright 2014 - 2015 Chaplean (http://www.chaplean.com)
  * @since     2.0.0
  */
-class GeneratorData
+class GeneratorDataUtility
 {
     /**
      * @var array
@@ -34,7 +34,7 @@ class GeneratorData
     private $references;
 
     /**
-     * GeneratorData constructor.
+     * GeneratorDataUtility constructor.
      *
      * @param string $pathDefinition
      */
@@ -62,7 +62,7 @@ class GeneratorData
         if (empty($this->entityDefinition)) {
             throw new \Exception('No definition load !');
         } elseif (!isset($this->entityDefinition[$class])) {
-            throw new \Exception('Missing defintion for entity (\'' . $class . '\')');
+            throw new \Exception('Missing definition for entity (\'' . $class . '\')');
         } elseif (!isset($this->entityDefinition[$class]['properties'])) {
             throw new \Exception('Unvalid format in definition, \'properties\' not found');
         } elseif (!isset($this->entityDefinition[$class]['properties'][$fieldName])) {
@@ -120,7 +120,7 @@ class GeneratorData
      * @param string $class
      * @param string $fieldName
      *
-     * @return bool
+     * @return boolean
      */
     public function hasReference($class, $fieldName)
     {

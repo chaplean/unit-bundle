@@ -31,6 +31,15 @@ class FixtureUtilityTest extends LogicalTest
     }
 
     /**
+     * @backupStaticAttributes disabled
+     * @return void
+     */
+    public function testGetInstance()
+    {
+        $this->assertInstanceOf(FixtureUtility::class, FixtureUtility::getInstance());
+    }
+
+    /**
      * @return void
      */
     public function testLoadDefaultFixturesWithNamespace()

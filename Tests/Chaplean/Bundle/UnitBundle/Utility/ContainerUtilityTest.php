@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Chaplean\Bundle\UnitBundle;
+namespace Tests\Chaplean\Bundle\UnitBundle\Utility;
 
 use Chaplean\Bundle\UnitBundle\Test\LogicalTest;
 use Chaplean\Bundle\UnitBundle\Utility\ContainerUtility;

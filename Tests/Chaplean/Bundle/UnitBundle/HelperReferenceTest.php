@@ -6,8 +6,6 @@ use Chaplean\Bundle\UnitBundle\Entity\Client;
 use Chaplean\Bundle\UnitBundle\Entity\Product;
 use Chaplean\Bundle\UnitBundle\Entity\Provider;
 use Chaplean\Bundle\UnitBundle\Test\LogicalTest;
-use Doctrine\DBAL\Query\QueryBuilder;
-use Doctrine\ORM\AbstractQuery;
 use Doctrine\ORM\Query;
 
 /**

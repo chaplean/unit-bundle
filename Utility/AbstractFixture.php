@@ -22,7 +22,7 @@ abstract class AbstractFixture extends BaseAbstractFixture
     private $em;
 
     /**
-     * @var GeneratorData
+     * @var GeneratorDataUtility
      */
     private $generator;
 
@@ -234,7 +234,7 @@ abstract class AbstractFixture extends BaseAbstractFixture
             $path = $reflectionClass->getFileName();
             $path = str_replace($reflectionClass->getShortName() . '.php', '', $path);
 
-            $this->generator = new GeneratorData($path . '../Resources/config/datafixtures.yml');
+            $this->generator = new GeneratorDataUtility($path . '../Resources/config/datafixtures.yml');
         }
     }
 }

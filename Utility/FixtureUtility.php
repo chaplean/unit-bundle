@@ -55,19 +55,21 @@ class FixtureUtility
     private $namespace;
 
     /**
+     * Singleton
+     *
      * @return void
      */
     private function __clone()
     {
-        // Singleton
     }
 
     /**
+     * Singleton
+     *
      * FixtureUtility constructor.
      */
     private function __construct()
     {
-        // Singleton
     }
 
     /**
