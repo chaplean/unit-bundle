@@ -9,6 +9,7 @@
 # Managed by Composer
 /bin/*
 !bin/console
+!bin/phpunit.sh
 !bin/services-waiting.sh
 /vendor/
 

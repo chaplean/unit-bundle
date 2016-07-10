@@ -12,5 +12,5 @@ fi
 
 ./bin/services-waiting.sh $1
 
-phpunit --configuration ./phpunit_default.xml --coverage-php build/logs/clover-default.xml
-phpunit --configuration ./phpunit_sqlite.xml --coverage-php build/logs/clover-sqlite.xml
+phpunit --configuration ./phpunit_default.xml --coverage-clover build/logs/clover-default.xml
+phpunit --configuration ./phpunit_sqlite.xml --coverage-clover build/logs/clover-sqlite.xml
