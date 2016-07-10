@@ -7,4 +7,4 @@
   - command: cp ./app/config/default/parameters.yml.dist ./app/config/default/parameters.yml
   - command: cp ./app/config/sqlite/parameters.yml.dist ./app/config/sqlite/parameters.yml
   - command: ./phpunit.sh mysql
-  - command: php bin/coveralls
+  - command: php vendor/bin/coveralls
