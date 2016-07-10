@@ -14,7 +14,6 @@ use Symfony\Bundle\FrameworkBundle\Client;
 use Symfony\Component\BrowserKit\Cookie;
 use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
-use Symfony\Component\Security\Core\User\User;
 
 /**
  * LogicalTest.
@@ -114,12 +113,12 @@ class LogicalTest extends WebTestCase
     }
 
     /**
-     * @param User   $user
-     * @param Client $client
+     * @param string|object $user
+     * @param Client        $client
      *
      * @return void
      */
-    public function authenticate(User $user, Client $client = null)
+    public function authenticate($user, Client $client = null)
     {
         $usernameTokenPassword = new UsernamePasswordToken($user, null, 'main', $user->getRoles());
         $this->getContainer()
