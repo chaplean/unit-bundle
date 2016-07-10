@@ -6,6 +6,5 @@
   - command: composer install --prefer-dist --no-interaction
   - command: cp ./app/config/default/parameters.yml.dist ./app/config/default/parameters.yml
   - command: cp ./app/config/sqlite/parameters.yml.dist ./app/config/sqlite/parameters.yml
-  - command: ./bin/services-waiting.sh && phpunit -c ./phpunit_default.xml --coverage-php build/logs/clover-default.xml
-  - command: ./bin/services-waiting.sh && phpunit -c ./phpunit_sqlite.xml --coverage-php build/logs/clover-sqlite.xml
+  - command: ./phpunit.sh mysql
   - command: php bin/coveralls
