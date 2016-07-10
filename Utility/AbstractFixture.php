@@ -5,7 +5,6 @@ namespace Chaplean\Bundle\UnitBundle\Utility;
 use Doctrine\Common\DataFixtures\AbstractFixture as BaseAbstractFixture;
 use Doctrine\Common\Persistence\ObjectManager;
 use Doctrine\ORM\Mapping\ClassMetadata;
-use Symfony\Component\Debug\Exception\ContextErrorException;
 
 /**
  * AbstractFixture.php.
@@ -106,7 +105,7 @@ abstract class AbstractFixture extends BaseAbstractFixture
      *
      * @return mixed
      */
-    public function getEntity($name, $manager)
+    public function getEntity($name, ObjectManager $manager)
     {
         $entity = $this->getReference($name);
 
@@ -122,7 +121,7 @@ abstract class AbstractFixture extends BaseAbstractFixture
      *
      * @return void
      */
-    public function persist($entity, $manager = null)
+    public function persist($entity, ObjectManager $manager = null)
     {
         $this->setManager($manager);
 
@@ -173,7 +172,7 @@ abstract class AbstractFixture extends BaseAbstractFixture
      *
      * @return array
      */
-    public function getAccessor($field, $class)
+    public function getAccessor(array $field, $class)
     {
         $fieldName = ucfirst(str_replace(' ', '', ucwords(str_replace('_', ' ', $field['fieldName']))));
         if ($field['type'] == 'boolean') {

@@ -4,7 +4,6 @@ namespace Tests\Chaplean\Bundle\UnitBundle\Utility;
 
 use Chaplean\Bundle\UnitBundle\Test\LogicalTest;
 use Chaplean\Bundle\UnitBundle\Utility\Client;
-use Chaplean\Bundle\UnitBundle\Utility\ContainerUtility;
 
 /**
  * Class ClientTest.

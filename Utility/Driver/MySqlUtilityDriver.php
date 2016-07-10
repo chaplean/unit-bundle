@@ -20,7 +20,7 @@ class MySqlUtilityDriver
      * @return void
      * @throws \Doctrine\DBAL\DBALException
      */
-    public static function createDatabase($connection)
+    public static function createDatabase(Connection $connection)
     {
         $params = $connection->getParams();
         $dbname = $params['dbname'];
@@ -36,7 +36,7 @@ class MySqlUtilityDriver
      *
      * @return boolean
      */
-    public static function exist($connection)
+    public static function exist(Connection $connection)
     {
         $params = $connection->getParams();
         $dbname = $params['dbname'];

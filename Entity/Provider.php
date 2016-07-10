@@ -45,7 +45,7 @@ class Provider
     /**
      * Get id.
      *
-     * @return int
+     * @return integer
      */
     public function getId()
     {
@@ -91,7 +91,7 @@ class Provider
      *
      * @return self
      */
-    public function setProduct($product)
+    public function setProduct(Product $product)
     {
         $this->product = $product;
 

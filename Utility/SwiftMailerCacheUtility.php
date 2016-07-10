@@ -25,7 +25,7 @@ class SwiftMailerCacheUtility
      *
      * @param Container $container
      */
-    public function __construct($container)
+    public function __construct(Container $container)
     {
         try {
             $this->swiftmailerCacheDir = $container->getParameter('swiftmailer.spool.default.file.path');

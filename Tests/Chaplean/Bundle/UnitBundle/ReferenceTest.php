@@ -141,7 +141,7 @@ class DummyReference extends Reference
     /**
      * Get index.
      *
-     * @return int
+     * @return integer
      */
     public function getIndex()
     {
@@ -151,7 +151,7 @@ class DummyReference extends Reference
     /**
      * Get min.
      *
-     * @return int
+     * @return integer
      */
     public function getMin()
     {
@@ -161,7 +161,7 @@ class DummyReference extends Reference
     /**
      * Get max.
      *
-     * @return int
+     * @return integer
      */
     public function getMax()
     {

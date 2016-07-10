@@ -92,7 +92,7 @@ class DatabaseUtility
      * @return void
      * @throws \Doctrine\ORM\Tools\ToolsException
      */
-    public function cleanDatabase($om = null)
+    public function cleanDatabase(EntityManager $om = null)
     {
         if ($om === null && ($this->driver instanceof MySqlDriver || !$this->cachedSqlite)) {
             $om = $this->om;
@@ -124,7 +124,7 @@ class DatabaseUtility
      *
      * @return void
      */
-    public static function checkParams($params)
+    public static function checkParams(array $params)
     {
         $name = isset($params['path']) ? $params['path'] : (isset($params['dbname']) ? $params['dbname'] : false);
         if (!$name) {
@@ -138,7 +138,7 @@ class DatabaseUtility
      * @return boolean
      * @throws \Exception
      */
-    public function exist($classNames = array())
+    public function exist(array $classNames = array())
     {
         if ($this->driver instanceof SqliteDriver) {
             return SqliteUtilityDriver::exist($this->om->getConnection(), $classNames, $this->cachedSqlite ? $this->hash : null);
@@ -156,7 +156,7 @@ class DatabaseUtility
      *
      * @return void
      */
-    public function initDatabase($classNames, $registry, $container)
+    public function initDatabase(array $classNames, Registry $registry, Container $container)
     {
         $this->om = $registry->getManager();
         self::checkParams($this->om->getConnection()->getParams());
@@ -212,7 +212,7 @@ class DatabaseUtility
      *
      * @return mixed
      */
-    private static function getMetadatas($om)
+    private static function getMetadatas(EntityManager $om)
     {
         if (!isset(self::$cachedMetadatas['doctrine'])) {
             self::$cachedMetadatas['doctrine'] = $om->getMetadataFactory()->getAllMetadata();

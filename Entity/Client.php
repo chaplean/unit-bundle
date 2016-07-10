@@ -245,7 +245,7 @@ class Client
      *
      * @return self
      */
-    public function setDateAdd($dateAdd)
+    public function setDateAdd(\DateTime $dateAdd)
     {
         $this->dateAdd = $dateAdd;
 

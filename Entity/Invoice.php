@@ -43,7 +43,7 @@ class Invoice
     /**
      * Get id.
      *
-     * @return int
+     * @return integer
      */
     public function getId()
     {
@@ -53,7 +53,7 @@ class Invoice
     /**
      * Set id.
      *
-     * @param int $id
+     * @param integer $id
      *
      * @return self
      */
@@ -81,7 +81,7 @@ class Invoice
      *
      * @return self
      */
-    public function setClient($client)
+    public function setClient(Client $client)
     {
         $this->client = $client;
 
@@ -105,7 +105,7 @@ class Invoice
      *
      * @return self
      */
-    public function setEmbed($embed)
+    public function setEmbed(EmbedMe $embed)
     {
         $this->embed = $embed;
 

@@ -39,7 +39,6 @@ class SqliteUtilityDriverTest extends LogicalTest
         );
     }
 
-
     /**
      * @return void
      */

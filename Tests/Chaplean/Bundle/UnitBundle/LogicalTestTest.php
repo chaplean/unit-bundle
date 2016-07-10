@@ -40,6 +40,7 @@ class LogicalTestTest extends WebTestCase
     {
         $logicalTest = new LogicalTest();
 
+        /** @noinspection PhpUndefinedFieldInspection */
         $logicalTest->notDefined;
     }
 
