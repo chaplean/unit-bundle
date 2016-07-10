@@ -95,6 +95,11 @@ class LogicalTest extends WebTestCase
         if (self::$container === null) {
             self::$container = $this->getContainer();
         }
+
+        if (self::$fixtureUtility === null) {
+            self::$fixtureUtility = FixtureUtility::getInstance();
+            self::$fixtureUtility->setContainer(self::$container);
+        }
     }
 
     /**
@@ -346,11 +351,6 @@ class LogicalTest extends WebTestCase
     public static function setUpBeforeClass()
     {
         parent::setUpBeforeClass();
-
-        if (self::$fixtureUtility === null) {
-            self::$fixtureUtility = FixtureUtility::getInstance();
-            self::$fixtureUtility->setContainer(self::$container);
-        }
 
         self::$swiftmailerCacheUtility = self::$container->get('chaplean_unit.swiftmailer_cache');
 
