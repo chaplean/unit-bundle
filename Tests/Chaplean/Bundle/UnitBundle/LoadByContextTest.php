@@ -46,7 +46,7 @@ class LoadByContextTest extends LogicalTestCase
         $this->assertInstanceOf(Product::class, self::$fixtures->getReference('product-injected'));
 
         /** @var Product $product */
-        $product = $this->getEntity('product-injected');
+        $product = $this->getReference('product-injected');
         $this->assertEquals('Product injected by partial context', $product->getName());
     }
 }

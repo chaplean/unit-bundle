@@ -7,12 +7,12 @@ use Chaplean\Bundle\UnitBundle\Utility\NamespaceUtility;
 use Chaplean\Bundle\UnitBundle\Utility\RestClient;
 use Chaplean\Bundle\UnitBundle\Utility\SwiftMailerCacheUtility;
 use Doctrine\Common\DataFixtures\ReferenceRepository;
-use Doctrine\Common\Util\ClassUtils;
 use Doctrine\ORM\EntityManager;
 use Liip\FunctionalTestBundle\Test\WebTestCase;
 use Symfony\Bundle\FrameworkBundle\Client;
 use Symfony\Component\BrowserKit\Cookie;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\DependencyInjection\Exception\InvalidArgumentException;
 use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
 
@@ -58,16 +58,6 @@ class LogicalTestCase extends WebTestCase
     private static $manager = null;
 
     /**
-     * @var array
-     */
-    private static $namespaceForClass = array();
-
-    /**
-     * @var boolean
-     */
-    protected static $overrideNamespace = false;
-
-    /**
      * @var SwiftMailerCacheUtility
      */
     private static $swiftmailerCacheUtility = null;
@@ -94,12 +84,21 @@ class LogicalTestCase extends WebTestCase
         parent::__construct($name, $data, $dataName);
 
         if (self::$container === null) {
-            self::$container = parent::getContainer();
+            $this->setContainer(parent::getContainer());
+        }
+
+        if (self::$manager === null) {
+            self::$manager = self::$container->get('doctrine')
+                ->getManager();
         }
 
         if (self::$fixtureUtility === null) {
             self::$fixtureUtility = FixtureUtility::getInstance();
             self::$fixtureUtility->setContainer(self::$container);
+        }
+
+        if (empty(self::$fixtureUtility->getNamespace())) {
+            self::resetDefaultNamespaceFixtures();
         }
     }
 
@@ -154,6 +153,10 @@ class LogicalTestCase extends WebTestCase
      */
     public function cleanMailDir()
     {
+        if (self::$swiftmailerCacheUtility === null) {
+            return;
+        }
+
         self::$swiftmailerCacheUtility->cleanMailDir();
     }
 
@@ -166,28 +169,6 @@ class LogicalTestCase extends WebTestCase
     }
 
     /**
-     * @return string
-     */
-    public static function getCurrentNamespace()
-    {
-        $className = get_called_class();
-
-        if (!isset(self::$namespaceForClass[$className])) {
-            $file = new \ReflectionClass($className);
-            $name = $file->name;
-            $matches = null;
-
-            self::$namespaceForClass[$className] = '';
-
-            if (preg_match('/Tests\\\\(.+Bundle)\\\\.*Test/', $name, $matches)) {
-                self::$namespaceForClass[$className] = $matches[1] . '\\';
-            }
-        }
-
-        return self::$namespaceForClass[$className];
-    }
-
-    /**
      * @return ContainerInterface
      */
     public function getContainer()
@@ -196,15 +177,28 @@ class LogicalTestCase extends WebTestCase
     }
 
     /**
+     * @return string
+     */
+    public static function getDefaultFixturesNamespace()
+    {
+        try {
+            $dataFixturesNamespaceParameter = self::$container->getParameter('data_fixtures_namespace');
+
+            return $dataFixturesNamespaceParameter;
+        } catch (InvalidArgumentException $e) {
+            return 'App\Bundle\RestBundle\\';
+        }
+    }
+
+    /**
      * @param string $reference
      *
+     * @deprecated use getReference() instead
      * @return null|object
      */
     public function getEntity($reference)
     {
-        $entity = self::$fixtures->getReference($reference);
-
-        return self::$manager->find(ClassUtils::getClass($entity), $entity->getId());
+        return $this->getReference($reference);
     }
 
     /**
@@ -239,14 +233,6 @@ class LogicalTestCase extends WebTestCase
     public function getReference($reference)
     {
         return self::$fixtures->getReference($reference);
-    }
-
-    /**
-     * @return boolean
-     */
-    public function isOverrideNamespace()
-    {
-        return self::$overrideNamespace;
     }
 
     /**
@@ -328,6 +314,16 @@ class LogicalTestCase extends WebTestCase
     /**
      * @return void
      */
+    public static function resetDefaultNamespaceFixtures()
+    {
+        if (self::$fixtureUtility !== null) {
+            self::$fixtureUtility->setNamespace(self::getDefaultFixturesNamespace());
+        }
+    }
+
+    /**
+     * @return void
+     */
     public static function resetStaticProperties()
     {
         self::$container = null;
@@ -336,11 +332,13 @@ class LogicalTestCase extends WebTestCase
     }
 
     /**
+     * @param ContainerInterface $container
+     *
      * @return void
      */
-    public static function resetNamespaceFixtures()
+    public function setContainer(ContainerInterface $container)
     {
-        self::$fixtureUtility->setNamespace(self::getCurrentNamespace());
+        self::$container = $container;
     }
 
     /**
@@ -350,7 +348,6 @@ class LogicalTestCase extends WebTestCase
      */
     public static function setNamespaceFixtures($namespace)
     {
-        self::$overrideNamespace = true;
         self::$fixtureUtility->setNamespace($namespace);
     }
 
@@ -388,15 +385,6 @@ class LogicalTestCase extends WebTestCase
 
         self::$swiftmailerCacheUtility = self::$container->get('chaplean_unit.swiftmailer_cache');
 
-        if (self::$manager === null) {
-            self::$manager = self::$container->get('doctrine')
-                ->getManager();
-        }
-
-        if (!self::$overrideNamespace && self::$fixtureUtility->getNamespace() != self::getCurrentNamespace()) {
-            self::resetNamespaceFixtures();
-        }
-
         $dataFixturesToLoad = self::$userFixtures;
 
         if (self::$withDefaultData) {
@@ -413,13 +401,15 @@ class LogicalTestCase extends WebTestCase
      */
     public function tearDown()
     {
-        $connection = self::$manager->getConnection();
+        if (self::$manager !== null) {
+            $connection = self::$manager->getConnection();
 
-        if ($connection->getTransactionNestingLevel() > 0 && self::$databaseLoaded) {
-            self::$manager->rollback();
+            if ($connection->getTransactionNestingLevel() > 0 && self::$databaseLoaded) {
+                self::$manager->rollback();
+            }
+
+            $connection->close();
         }
-
-        $connection->close();
 
         parent::tearDown();
     }
@@ -431,7 +421,8 @@ class LogicalTestCase extends WebTestCase
     {
         parent::tearDownAfterClass();
 
-        self::$overrideNamespace = false;
+        self::resetDefaultNamespaceFixtures();
+
         self::$userFixtures = array();
         self::$withDefaultData = true;
     }

@@ -37,7 +37,7 @@ class HelperReferenceTest extends LogicalTestCase
     public function testFindClient()
     {
         /** @var Client $client */
-        $client = $this->getEntity('client-1');
+        $client = $this->getReference('client-1');
 
         $this->assertInstanceOf(Client::class, $client);
     }
@@ -47,7 +47,7 @@ class HelperReferenceTest extends LogicalTestCase
      */
     public function testFindProduct()
     {
-        $product = $this->getEntity('product-1');
+        $product = $this->getReference('product-1');
 
         $this->assertInstanceOf(Product::class, $product);
     }
@@ -57,7 +57,7 @@ class HelperReferenceTest extends LogicalTestCase
      */
     public function testFindProvider()
     {
-        $provider = $this->getEntity('provider-1');
+        $provider = $this->getReference('provider-1');
 
         $this->assertInstanceOf(Provider::class, $provider);
     }

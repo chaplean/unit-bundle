@@ -54,7 +54,7 @@ class NamespaceTest extends LogicalTestCase
         self::setNamespaceFixtures('App\\Bundle\\RestBundle\\');
         $this->assertEquals('App\\Bundle\\RestBundle\\', self::getNamespace());
 
-        self::resetNamespaceFixtures();
+        self::resetDefaultNamespaceFixtures();
 
         $this->assertEquals('Chaplean\\Bundle\\UnitBundle\\', self::getNamespace());
     }

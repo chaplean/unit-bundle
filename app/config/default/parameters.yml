@@ -13,3 +13,5 @@ parameters:
 
     locale: fr
     secret: Secr3tTok3nForChapleanUnitBun2le
+
+    data_fixtures_namespace: Chaplean\Bundle\UnitBundle\
