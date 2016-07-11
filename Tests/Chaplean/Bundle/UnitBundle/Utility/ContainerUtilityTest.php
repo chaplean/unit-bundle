@@ -2,7 +2,7 @@
 
 namespace Tests\Chaplean\Bundle\UnitBundle\Utility;
 
-use Chaplean\Bundle\UnitBundle\Test\LogicalTest;
+use Chaplean\Bundle\UnitBundle\Test\LogicalTestCase;
 use Chaplean\Bundle\UnitBundle\Utility\ContainerUtility;
 
 /**
@@ -12,7 +12,7 @@ use Chaplean\Bundle\UnitBundle\Utility\ContainerUtility;
  * @copyright 2014 - 2015 Chaplean (http://www.chaplean.com)
  * @since     2.0.0
  */
-class ContainerUtilityTest extends LogicalTest
+class ContainerUtilityTest extends LogicalTestCase
 {
     /**
      * @return void

@@ -2,7 +2,7 @@
 
 namespace Tests\Chaplean\Bundle\UnitBundle;
 
-use Chaplean\Bundle\UnitBundle\Test\LogicalTest;
+use Chaplean\Bundle\UnitBundle\Test\LogicalTestCase;
 use Chaplean\Bundle\UnitBundle\Utility\RestClient;
 use Symfony\Component\HttpFoundation\Request;
 
@@ -13,7 +13,7 @@ use Symfony\Component\HttpFoundation\Request;
  * @copyright 2014 - 2015 Chaplean (http://www.chaplean.com)
  * @since     2.1.0
  */
-class RestClientTest extends LogicalTest
+class RestClientTest extends LogicalTestCase
 {
     /**
      * @return void

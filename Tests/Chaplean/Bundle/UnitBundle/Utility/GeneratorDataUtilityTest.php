@@ -4,7 +4,7 @@ namespace Tests\Chaplean\Bundle\UnitBundle\Utility;
 
 use Chaplean\Bundle\UnitBundle\Entity\Client;
 use Chaplean\Bundle\UnitBundle\Entity\Product;
-use Chaplean\Bundle\UnitBundle\Test\LogicalTest;
+use Chaplean\Bundle\UnitBundle\Test\LogicalTestCase;
 use Chaplean\Bundle\UnitBundle\Utility\GeneratorDataUtility;
 
 /**
@@ -14,7 +14,7 @@ use Chaplean\Bundle\UnitBundle\Utility\GeneratorDataUtility;
  * @copyright 2014 - 2016 Chaplean (http://www.chaplean.com)
  * @since     3.0.0
  */
-class GeneratorDataUtilityTest extends LogicalTest
+class GeneratorDataUtilityTest extends LogicalTestCase
 {
     /**
      * @return void

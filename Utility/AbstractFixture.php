@@ -200,7 +200,8 @@ abstract class AbstractFixture extends BaseAbstractFixture
     public function getReference($name)
     {
         $reference = $this->referenceRepository->getReference($name);
-        if ($reference->getId() == null) {
+        
+        if ($reference->getId() === null) {
             throw new \Exception(sprintf('\'%s\' is not persisted !', $name));
         }
 

@@ -2,7 +2,7 @@
 
 namespace Tests\Chaplean\Bundle\UnitBundle\Fixtures;
 
-use Chaplean\Bundle\UnitBundle\Test\LogicalTest;
+use Chaplean\Bundle\UnitBundle\Test\LogicalTestCase;
 
 /**
  * PartialLoadDependsFixturesTest.php.
@@ -11,7 +11,7 @@ use Chaplean\Bundle\UnitBundle\Test\LogicalTest;
  * @copyright 2014 - 2015 Chaplean (http://www.chaplean.com)
  * @since     2.0.0
  */
-class PartialLoadDependsFixturesTest extends LogicalTest
+class PartialLoadDependsFixturesTest extends LogicalTestCase
 {
     /**
      * @return void

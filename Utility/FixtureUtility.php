@@ -234,20 +234,14 @@ class FixtureUtility
     }
 
     /**
-     * @param array                            $classNames    List of fully qualified class names of fixtures to load
-     * @param EntityManager|ObjectManager|null $entityManager EntityManager to use
+     * @param array                       $classNames    List of fully qualified class names of fixtures to load
+     * @param EntityManager|ObjectManager $entityManager EntityManager to use
      *
      * @return ORMExecutor
      * @throws \Exception
      */
     public function loadPartialFixtures(array $classNames, $entityManager)
     {
-        if ($entityManager === null) {
-            /** @var Registry $registry */
-            $registry = $this->container->get('doctrine');
-            $entityManager = $registry->getManager();
-        }
-
         $executor = new ORMExecutor($entityManager);
 
         $loader = self::getFixtureLoader($this->container, $classNames);

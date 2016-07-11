@@ -3,7 +3,7 @@
 namespace Tests\Chaplean\Bundle\UnitBundle;
 
 use Chaplean\Bundle\UnitBundle\Entity\Invoice;
-use Chaplean\Bundle\UnitBundle\Test\LogicalTest;
+use Chaplean\Bundle\UnitBundle\Test\LogicalTestCase;
 
 /**
  * IrreleventEmbedDataTest.php.
@@ -12,7 +12,7 @@ use Chaplean\Bundle\UnitBundle\Test\LogicalTest;
  * @copyright 2014 - 2016 Chaplean (http://www.chaplean.com)
  * @since     3.0.0
  */
-class IrreleventEmbedDataTest extends LogicalTest
+class IrreleventEmbedDataTest extends LogicalTestCase
 {
     /**
      * @return void

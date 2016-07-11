@@ -2,7 +2,7 @@
 
 namespace Tests\Chaplean\Bundle\UnitBundle\Utility;
 
-use Chaplean\Bundle\UnitBundle\Test\LogicalTest;
+use Chaplean\Bundle\UnitBundle\Test\LogicalTestCase;
 
 /**
  * AbstractFixtures.php.
@@ -11,7 +11,7 @@ use Chaplean\Bundle\UnitBundle\Test\LogicalTest;
  * @copyright 2014 - 2016 Chaplean (http://www.chaplean.com)
  * @since     3.0.3
  */
-class AbstractFixtureTest extends LogicalTest
+class AbstractFixtureTest extends LogicalTestCase
 {
     /**
      * @return void
@@ -30,5 +30,13 @@ class AbstractFixtureTest extends LogicalTest
     public function testLoadFixturesWithReferenceNotPersist()
     {
         $this->loadPartialFixturesByContext('FixturesWithError');
+    }
+
+    /**
+     * @return void
+     */
+    public function testEntityManagerStillAlive()
+    {
+        $this->assertTrue($this->em->isOpen());
     }
 }

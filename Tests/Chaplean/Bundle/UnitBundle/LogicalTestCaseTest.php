@@ -3,14 +3,14 @@
 namespace Tests\Chaplean\Bundle\UnitBundle;
 
 use Chaplean\Bundle\UnitBundle\Entity\Client;
-use Chaplean\Bundle\UnitBundle\Test\LogicalTest;
+use Chaplean\Bundle\UnitBundle\Test\LogicalTestCase;
 use Chaplean\Bundle\UnitBundle\Utility\FixtureUtility;
 use Doctrine\ORM\EntityManager;
 use Liip\FunctionalTestBundle\Test\WebTestCase;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
- * LogicalTestTest.php.
+ * LogicalTestCaseTest.php.
  *
  * @author                 Valentin - Chaplean <valentin@chaplean.com>
  * @copyright              2014 - 2016 Chaplean (http://www.chaplean.com)
@@ -18,14 +18,15 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  *
  * @backupStaticAttributes disabled
  */
-class LogicalTestTest extends WebTestCase
+class LogicalTestCaseTest extends WebTestCase
 {
     /**
      * @return void
      */
     public function testConstructorLogicalTest()
     {
-        $logicalTest = new LogicalTest();
+        LogicalTestCase::resetStaticProperties();
+        $logicalTest = new LogicalTestCase();
 
         $this->assertInstanceOf(ContainerInterface::class, $logicalTest->getContainer());
         $this->assertInstanceOf(FixtureUtility::class, $logicalTest->getFixtureUtility());
@@ -38,7 +39,7 @@ class LogicalTestTest extends WebTestCase
      */
     public function testGetUndefinedProperty()
     {
-        $logicalTest = new LogicalTest();
+        $logicalTest = new LogicalTestCase();
 
         /** @noinspection PhpUndefinedFieldInspection */
         $logicalTest->notDefined;
@@ -49,7 +50,7 @@ class LogicalTestTest extends WebTestCase
      */
     public function testSetUpBeforeClassInitializeManager()
     {
-        $logicalTest = new LogicalTest();
+        $logicalTest = new LogicalTestCase();
         $logicalTest->setNamespaceFixtures('Chaplean\Bundle\UnitBundle\\');
         $logicalTest->setUpBeforeClass();
 
@@ -61,7 +62,7 @@ class LogicalTestTest extends WebTestCase
      */
     public function testLoadDefaultFixtures()
     {
-        $logicalTest = new LogicalTest();
+        $logicalTest = new LogicalTestCase();
         $logicalTest->setNamespaceFixtures('Chaplean\Bundle\UnitBundle\\');
         $logicalTest->setUpBeforeClass();
         $logicalTest->setUp();
@@ -87,7 +88,7 @@ class LogicalTestTest extends WebTestCase
      */
     public function testLoadPartialFixturesWithoutManager()
     {
-        $logicalTest = new LogicalTest();
+        $logicalTest = new LogicalTestCase();
         $logicalTest->setUp();
 
         $logicalTest->setNamespaceFixtures('Chaplean\Bundle\UnitBundle\\');
@@ -112,7 +113,7 @@ class LogicalTestTest extends WebTestCase
      */
     public function testLoadFixturesByContext()
     {
-        $logicalTest = new LogicalTest();
+        $logicalTest = new LogicalTestCase();
         $logicalTest->setUp();
 
         $logicalTest->setNamespaceFixtures('Chaplean\Bundle\UnitBundle\\');
@@ -139,7 +140,7 @@ class LogicalTestTest extends WebTestCase
      */
     public function testTransactionIsActive()
     {
-        $logicalTest = new LogicalTest();
+        $logicalTest = new LogicalTestCase();
 
         $logicalTest->setNamespaceFixtures('Chaplean\Bundle\UnitBundle\\');
         $logicalTest->setUpBeforeClass();
@@ -167,7 +168,7 @@ class LogicalTestTest extends WebTestCase
      */
     public function testLoadDataWithSetUpBeforeClass()
     {
-        $logicalTest = new LogicalTest();
+        $logicalTest = new LogicalTestCase();
 
         $logicalTest->setNamespaceFixtures('Chaplean\Bundle\UnitBundle\\');
         $logicalTest->loadStaticFixtures(array('Chaplean\Bundle\UnitBundle\DataFixtures\Liip\LoadProviderData'));
@@ -189,7 +190,7 @@ class LogicalTestTest extends WebTestCase
      */
     public function testGetReference()
     {
-        $logicalTest = new LogicalTest();
+        $logicalTest = new LogicalTestCase();
         $logicalTest->setNamespaceFixtures('Chaplean\Bundle\UnitBundle\\');
         $logicalTest->setUpBeforeClass();
         $logicalTest->setUp();
@@ -204,7 +205,7 @@ class LogicalTestTest extends WebTestCase
      */
     public function testTearDownAfterClass()
     {
-        $logicalTest = new LogicalTest();
+        $logicalTest = new LogicalTestCase();
         $logicalTest->setNamespaceFixtures('Chaplean\Bundle\UnitBundle\\');
 
         $this->assertTrue($logicalTest->isOverrideNamespace());

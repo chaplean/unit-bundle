@@ -2,7 +2,7 @@
 
 namespace Tests\Chaplean\Bundle\UnitBundle;
 
-use Chaplean\Bundle\UnitBundle\Test\LogicalTest;
+use Chaplean\Bundle\UnitBundle\Test\LogicalTestCase;
 use Chaplean\Bundle\UnitBundle\Utility\Reference;
 use Symfony\Component\Process\Exception\InvalidArgumentException;
 
@@ -13,7 +13,7 @@ use Symfony\Component\Process\Exception\InvalidArgumentException;
  * @copyright 2014 - 2015 Chaplean (http://www.chaplean.com)
  * @since     2.0.0
  */
-class ReferenceTest extends LogicalTest
+class ReferenceTest extends LogicalTestCase
 {
     /**
      * @return void

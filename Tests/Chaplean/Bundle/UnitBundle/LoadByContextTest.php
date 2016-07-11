@@ -3,7 +3,7 @@
 namespace Tests\Chaplean\Bundle\UnitBundle;
 
 use Chaplean\Bundle\UnitBundle\Entity\Product;
-use Chaplean\Bundle\UnitBundle\Test\LogicalTest;
+use Chaplean\Bundle\UnitBundle\Test\LogicalTestCase;
 
 /**
  * LoadByContextTest.php.
@@ -12,7 +12,7 @@ use Chaplean\Bundle\UnitBundle\Test\LogicalTest;
  * @copyright 2014 - 2015 Chaplean (http://www.chaplean.com)
  * @since     2.0.0
  */
-class LoadByContextTest extends LogicalTest
+class LoadByContextTest extends LogicalTestCase
 {
     /**
      * @return void

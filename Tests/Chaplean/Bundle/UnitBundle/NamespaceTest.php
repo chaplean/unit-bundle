@@ -2,7 +2,7 @@
 
 namespace Tests\Chaplean\Bundle\UnitBundle;
 
-use Chaplean\Bundle\UnitBundle\Test\LogicalTest;
+use Chaplean\Bundle\UnitBundle\Test\LogicalTestCase;
 
 /**
  * NamespaceTest.php.
@@ -11,7 +11,7 @@ use Chaplean\Bundle\UnitBundle\Test\LogicalTest;
  * @copyright 2014 - 2016 Chaplean (http://www.chaplean.com)
  * @since     2.2.0
  */
-class NamespaceTest extends LogicalTest
+class NamespaceTest extends LogicalTestCase
 {
     /**
      * @return void

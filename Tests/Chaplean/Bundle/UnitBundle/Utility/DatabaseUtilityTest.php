@@ -2,7 +2,7 @@
 
 namespace Tests\Chaplean\Bundle\UnitBundle\Utility;
 
-use Chaplean\Bundle\UnitBundle\Test\LogicalTest;
+use Chaplean\Bundle\UnitBundle\Test\LogicalTestCase;
 use Chaplean\Bundle\UnitBundle\Utility\DatabaseUtility;
 
 /**
@@ -12,7 +12,7 @@ use Chaplean\Bundle\UnitBundle\Utility\DatabaseUtility;
  * @copyright 2014 - 2016 Chaplean (http://www.chaplean.com)
  * @since     3.0.0
  */
-class DatabaseUtilityTest extends LogicalTest
+class DatabaseUtilityTest extends LogicalTestCase
 {
     /**
      * @return void
@@ -21,13 +21,6 @@ class DatabaseUtilityTest extends LogicalTest
     {
         self::loadStaticFixtures();
         parent::setUpBeforeClass();
-    }
-
-    /**
-     * @return void
-     */
-    public function setUp()
-    {
     }
 
     /**

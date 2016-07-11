@@ -30,7 +30,7 @@ class LoadClientData extends AbstractFixture
         $client1->setName('Chaplean');
         $client1->setCode('001');
         $this->setReference('client-2', $client1);
-        $this->persist($client, $manager);
+        // We don't persist this one on purpose
 
         $manager->flush();
     }

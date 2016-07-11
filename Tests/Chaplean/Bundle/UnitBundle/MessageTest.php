@@ -3,7 +3,7 @@
 namespace Tests\Chaplean\Bundle\UnitBundle;
 
 use Chaplean\Bundle\MailerBundle\lib\classes\Chaplean\Message;
-use Chaplean\Bundle\UnitBundle\Test\LogicalTest;
+use Chaplean\Bundle\UnitBundle\Test\LogicalTestCase;
 
 /**
  * MessageTest.php.
@@ -12,7 +12,7 @@ use Chaplean\Bundle\UnitBundle\Test\LogicalTest;
  * @copyright 2014 - 2015 Chaplean (http://www.chaplean.com)
  * @since     2.0.0
  */
-class MessageTest extends LogicalTest
+class MessageTest extends LogicalTestCase
 {
     /**
      * @return void

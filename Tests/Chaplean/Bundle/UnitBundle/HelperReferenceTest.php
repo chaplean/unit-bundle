@@ -5,7 +5,7 @@ namespace Tests\Chaplean\Bundle\UnitBundle;
 use Chaplean\Bundle\UnitBundle\Entity\Client;
 use Chaplean\Bundle\UnitBundle\Entity\Product;
 use Chaplean\Bundle\UnitBundle\Entity\Provider;
-use Chaplean\Bundle\UnitBundle\Test\LogicalTest;
+use Chaplean\Bundle\UnitBundle\Test\LogicalTestCase;
 use Doctrine\ORM\Query;
 
 /**
@@ -15,7 +15,7 @@ use Doctrine\ORM\Query;
  * @copyright 2014 - 2015 Chaplean (http://www.chaplean.com)
  * @since     2.0.0
  */
-class HelperReferenceTest extends LogicalTest
+class HelperReferenceTest extends LogicalTestCase
 {
     /**
      * @return void

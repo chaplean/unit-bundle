@@ -3,7 +3,7 @@
 namespace Tests\Chaplean\Bundle\UnitBundle;
 
 use Chaplean\Bundle\UnitBundle\Entity\Client;
-use Chaplean\Bundle\UnitBundle\Test\LogicalTest;
+use Chaplean\Bundle\UnitBundle\Test\LogicalTestCase;
 
 /**
  * TransactionTest.php.
@@ -12,7 +12,7 @@ use Chaplean\Bundle\UnitBundle\Test\LogicalTest;
  * @copyright 2014 - 2015 Chaplean (http://www.chaplean.com)
  * @since     2.0.0
  */
-class TransactionTest extends LogicalTest
+class TransactionTest extends LogicalTestCase
 {
     /**
      * @return void
