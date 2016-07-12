@@ -87,4 +87,4 @@ class AuthenticateTest extends LogicalTestCase
 
         $this->assertNull($token);
     }
-}git s
+}

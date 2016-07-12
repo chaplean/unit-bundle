@@ -412,9 +412,11 @@ class LogicalTestCase extends WebTestCase
         }
 
         // Unauthenticate user between each test
-        $this->getContainer()
-            ->get('security.token_storage')
-            ->setToken(null);
+        if ($this->getContainer() !== null) {
+            $this->getContainer()
+                ->get('security.token_storage')
+                ->setToken(null);
+        }
 
         parent::tearDown();
     }
