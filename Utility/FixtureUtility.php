@@ -57,6 +57,7 @@ class FixtureUtility
     /**
      * Singleton
      *
+     * @codeCoverageIgnore
      * @return void
      */
     private function __clone()
@@ -67,6 +68,8 @@ class FixtureUtility
      * Singleton
      *
      * FixtureUtility constructor.
+     *
+     * @codeCoverageIgnore
      */
     private function __construct()
     {

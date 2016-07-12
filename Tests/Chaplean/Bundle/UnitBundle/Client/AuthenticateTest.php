@@ -2,7 +2,6 @@
 namespace Tests\Chaplean\Bundle\UnitBundle;
 
 use Chaplean\Bundle\UnitBundle\Test\LogicalTestCase;
-use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
 use Symfony\Component\Security\Core\User\User;
 
@@ -24,6 +23,7 @@ class AuthenticateTest extends LogicalTestCase
 
         $this->authenticate($user);
 
+        /** @var UsernamePasswordToken $token */
         $token = $this->getContainer()
             ->get('security.token_storage')
             ->getToken();
@@ -48,7 +48,7 @@ class AuthenticateTest extends LogicalTestCase
         $client = self::createClient();
         $this->authenticate($user, $client);
 
-        /** @var TokenInterface $token */
+        /** @var UsernamePasswordToken $token */
         $token = $client->getContainer()
             ->get('security.token_storage')
             ->getToken();
@@ -69,4 +69,22 @@ class AuthenticateTest extends LogicalTestCase
             )
         );
     }
-}
+
+    /**
+     * @return void
+     */
+    public function testUnauthenticateOnTeardown()
+    {
+        $user = new User('user', 'pwd');
+
+        $this->authenticate($user);
+        $this->tearDown();
+
+        /** @var UsernamePasswordToken $token */
+        $token = $this->getContainer()
+            ->get('security.token_storage')
+            ->getToken();
+
+        $this->assertNull($token);
+    }
+}git s

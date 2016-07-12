@@ -3,17 +3,17 @@
 namespace Tests\Chaplean\Bundle\UnitBundle\Utility;
 
 use Chaplean\Bundle\UnitBundle\Test\LogicalTestCase;
-use Chaplean\Bundle\UnitBundle\Utility\RestClient;
+use Chaplean\Bundle\UnitBundle\Utility\Client;
 
 /**
- * Class RestClientTest.
+ * Class ClientTest.
  *
  * @package   Tests\Chaplean\Bundle\UnitBundle\Utility
  * @author    Tom - Chaplean <tom@chaplean.com>
  * @copyright 2014 - 2016 Chaplean (http://www.chaplean.com)
  * @since     4.0.0
  */
-class RestClientTest extends LogicalTestCase
+class ClientTest extends LogicalTestCase
 {
     /**
      * @return void
@@ -25,14 +25,12 @@ class RestClientTest extends LogicalTestCase
     }
 
     /**
-     * @expectedException \Exception
-     *
      * @return void
      */
     public function testGetContainer()
     {
-        $client = new RestClient($this->getContainer());
+        $client = new Client($this->getContainer());
 
-        $client->getContent();
+        $this->assertEquals($client->getContainer(), $this->getContainer());
     }
 }
