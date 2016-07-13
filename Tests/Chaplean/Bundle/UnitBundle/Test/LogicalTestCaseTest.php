@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Chaplean\Bundle\UnitBundle;
+namespace Tests\Chaplean\Bundle\UnitBundle\Test;
 
 use Chaplean\Bundle\UnitBundle\Entity\Client;
 use Chaplean\Bundle\UnitBundle\Test\LogicalTestCase;
@@ -80,13 +80,22 @@ class LogicalTestCaseTest extends WebTestCase
     /**
      * @return void
      */
-    public function testSetUpBeforeClassInitializeManager()
+    public function testConstructInitializeManager()
     {
         $logicalTest = new LogicalTestCase();
-        $logicalTest->setNamespaceFixtures('Chaplean\Bundle\UnitBundle\\');
-        $logicalTest->setUpBeforeClass();
 
         $this->assertInstanceOf(EntityManager::class, $logicalTest->getManager());
+    }
+
+    /**
+     * @return void
+     */
+    public function testGetManagerReloadManager()
+    {
+        $logicalTest = new LogicalTestCase();
+        $logicalTest->getManager()->close();
+
+        $this->assertTrue($logicalTest->getManager()->isOpen());
     }
 
     /**

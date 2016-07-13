@@ -1,5 +1,5 @@
 <?php
-namespace Tests\Chaplean\Bundle\UnitBundle;
+namespace Tests\Chaplean\Bundle\UnitBundle\Test;
 
 use Chaplean\Bundle\UnitBundle\Test\LogicalTestCase;
 use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;

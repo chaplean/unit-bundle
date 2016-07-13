@@ -83,6 +83,10 @@ class LogicalTestCase extends WebTestCase
     {
         parent::__construct($name, $data, $dataName);
 
+        if (self::$fixtureUtility === null) {
+            self::$fixtureUtility = FixtureUtility::getInstance();
+        }
+
         if (self::$container === null) {
             $this->setContainer(parent::getContainer());
         }
@@ -90,11 +94,6 @@ class LogicalTestCase extends WebTestCase
         if (self::$manager === null) {
             self::$manager = self::$container->get('doctrine')
                 ->getManager();
-        }
-
-        if (self::$fixtureUtility === null) {
-            self::$fixtureUtility = FixtureUtility::getInstance();
-            self::$fixtureUtility->setContainer(self::$container);
         }
 
         if (empty(self::$fixtureUtility->getNamespace())) {
@@ -214,6 +213,14 @@ class LogicalTestCase extends WebTestCase
      */
     public function getManager()
     {
+        // If there is any Exception before, EntityManager is closed so we need to reopen it
+        if (self::$manager !== null && !self::$manager->isOpen()) {
+            self::$manager = self::$manager->create(
+                self::$manager->getConnection(),
+                self::$manager->getConfiguration()
+            );
+        }
+
         return self::$manager;
     }
 
@@ -232,6 +239,10 @@ class LogicalTestCase extends WebTestCase
      */
     public function getReference($reference)
     {
+        if (self::$fixtures === null) {
+            return null;
+        }
+
         return self::$fixtures->getReference($reference);
     }
 
@@ -255,7 +266,7 @@ class LogicalTestCase extends WebTestCase
      */
     public function loadPartialFixtures(array $classNames)
     {
-        self::$fixtures = self::$fixtureUtility->loadPartialFixtures($classNames, self::$manager)
+        self::$fixtures = self::$fixtureUtility->loadPartialFixtures($classNames, $this->getManager())
             ->getReferenceRepository();
     }
 
@@ -268,7 +279,7 @@ class LogicalTestCase extends WebTestCase
     {
         $classNames = NamespaceUtility::getClassNamesByContext(self::$fixtureUtility->getNamespace(), $context);
 
-        self::$fixtures = self::$fixtureUtility->loadPartialFixtures($classNames, self::$manager)
+        self::$fixtures = self::$fixtureUtility->loadPartialFixtures($classNames, $this->getManager())
             ->getReferenceRepository();
     }
 
@@ -339,6 +350,7 @@ class LogicalTestCase extends WebTestCase
     public function setContainer(ContainerInterface $container)
     {
         self::$container = $container;
+        self::$fixtureUtility->setContainer($container);
     }
 
     /**
@@ -358,15 +370,9 @@ class LogicalTestCase extends WebTestCase
      */
     public function setUp()
     {
-        // If there is any Exception before, EntityManager is closed so we need to reopen it
-        if (!self::$manager->isOpen()) {
-            self::$container = parent::getContainer();
-            self::$manager = self::$container->get('doctrine')
-                ->getManager();
-        }
-
         if (self::$databaseLoaded) {
-            self::$manager->beginTransaction();
+            $this->getManager()
+                ->beginTransaction();
         }
 
         $this->cleanMailDir();
@@ -401,11 +407,13 @@ class LogicalTestCase extends WebTestCase
      */
     public function tearDown()
     {
-        if (self::$manager !== null) {
-            $connection = self::$manager->getConnection();
+        if ($this->getManager() !== null) {
+            $connection = $this->getManager()
+                ->getConnection();
 
             if ($connection->getTransactionNestingLevel() > 0 && self::$databaseLoaded) {
-                self::$manager->rollback();
+                $this->getManager()
+                    ->rollback();
             }
 
             $connection->close();

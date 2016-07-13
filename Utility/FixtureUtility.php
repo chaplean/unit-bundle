@@ -257,6 +257,10 @@ class FixtureUtility
             }
         }
 
+        if ($this->database === null || !isset($this->cachedExecutor[$this->database->getHash()])) {
+            throw new \Exception('Executer cannot be found');
+        }
+
         $executor->setReferenceRepository($this->cachedExecutor[$this->database->getHash()]->getReferenceRepository());
         $executor->execute($fixtures, true);
 

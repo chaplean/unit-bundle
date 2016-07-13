@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Chaplean\Bundle\UnitBundle;
+namespace Tests\Chaplean\Bundle\UnitBundle\Test;
 
 use Chaplean\Bundle\UnitBundle\Entity\Client;
 use Chaplean\Bundle\UnitBundle\Test\LogicalTestCase;
