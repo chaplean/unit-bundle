@@ -168,6 +168,22 @@ class LogicalTestCase extends WebTestCase
     }
 
     /**
+     * Creates a Client.
+     *
+     * @param array $options An array of options to pass to the createKernel class
+     * @param array $server  An array of server parameters
+     *
+     * @return Client A Client instance
+     */
+    protected static function createClient(array $options = array(), array $server = array())
+    {
+        $client = parent::createClient($options, $server);
+        $client->getContainer()->set('doctrine', self::$container->get('doctrine'));
+
+        return $client;
+    }
+
+    /**
      * @return ContainerInterface
      */
     public function getContainer()
@@ -230,6 +246,21 @@ class LogicalTestCase extends WebTestCase
     public function getNamespace()
     {
         return self::$fixtureUtility->getNamespace();
+    }
+
+    /**
+     * @param string $className
+     * @param string $methodName
+     * 
+     * @return \ReflectionMethod
+     */
+    public function getNotPublicMethod($className, $methodName)
+    {
+        $class = new \ReflectionClass($className);
+        $method = $class->getMethod($methodName);
+        $method->setAccessible(true);
+
+        return $method;
     }
 
     /**

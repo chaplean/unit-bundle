@@ -299,4 +299,95 @@ class LogicalTestCaseTest extends WebTestCase
 
         $this->assertEquals('Chaplean\Bundle\UnitBundle\\', $logicalTest->getNamespace());
     }
+
+    /**
+     * @return void
+     */
+    public function testGetProtectedMethod()
+    {
+        $logicalTest = new LogicalTestCase();
+        $method = $logicalTest->getNotPublicMethod(DummyClassWithNotPublicMethod::class, 'getFoo');
+
+        $this->assertInstanceOf(\ReflectionMethod::class, $method);
+        $this->assertEquals('foo', $method->invoke(new DummyClassWithNotPublicMethod()));
+    }
+
+    /**
+     * @return void
+     */
+    public function testGetPrivateMethod()
+    {
+        $logicalTest = new LogicalTestCase();
+        $method = $logicalTest->getNotPublicMethod(DummyClassWithNotPublicMethod::class, 'getBar');
+
+        $this->assertInstanceOf(\ReflectionMethod::class, $method);
+        $this->assertEquals('bar', $method->invoke(new DummyClassWithNotPublicMethod()));
+    }
+
+    /**
+     * @return void
+     */
+    public function testGetProtectedMethodWithArgument()
+    {
+        $logicalTest = new LogicalTestCase();
+        $method = $logicalTest->getNotPublicMethod(DummyClassWithNotPublicMethod::class, 'getWithArg');
+
+        $this->assertInstanceOf(\ReflectionMethod::class, $method);
+        $this->assertEquals('arg', $method->invokeArgs(new DummyClassWithNotPublicMethod(), array('arg')));
+    }
+
+    /**
+     * @return void
+     */
+    public function testCreateSymfonyClientWithSameEntityManager()
+    {
+        $logicalTest = new LogicalTestCase();
+        $logicalTest->setUpBeforeClass();
+        $logicalTest->setUp();
+
+        $createClientMethod = $logicalTest->getNotPublicMethod(LogicalTestCase::class, 'createClient');
+        $client = $createClientMethod->invoke($logicalTest);
+
+        $this->assertGreaterThan(0, $logicalTest->em->getConnection()->getTransactionNestingLevel());
+        $this->assertGreaterThan(0, $client->getContainer()->get('doctrine')->getConnection()->getTransactionNestingLevel());
+
+        $logicalTest->tearDown();
+    }
+}
+
+/**
+ * Class DummyClassWithNotPublicMethod.
+ *
+ * @package   Tests\Chaplean\Bundle\UnitBundle\Test
+ * @author    Valentin - Chaplean <valentin@chaplean.com>
+ * @copyright 2014 - 2016 Chaplean (http://www.chaplean.com)
+ * @since     4.0.0
+ */
+class DummyClassWithNotPublicMethod
+{
+    /**
+     * @return string
+     */
+    protected function getFoo()
+    {
+        return 'foo';
+    }
+
+    /**
+     * @return string
+     */
+    private function getBar()
+    {
+        return 'bar';
+    }
+
+    /**
+     * @param string $string
+     *
+     * @return string
+     */
+    protected function getWithArg($string)
+    {
+        return $string;
+    }
 }
