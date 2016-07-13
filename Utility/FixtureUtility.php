@@ -32,7 +32,7 @@ class FixtureUtility
     /**
      * @var DatabaseUtility
      */
-    private $database;
+    private $databaseUtility;
 
     /**
      * @var FixtureUtility
@@ -231,7 +231,7 @@ class FixtureUtility
         }
 
         $databaseUtility->moveDatabase();
-        $this->database = $databaseUtility;
+        $this->databaseUtility = $databaseUtility;
 
         return $executor;
     }
@@ -257,11 +257,11 @@ class FixtureUtility
             }
         }
 
-        if ($this->database === null || !isset($this->cachedExecutor[$this->database->getHash()])) {
+        if ($this->databaseUtility === null || !isset($this->cachedExecutor[$this->databaseUtility->getHash()])) {
             throw new \Exception('Executer cannot be found');
         }
 
-        $executor->setReferenceRepository($this->cachedExecutor[$this->database->getHash()]->getReferenceRepository());
+        $executor->setReferenceRepository($this->cachedExecutor[$this->databaseUtility->getHash()]->getReferenceRepository());
         $executor->execute($fixtures, true);
 
         return $executor;
@@ -303,13 +303,15 @@ class FixtureUtility
     }
 
     /**
-     * @param Container|ContainerInterface $container
+     * @param ContainerInterface $container
      *
-     * @return void
+     * @return FixtureUtility
      */
-    public function setContainer($container)
+    public function setContainer(ContainerInterface $container)
     {
         $this->container = $container;
+
+        return $this;
     }
 
     /**

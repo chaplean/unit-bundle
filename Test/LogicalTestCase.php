@@ -6,6 +6,7 @@ use Chaplean\Bundle\UnitBundle\Utility\FixtureUtility;
 use Chaplean\Bundle\UnitBundle\Utility\NamespaceUtility;
 use Chaplean\Bundle\UnitBundle\Utility\RestClient;
 use Chaplean\Bundle\UnitBundle\Utility\SwiftMailerCacheUtility;
+use Doctrine\Bundle\DoctrineBundle\Registry;
 use Doctrine\Common\DataFixtures\ReferenceRepository;
 use Doctrine\ORM\EntityManager;
 use Liip\FunctionalTestBundle\Test\WebTestCase;
@@ -53,9 +54,9 @@ class LogicalTestCase extends WebTestCase
     protected static $hashFixtures;
 
     /**
-     * @var EntityManager
+     * @var Registry
      */
-    private static $manager = null;
+    private static $doctrineRegistry = null;
 
     /**
      * @var SwiftMailerCacheUtility
@@ -83,12 +84,17 @@ class LogicalTestCase extends WebTestCase
     {
         parent::__construct($name, $data, $dataName);
 
-        if (self::$container === null) {
-            self::$container = $this->getContainer();
+        if (self::$fixtureUtility === null) {
+            self::$fixtureUtility = FixtureUtility::getInstance();
         }
 
-        if (self::$manager === null) {
-            self::$manager = $this->getManager();
+        if (self::$container === null) {
+            $this->setContainer(parent::getContainer());
+        }
+
+        if (self::$doctrineRegistry === null) {
+            self::$doctrineRegistry = $this->getContainer()
+                ->get('doctrine');
         }
 
         $namespaceFixtures = $this->getFixtureUtility()
@@ -176,7 +182,8 @@ class LogicalTestCase extends WebTestCase
     protected static function createClient(array $options = array(), array $server = array())
     {
         $client = parent::createClient($options, $server);
-        $client->getContainer()->set('doctrine', self::$container->get('doctrine'));
+        $client->getContainer()
+            ->set('doctrine', self::$doctrineRegistry);
 
         return $client;
     }
@@ -186,10 +193,6 @@ class LogicalTestCase extends WebTestCase
      */
     public function getContainer()
     {
-        if (self::$container === null) {
-            $this->setContainer(parent::getContainer());
-        }
-
         return self::$container;
     }
 
@@ -208,6 +211,16 @@ class LogicalTestCase extends WebTestCase
     }
 
     /**
+     * Get doctrineRegistry.
+     *
+     * @return Registry
+     */
+    public static function getDoctrineRegistry()
+    {
+        return self::$doctrineRegistry;
+    }
+
+    /**
      * @param string $reference
      *
      * @deprecated use getReference() instead
@@ -223,10 +236,6 @@ class LogicalTestCase extends WebTestCase
      */
     public function getFixtureUtility()
     {
-        if (self::$fixtureUtility === null) {
-            self::$fixtureUtility = FixtureUtility::getInstance();
-        }
-
         return self::$fixtureUtility;
     }
 
@@ -235,19 +244,7 @@ class LogicalTestCase extends WebTestCase
      */
     public function getManager()
     {
-        // If there is any Exception before, EntityManager is closed so we need to reopen it
-        if (self::$manager === null || !self::$manager->isOpen()) {
-            $manager = $this->getContainer()
-                ->get('doctrine')
-                ->getManager();
-
-            self::$manager = $manager->create(
-                $manager->getConnection(),
-                $manager->getConfiguration()
-            );
-        }
-
-        return self::$manager;
+        return self::$doctrineRegistry->getManager();
     }
 
     /**
@@ -262,7 +259,7 @@ class LogicalTestCase extends WebTestCase
     /**
      * @param string $className
      * @param string $methodName
-     * 
+     *
      * @return \ReflectionMethod
      */
     public function getNotPublicMethod($className, $methodName)
@@ -293,11 +290,12 @@ class LogicalTestCase extends WebTestCase
      * @param boolean $withDefaultData
      *
      * @return void
+     * @throws \Exception
      */
     public static function loadFixturesByContext($context, $withDefaultData = false)
     {
         if (self::$fixtureUtility === null) {
-            return;
+            throw new \Exception('FixtureUtility needs to be instanciated');
         }
 
         $contextFixtures = NamespaceUtility::getClassNamesByContext(self::$fixtureUtility->getNamespace(), $context);
@@ -335,17 +333,19 @@ class LogicalTestCase extends WebTestCase
      * @param array $classNames
      *
      * @return void
+     * @throws \Exception
      */
     private static function loadFixturesOnSetUp(array $classNames)
     {
         if (self::$fixtureUtility === null) {
-            return;
+            throw new \Exception('FixtureUtility needs to be instanciated');
         }
 
         $hashFixtures = md5(serialize($classNames));
 
         if ($hashFixtures !== self::$hashFixtures) {
             self::$hashFixtures = $hashFixtures;
+
             self::$fixtures = self::$fixtureUtility->loadFixtures($classNames)
                 ->getReferenceRepository();
         }
@@ -376,14 +376,27 @@ class LogicalTestCase extends WebTestCase
 
     /**
      * @return void
+     * @throws \Exception
      */
     public static function resetDefaultNamespaceFixtures()
     {
         if (self::$fixtureUtility === null) {
-            return;
+            throw new \Exception('FixtureUtility needs to be instanciated');
         }
 
         self::$fixtureUtility->setNamespace(self::getDefaultFixturesNamespace());
+    }
+
+    /**
+     * @return void
+     */
+    public static function resetManagerIfNecessary()
+    {
+        $manager = self::$doctrineRegistry->getManager();
+
+        if ($manager !== null && !$manager->isOpen()) {
+            self::$doctrineRegistry->resetManager();
+        }
     }
 
     /**
@@ -395,19 +408,22 @@ class LogicalTestCase extends WebTestCase
     {
         self::$container = $container;
 
-        $this->getFixtureUtility()
-            ->setContainer($container);
+        if ($this->getFixtureUtility() !== null) {
+            $this->getFixtureUtility()
+                ->setContainer($container);
+        }
     }
 
     /**
      * @param string $namespace Namespace parent of folder DataFixtures (example: 'App\\Bundle\\FrontBundle\\').
      *
      * @return void
+     * @throws \Exception
      */
     public static function setNamespaceFixtures($namespace)
     {
         if (self::$fixtureUtility === null) {
-            return;
+            throw new \Exception('FixtureUtility needs to be instanciated');
         }
 
         self::$fixtureUtility->setNamespace($namespace);
@@ -420,14 +436,19 @@ class LogicalTestCase extends WebTestCase
      */
     public function setUp()
     {
-        if (self::$databaseLoaded) {
-            $this->getManager()
-                ->beginTransaction();
+        parent::setUp();
+
+        self::resetManagerIfNecessary();
+
+        $manager = $this->getManager();
+        $nbTransactions = $manager->getConnection()
+            ->getTransactionNestingLevel();
+
+        if (self::$databaseLoaded && $nbTransactions < 1) {
+            $manager->beginTransaction();
         }
 
         $this->cleanMailDir();
-
-        parent::setUp();
     }
 
     /**
@@ -439,6 +460,7 @@ class LogicalTestCase extends WebTestCase
     {
         parent::setUpBeforeClass();
 
+        self::$doctrineRegistry = self::$container->get('doctrine');
         self::$swiftmailerCacheUtility = self::$container->get('chaplean_unit.swiftmailer_cache');
 
         $dataFixturesToLoad = self::$userFixtures;
@@ -461,7 +483,7 @@ class LogicalTestCase extends WebTestCase
             $connection = $this->getManager()
                 ->getConnection();
 
-            if ($connection->getTransactionNestingLevel() > 0 && self::$databaseLoaded) {
+            if ($connection->getTransactionNestingLevel() == 1 && self::$databaseLoaded) {
                 $this->getManager()
                     ->rollback();
             }

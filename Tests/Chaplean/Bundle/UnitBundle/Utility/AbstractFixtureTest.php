@@ -37,6 +37,7 @@ class AbstractFixtureTest extends LogicalTestCase
      */
     public function testEntityManagerStillAlive()
     {
+        $this->assertEquals(spl_object_hash($this->getManager()), spl_object_hash($this->getContainer()->get('doctrine')->getManager()));
         $this->assertTrue($this->em->isOpen());
     }
 }

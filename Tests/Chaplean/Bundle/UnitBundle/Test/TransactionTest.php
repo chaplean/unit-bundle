@@ -29,6 +29,7 @@ class TransactionTest extends LogicalTestCase
     public function testBeforeAnnotationEmptyFixtureLoaded()
     {
         $this->assertCount(0, $this->em->getRepository('ChapleanUnitBundle:Client')->findAll());
+        $this->assertTrue($this->em->isOpen());
     }
 
     /**
@@ -44,6 +45,7 @@ class TransactionTest extends LogicalTestCase
         $client->setIsActive(false);
         $client->setIsPrivateMember(false);
         $client->setHasCode(false);
+        
         $this->em->persist($client);
         $this->em->flush($client);
 

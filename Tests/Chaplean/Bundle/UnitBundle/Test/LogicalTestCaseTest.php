@@ -90,15 +90,18 @@ class LogicalTestCaseTest extends WebTestCase
     /**
      * @return void
      */
-    public function testGetManagerReloadManager()
+    public function testRepositoryManagerEqualsToMine()
     {
         $logicalTest = new LogicalTestCase();
-        $logicalTest->getManager()->close();
+        $logicalTest::setUpBeforeClass();
+        $logicalTest->setUp();
 
-        $this->assertTrue($logicalTest->getManager()->isOpen());
+        $repository = $logicalTest->em->getRepository('ChapleanUnitBundle:Client');
 
-        // No error
-        $logicalTest->em->flush();
+        $this->assertEquals($logicalTest->em, $repository->getManager());
+
+        $logicalTest->tearDown();
+        $logicalTest::tearDownAfterClass();
     }
 
     /**
@@ -123,7 +126,7 @@ class LogicalTestCaseTest extends WebTestCase
         $this->assertCount(3, $statuses);
 
         $logicalTest->tearDown();
-        $logicalTest->tearDownAfterClass();
+        $logicalTest::tearDownAfterClass();
     }
 
     /**
@@ -132,6 +135,7 @@ class LogicalTestCaseTest extends WebTestCase
     public function testLoadPartialFixturesWithoutManager()
     {
         $logicalTest = new LogicalTestCase();
+        $logicalTest::setUpBeforeClass();
         $logicalTest->setUp();
 
         $logicalTest->setNamespaceFixtures('Chaplean\Bundle\UnitBundle\\');
@@ -149,7 +153,7 @@ class LogicalTestCaseTest extends WebTestCase
         );
 
         $logicalTest->tearDown();
-        $logicalTest->tearDownAfterClass();
+        $logicalTest::tearDownAfterClass();
     }
 
     /**
@@ -158,6 +162,7 @@ class LogicalTestCaseTest extends WebTestCase
     public function testLoadFixturesByContext()
     {
         $logicalTest = new LogicalTestCase();
+        $logicalTest::setUpBeforeClass();
         $logicalTest->setUp();
 
         $logicalTest->setNamespaceFixtures('Chaplean\Bundle\UnitBundle\\');
@@ -175,7 +180,7 @@ class LogicalTestCaseTest extends WebTestCase
         $this->assertCount(3, $statuses);
 
         $logicalTest->tearDown();
-        $logicalTest->tearDownAfterClass();
+        $logicalTest::tearDownAfterClass();
     }
 
     /**
@@ -192,9 +197,15 @@ class LogicalTestCaseTest extends WebTestCase
         );
 
         $logicalTest = new LogicalTestCase();
+        $logicalTest::setUpBeforeClass();
+        $logicalTest->setUp();
+
         $logicalTest->loadFixturesByContext('MultiCompanies');
 
         $this->assertNotEmpty($logicalTest->getNamespace());
+
+        $logicalTest->tearDown();
+        $logicalTest::tearDownAfterClass();
     }
 
     /**
@@ -205,7 +216,7 @@ class LogicalTestCaseTest extends WebTestCase
         $logicalTest = new LogicalTestCase();
 
         $logicalTest->setNamespaceFixtures('Chaplean\Bundle\UnitBundle\\');
-        $logicalTest->setUpBeforeClass();
+        $logicalTest::setUpBeforeClass();
         $logicalTest->setUp();
 
         $this->assertEquals(
@@ -225,7 +236,7 @@ class LogicalTestCaseTest extends WebTestCase
         );
 
         $logicalTest->tearDown();
-        $logicalTest->tearDownAfterClass();
+        $logicalTest::tearDownAfterClass();
     }
 
     /**
@@ -237,7 +248,7 @@ class LogicalTestCaseTest extends WebTestCase
 
         $logicalTest->setNamespaceFixtures('Chaplean\Bundle\UnitBundle\\');
         $logicalTest->loadStaticFixtures(array('Chaplean\Bundle\UnitBundle\DataFixtures\Liip\LoadProviderData'));
-        $logicalTest->setUpBeforeClass();
+        $logicalTest::setUpBeforeClass();
         $logicalTest->setUp();
 
         $this->assertCount(
@@ -248,7 +259,7 @@ class LogicalTestCaseTest extends WebTestCase
         );
 
         $logicalTest->tearDown();
-        $logicalTest->tearDownAfterClass();
+        $logicalTest::tearDownAfterClass();
     }
 
     /**
@@ -258,7 +269,7 @@ class LogicalTestCaseTest extends WebTestCase
     {
         $logicalTest = new LogicalTestCase();
         $logicalTest->setNamespaceFixtures('Chaplean\Bundle\UnitBundle\\');
-        $logicalTest->setUpBeforeClass();
+        $logicalTest::setUpBeforeClass();
         $logicalTest->setUp();
 
         $this->assertInstanceOf(Client::class, $logicalTest->getReference('client-1'));
@@ -273,11 +284,15 @@ class LogicalTestCaseTest extends WebTestCase
     public function testTearDownAfterClass()
     {
         $logicalTest = new LogicalTestCase();
+        $logicalTest::setUpBeforeClass();
+        $logicalTest->setUp();
+
         $logicalTest->setNamespaceFixtures('Chaplean\Bundle\TestBundle\\');
 
         $this->assertEquals('Chaplean\Bundle\TestBundle\\', $logicalTest->getNamespace());
 
-        $logicalTest->tearDownAfterClass();
+        $logicalTest->tearDown();
+        $logicalTest::tearDownAfterClass();
 
         $this->assertEquals('Chaplean\Bundle\UnitBundle\\', $logicalTest->getNamespace());
     }
@@ -288,10 +303,16 @@ class LogicalTestCaseTest extends WebTestCase
     public function testGetProtectedMethod()
     {
         $logicalTest = new LogicalTestCase();
+        $logicalTest::setUpBeforeClass();
+        $logicalTest->setUp();
+
         $method = $logicalTest->getNotPublicMethod(DummyClassWithNotPublicMethod::class, 'getFoo');
 
         $this->assertInstanceOf(\ReflectionMethod::class, $method);
         $this->assertEquals('foo', $method->invoke(new DummyClassWithNotPublicMethod()));
+
+        $logicalTest->tearDown();
+        $logicalTest::tearDownAfterClass();
     }
 
     /**
@@ -300,10 +321,16 @@ class LogicalTestCaseTest extends WebTestCase
     public function testGetPrivateMethod()
     {
         $logicalTest = new LogicalTestCase();
+        $logicalTest::setUpBeforeClass();
+        $logicalTest->setUp();
+
         $method = $logicalTest->getNotPublicMethod(DummyClassWithNotPublicMethod::class, 'getBar');
 
         $this->assertInstanceOf(\ReflectionMethod::class, $method);
         $this->assertEquals('bar', $method->invoke(new DummyClassWithNotPublicMethod()));
+
+        $logicalTest->tearDown();
+        $logicalTest::tearDownAfterClass();
     }
 
     /**
@@ -324,16 +351,86 @@ class LogicalTestCaseTest extends WebTestCase
     public function testCreateSymfonyClientWithSameEntityManager()
     {
         $logicalTest = new LogicalTestCase();
-        $logicalTest->setUpBeforeClass();
+        $logicalTest::setUpBeforeClass();
         $logicalTest->setUp();
 
         $createClientMethod = $logicalTest->getNotPublicMethod(LogicalTestCase::class, 'createClient');
+        /** @var \Symfony\Bundle\FrameworkBundle\Client $client */
         $client = $createClientMethod->invoke($logicalTest);
 
+        $this->assertEquals(spl_object_hash($logicalTest->em), spl_object_hash($client->getContainer()->get('doctrine')->getManager()));
         $this->assertGreaterThan(0, $logicalTest->em->getConnection()->getTransactionNestingLevel());
         $this->assertGreaterThan(0, $client->getContainer()->get('doctrine')->getConnection()->getTransactionNestingLevel());
 
         $logicalTest->tearDown();
+        $logicalTest::tearDownAfterClass();
+    }
+
+    /**
+     * @return void
+     */
+    public function testDefaultNamespace()
+    {
+        $logicalTest = new LogicalTestCase();
+        $logicalTest::setUpBeforeClass();
+        $logicalTest->setUp();
+
+        $this->assertEquals('Chaplean\\Bundle\\UnitBundle\\', $logicalTest->getNamespace());
+
+        $logicalTest->tearDown();
+        $logicalTest::tearDownAfterClass();
+    }
+
+    /**
+     * @return void
+     */
+    public function testSetNamespace()
+    {
+        $logicalTest = new LogicalTestCase();
+        $logicalTest::setUpBeforeClass();
+        $logicalTest->setUp();
+
+        $logicalTest::setNamespaceFixtures('App\\Bundle\\RestBundle\\');
+        $this->assertEquals('App\\Bundle\\RestBundle\\', $logicalTest->getNamespace());
+
+        $logicalTest->tearDown();
+        $logicalTest::tearDownAfterClass();
+    }
+
+    /**
+     * @return void
+     */
+    public function testSetAndResetNamespace()
+    {
+        $logicalTest = new LogicalTestCase();
+        $logicalTest::setUpBeforeClass();
+        $logicalTest->setUp();
+
+        $logicalTest::setNamespaceFixtures('App\\Bundle\\RestBundle\\');
+        $this->assertEquals('App\\Bundle\\RestBundle\\', $logicalTest->getNamespace());
+
+        $logicalTest::resetDefaultNamespaceFixtures();
+
+        $this->assertEquals('Chaplean\\Bundle\\UnitBundle\\', $logicalTest->getNamespace());
+
+        $logicalTest->tearDown();
+        $logicalTest::tearDownAfterClass();
+    }
+
+    /**
+     * @return void
+     */
+    public function testTwoSetupWithoutTransactionalIssue()
+    {
+        $logicalTest = new LogicalTestCase();
+        $logicalTest::setUpBeforeClass();
+        $logicalTest->setUp();
+        $logicalTest->setUp();
+
+        $logicalTest->assertEquals(1, $logicalTest->em->getConnection()->getTransactionNestingLevel());
+
+        $logicalTest->tearDown();
+        $logicalTest::tearDownAfterClass();
     }
 }
 

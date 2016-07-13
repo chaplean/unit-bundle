@@ -263,4 +263,18 @@ class DatabaseUtility
             SqliteUtilityDriver::copyDatabase($this->tmpOm->getConnection(), $this->om->getConnection());
         }
     }
+
+    /**
+     * Set container.
+     *
+     * @param ContainerInterface $container
+     *
+     * @return DatabaseUtility
+     */
+    public function setContainer(ContainerInterface $container)
+    {
+        $this->container = $container;
+
+        return $this;
+    }
 }

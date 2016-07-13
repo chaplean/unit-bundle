@@ -14,7 +14,7 @@ use Doctrine\ORM\Mapping as ORM;
  * @since     2.0.0
  *
  * @ORM\Table(name="cl_client")
- * @ORM\Entity
+ * @ORM\Entity(repositoryClass="Chaplean\Bundle\UnitBundle\Repository\ClientRepository")
  */
 class Client
 {

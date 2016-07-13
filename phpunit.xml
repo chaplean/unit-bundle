@@ -17,6 +17,8 @@
     <testsuites>
         <testsuite name="Project Test Suite">
             <directory>Tests</directory>
+            <!--<file>Tests/Chaplean/Bundle/UnitBundle/Test/LogicalTestCaseTest.php</file>-->
+            <!--<file>Tests/Chaplean/Bundle/UnitBundle/Test/TransactionTest.php</file>-->
         </testsuite>
     </testsuites>
 
