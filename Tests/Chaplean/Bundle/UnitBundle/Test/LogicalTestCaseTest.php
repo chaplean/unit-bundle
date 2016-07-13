@@ -419,18 +419,22 @@ class LogicalTestCaseTest extends WebTestCase
 
     /**
      * @return void
+     * @throws \Exception
+     * @expectedException \Exception
+     * @expectedExceptionMessage Transaction is active, call tearDown to fix that.
      */
     public function testTwoSetupWithoutTransactionalIssue()
     {
         $logicalTest = new LogicalTestCase();
         $logicalTest::setUpBeforeClass();
         $logicalTest->setUp();
-        $logicalTest->setUp();
 
-        $logicalTest->assertEquals(1, $logicalTest->em->getConnection()->getTransactionNestingLevel());
-
-        $logicalTest->tearDown();
-        $logicalTest::tearDownAfterClass();
+        try {
+            $logicalTest->setUp();
+        } catch (\Exception $e) {
+            $logicalTest->tearDown();
+            throw $e;
+        }
     }
 }
 
