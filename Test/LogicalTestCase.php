@@ -83,20 +83,18 @@ class LogicalTestCase extends WebTestCase
     {
         parent::__construct($name, $data, $dataName);
 
-        if (self::$fixtureUtility === null) {
-            self::$fixtureUtility = FixtureUtility::getInstance();
-        }
-
         if (self::$container === null) {
-            $this->setContainer(parent::getContainer());
+            self::$container = $this->getContainer();
         }
 
         if (self::$manager === null) {
-            self::$manager = self::$container->get('doctrine')
-                ->getManager();
+            self::$manager = $this->getManager();
         }
 
-        if (empty(self::$fixtureUtility->getNamespace())) {
+        $namespaceFixtures = $this->getFixtureUtility()
+            ->getNamespace();
+
+        if (empty($namespaceFixtures)) {
             self::resetDefaultNamespaceFixtures();
         }
     }
@@ -172,6 +170,10 @@ class LogicalTestCase extends WebTestCase
      */
     public function getContainer()
     {
+        if (self::$container === null) {
+            $this->setContainer(parent::getContainer());
+        }
+
         return self::$container;
     }
 
@@ -205,6 +207,10 @@ class LogicalTestCase extends WebTestCase
      */
     public function getFixtureUtility()
     {
+        if (self::$fixtureUtility === null) {
+            self::$fixtureUtility = FixtureUtility::getInstance();
+        }
+
         return self::$fixtureUtility;
     }
 
@@ -214,10 +220,14 @@ class LogicalTestCase extends WebTestCase
     public function getManager()
     {
         // If there is any Exception before, EntityManager is closed so we need to reopen it
-        if (self::$manager !== null && !self::$manager->isOpen()) {
-            self::$manager = self::$manager->create(
-                self::$manager->getConnection(),
-                self::$manager->getConfiguration()
+        if (self::$manager === null || !self::$manager->isOpen()) {
+            $manager = $this->getContainer()
+                ->get('doctrine')
+                ->getManager();
+
+            self::$manager = $manager->create(
+                $manager->getConnection(),
+                $manager->getConfiguration()
             );
         }
 
@@ -229,7 +239,8 @@ class LogicalTestCase extends WebTestCase
      */
     public function getNamespace()
     {
-        return self::$fixtureUtility->getNamespace();
+        return $this->getFixtureUtility()
+            ->getNamespace();
     }
 
     /**
@@ -254,6 +265,10 @@ class LogicalTestCase extends WebTestCase
      */
     public static function loadFixturesByContext($context, $withDefaultData = false)
     {
+        if (self::$fixtureUtility === null) {
+            return;
+        }
+
         $contextFixtures = NamespaceUtility::getClassNamesByContext(self::$fixtureUtility->getNamespace(), $context);
 
         self::loadStaticFixtures($contextFixtures, $withDefaultData);
@@ -266,7 +281,8 @@ class LogicalTestCase extends WebTestCase
      */
     public function loadPartialFixtures(array $classNames)
     {
-        self::$fixtures = self::$fixtureUtility->loadPartialFixtures($classNames, $this->getManager())
+        self::$fixtures = $this->getFixtureUtility()
+            ->loadPartialFixtures($classNames, $this->getManager())
             ->getReferenceRepository();
     }
 
@@ -277,9 +293,10 @@ class LogicalTestCase extends WebTestCase
      */
     public function loadPartialFixturesByContext($context)
     {
-        $classNames = NamespaceUtility::getClassNamesByContext(self::$fixtureUtility->getNamespace(), $context);
+        $fixtureUtility = $this->getFixtureUtility();
+        $classNames = NamespaceUtility::getClassNamesByContext($fixtureUtility->getNamespace(), $context);
 
-        self::$fixtures = self::$fixtureUtility->loadPartialFixtures($classNames, $this->getManager())
+        self::$fixtures = $fixtureUtility->loadPartialFixtures($classNames, $this->getManager())
             ->getReferenceRepository();
     }
 
@@ -290,6 +307,10 @@ class LogicalTestCase extends WebTestCase
      */
     private static function loadFixturesOnSetUp(array $classNames)
     {
+        if (self::$fixtureUtility === null) {
+            return;
+        }
+
         $hashFixtures = md5(serialize($classNames));
 
         if ($hashFixtures !== self::$hashFixtures) {
@@ -327,19 +348,11 @@ class LogicalTestCase extends WebTestCase
      */
     public static function resetDefaultNamespaceFixtures()
     {
-        if (self::$fixtureUtility !== null) {
-            self::$fixtureUtility->setNamespace(self::getDefaultFixturesNamespace());
+        if (self::$fixtureUtility === null) {
+            return;
         }
-    }
 
-    /**
-     * @return void
-     */
-    public static function resetStaticProperties()
-    {
-        self::$container = null;
-        self::$fixtureUtility = null;
-        self::$manager = null;
+        self::$fixtureUtility->setNamespace(self::getDefaultFixturesNamespace());
     }
 
     /**
@@ -350,7 +363,9 @@ class LogicalTestCase extends WebTestCase
     public function setContainer(ContainerInterface $container)
     {
         self::$container = $container;
-        self::$fixtureUtility->setContainer($container);
+
+        $this->getFixtureUtility()
+            ->setContainer($container);
     }
 
     /**
@@ -360,6 +375,10 @@ class LogicalTestCase extends WebTestCase
      */
     public static function setNamespaceFixtures($namespace)
     {
+        if (self::$fixtureUtility === null) {
+            return;
+        }
+
         self::$fixtureUtility->setNamespace($namespace);
     }
 

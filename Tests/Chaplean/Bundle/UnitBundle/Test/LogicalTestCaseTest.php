@@ -96,6 +96,9 @@ class LogicalTestCaseTest extends WebTestCase
         $logicalTest->getManager()->close();
 
         $this->assertTrue($logicalTest->getManager()->isOpen());
+
+        // No error
+        $logicalTest->em->flush();
     }
 
     /**
@@ -259,27 +262,6 @@ class LogicalTestCaseTest extends WebTestCase
         $logicalTest->setUp();
 
         $this->assertInstanceOf(Client::class, $logicalTest->getReference('client-1'));
-
-        $logicalTest->tearDown();
-        $logicalTest->tearDownAfterClass();
-    }
-
-    /**
-     * @return void
-     */
-    public function testResetStaticProperties()
-    {
-        $logicalTest = new LogicalTestCase();
-
-        $logicalTest->setNamespaceFixtures('Chaplean\Bundle\UnitBundle\\');
-        $logicalTest->setUpBeforeClass();
-        $logicalTest->setUp();
-
-        $logicalTest->resetStaticProperties();
-
-        $this->assertNull($logicalTest->getContainer());
-        $this->assertNull($logicalTest->getFixtureUtility());
-        $this->assertNull($logicalTest->getManager());
 
         $logicalTest->tearDown();
         $logicalTest->tearDownAfterClass();
