@@ -36,12 +36,12 @@ class LogicalTestCase extends WebTestCase
     /**
      * @var ReferenceRepository
      */
-    protected static $fixtures;
+    public static $fixtures;
 
     /**
      * @var FixtureUtility
      */
-    private static $fixtureUtility = null;
+    public static $fixtureUtility = null;
 
     /**
      * @var boolean
@@ -311,8 +311,7 @@ class LogicalTestCase extends WebTestCase
     public function loadPartialFixtures(array $classNames)
     {
         self::$fixtures = $this->getFixtureUtility()
-            ->loadPartialFixtures($classNames, $this->getManager())
-            ->getReferenceRepository();
+            ->loadPartialFixtures($classNames, $this->getManager())->getReferenceRepository();
     }
 
     /**
@@ -325,8 +324,7 @@ class LogicalTestCase extends WebTestCase
         $fixtureUtility = $this->getFixtureUtility();
         $classNames = NamespaceUtility::getClassNamesByContext($fixtureUtility->getNamespace(), $context);
 
-        self::$fixtures = $fixtureUtility->loadPartialFixtures($classNames, $this->getManager())
-            ->getReferenceRepository();
+        self::$fixtures = $fixtureUtility->loadPartialFixtures($classNames, $this->getManager())->getReferenceRepository();
     }
 
     /**
@@ -346,8 +344,7 @@ class LogicalTestCase extends WebTestCase
         if ($hashFixtures !== self::$hashFixtures) {
             self::$hashFixtures = $hashFixtures;
 
-            self::$fixtures = self::$fixtureUtility->loadFixtures($classNames)
-                ->getReferenceRepository();
+            self::$fixtures = self::$fixtureUtility->loadFixtures($classNames)->getReferenceRepository();
         }
 
         self::$databaseLoaded = true;
@@ -385,6 +382,18 @@ class LogicalTestCase extends WebTestCase
         }
 
         self::$fixtureUtility->setNamespace(self::getDefaultFixturesNamespace());
+    }
+
+    /**
+     * @return void
+     */
+    public function resetFixturesIfUpdate()
+    {
+        $originalReferences = self::$fixtureUtility->getOriginalReferences();
+
+        if (self::$fixtures->getReferences() !== $originalReferences) {
+            self::$fixtures = self::$fixtureUtility->getOriginalReferenceRepository(self::$doctrineRegistry->getManager());
+        }
     }
 
     /**
@@ -452,6 +461,8 @@ class LogicalTestCase extends WebTestCase
         if (self::$databaseLoaded && $nbTransactions < 1) {
             $manager->beginTransaction();
         }
+
+        $this->resetFixturesIfUpdate();
 
         $this->cleanMailDir();
     }

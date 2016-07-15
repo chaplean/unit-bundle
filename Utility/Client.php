@@ -191,7 +191,11 @@ class Client
         $this->request = $request;
         $this->request->setRequestFormat('json');
         $this->requestStack = \Mockery::mock('Symfony\Component\HttpFoundation\RequestStack');
-        $this->requestStack->shouldReceive('getCurrentRequest')
+        $this->requestStack
+            ->shouldReceive('getCurrentRequest')
+            ->andReturn($this->request);
+        $this->requestStack
+            ->shouldReceive('getMasterRequest')
             ->andReturn($this->request);
 
         $this->container->set('request_stack', $this->requestStack);
