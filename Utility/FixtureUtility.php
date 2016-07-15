@@ -204,9 +204,7 @@ class FixtureUtility
 
                         exec($mysqlCmd, $output, $returnVar);
 
-                        $databaseUtility->getOm()
-                            ->getUnitOfWork()
-                            ->clear();
+                        $databaseUtility->getOm()->getUnitOfWork()->clear();
                     }
 
                     $executor = $this->cachedExecutor[$databaseHash];
