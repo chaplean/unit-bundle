@@ -442,7 +442,6 @@ class LogicalTestCase extends WebTestCase
      * Start transaction
      *
      * @return void
-     * @throws \Exception
      */
     public function setUp()
     {
@@ -453,10 +452,6 @@ class LogicalTestCase extends WebTestCase
         $manager = $this->getManager();
         $nbTransactions = $manager->getConnection()
             ->getTransactionNestingLevel();
-
-        if ($nbTransactions > 0) {
-            throw new \Exception('Transaction is active, call tearDown to fix that.');
-        }
 
         if (self::$databaseLoaded && $nbTransactions < 1) {
             $manager->beginTransaction();
