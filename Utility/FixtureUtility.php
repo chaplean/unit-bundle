@@ -2,20 +2,17 @@
 
 namespace Chaplean\Bundle\UnitBundle\Utility;
 
-use Chaplean\Bundle\UnitBundle\Event\Listener\UnitListener;
 use Doctrine\Bundle\DoctrineBundle\Registry;
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 use Doctrine\Common\DataFixtures\Executor\ORMExecutor;
 use Doctrine\Common\DataFixtures\Loader;
 use Doctrine\Common\DataFixtures\ProxyReferenceRepository;
 use Doctrine\Common\DataFixtures\Purger\ORMPurger;
-use Doctrine\Common\DataFixtures\ReferenceRepository;
 use Doctrine\Common\Persistence\ObjectManager;
 use Doctrine\DBAL\Driver\PDOMySql\Driver as MySqlDriver;
 use Doctrine\ORM\EntityManager;
 use Symfony\Component\DependencyInjection\Container;
 use Symfony\Component\DependencyInjection\ContainerInterface;
-use Symfony\Component\ExpressionLanguage\Tests\Node\Obj;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
 
 /**
@@ -31,16 +28,6 @@ class FixtureUtility
      * @var ORMExecutor[]
      */
     protected $cachedExecutor = array();
-
-    /**
-     * @var ReferenceRepository[]
-     */
-    protected $cachedReferenceRepositories = array();
-
-    /**
-     * @var string
-     */
-    private $databaseHash;
 
     /**
      * @var DatabaseUtility
@@ -171,22 +158,22 @@ class FixtureUtility
 
         $driverIsMysql = $databaseUtility->getDriver() instanceof MySqlDriver;
 
-        $this->databaseHash = $databaseUtility->getHash();
+        $databaseHash = $databaseUtility->getHash();
         $sqlDirectory = $this->container->getParameter('kernel.cache_dir') . '/sql';
 
         if (!$databaseUtility->exist($classNames)) {
             $databaseUtility->createSchemaDatabase();
         } else {
-            if (!$driverIsMysql || !array_key_exists($this->databaseHash, $this->cachedExecutor)) {
+            if (!$driverIsMysql || !array_key_exists($databaseHash, $this->cachedExecutor)) {
                 $databaseUtility->cleanDatabase();
 
-                if (!array_key_exists($this->databaseHash, $this->cachedExecutor)) {
+                if (!array_key_exists($databaseHash, $this->cachedExecutor)) {
                     $databaseUtility->cleanDatabaseTemporary();
                 }
             }
         }
 
-        if (!array_key_exists($this->databaseHash, $this->cachedExecutor) || $driverIsMysql) {
+        if (!array_key_exists($databaseHash, $this->cachedExecutor) || $driverIsMysql) {
             if ($executor === null) {
                 $connection = $databaseUtility->getOm()
                     ->getConnection();
@@ -211,9 +198,9 @@ class FixtureUtility
 
                 $cmdArgs = '-h' . $host . ' -P' . $port . ' -u' . $user . ' -p' . $password . ' ' . $databaseName;
 
-                if (array_key_exists($this->databaseHash, $this->cachedExecutor)) {
+                if (array_key_exists($databaseHash, $this->cachedExecutor)) {
                     if ($driverIsMysql) {
-                        $mysqlCmd = 'mysql ' . $cmdArgs . ' < ' . $sqlDirectory . '/' . $this->databaseHash . '.sql';
+                        $mysqlCmd = 'mysql ' . $cmdArgs . ' < ' . $sqlDirectory . '/' . $databaseHash . '.sql';
 
                         exec($mysqlCmd, $output, $returnVar);
 
@@ -222,61 +209,31 @@ class FixtureUtility
                             ->clear();
                     }
 
-                    $executor = $this->cachedExecutor[$this->databaseHash];
+                    $executor = $this->cachedExecutor[$databaseHash];
                 } else {
                     $executor->execute($loader->getFixtures());
-                    $referenceRepository = $executor->getReferenceRepository();
 
-                    $this->cachedExecutor[$this->databaseHash] = $executor;
-                    $this->cachedReferenceRepositories[$this->databaseHash] = clone $referenceRepository;
+                    $this->cachedExecutor[$databaseHash] = $executor;
 
                     if ($driverIsMysql) {
                         if (!@mkdir($sqlDirectory) && !is_dir($sqlDirectory)) {
                             throw new FileException('Directory is not created: ' . $sqlDirectory);
                         }
 
-                        $mysqlDumpCmd = 'mysqldump ' . $cmdArgs . ' > ' . $sqlDirectory . '/' . $this->databaseHash . '.sql';
+                        $mysqlDumpCmd = 'mysqldump ' . $cmdArgs . ' > ' . $sqlDirectory . '/' . $databaseHash . '.sql';
 
                         exec($mysqlDumpCmd, $output, $returnVar);
                     }
                 }
             }
         } else {
-            $executor = $this->cachedExecutor[$this->databaseHash];
+            $executor = $this->cachedExecutor[$databaseHash];
         }
 
         $databaseUtility->moveDatabase();
         $this->databaseUtility = $databaseUtility;
 
         return $executor;
-    }
-
-    /**
-     * @return array
-     */
-    public function getOriginalReferences()
-    {
-        $originalReferenceRepository = clone $this->cachedReferenceRepositories[$this->databaseHash];
-
-        return $originalReferenceRepository->getReferences();
-    }
-
-    /**
-     * @param EntityManager|ObjectManager $manager
-     *
-     * @return ReferenceRepository
-     */
-    public function getOriginalReferenceRepository(EntityManager $manager)
-    {
-        $originalReferenceRepository = $this->cachedReferenceRepositories[$this->databaseHash];
-        $referenceRepository = new ReferenceRepository($manager);
-
-        $references = $originalReferenceRepository->getReferences();
-        foreach ($references as $referenceName => $referenceValue) {
-            $referenceRepository->setReference($referenceName, $referenceValue);
-        }
-
-        return $referenceRepository;
     }
 
     /**

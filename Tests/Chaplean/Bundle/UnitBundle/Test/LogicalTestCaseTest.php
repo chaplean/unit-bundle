@@ -262,21 +262,21 @@ class LogicalTestCaseTest extends WebTestCase
         $logicalTest::tearDownAfterClass();
     }
 
-//    /**
-//     * @return void
-//     */
-//    public function testGetReference()
-//    {
-//        $logicalTest = new LogicalTestCase();
-//        $logicalTest->setNamespaceFixtures('Chaplean\Bundle\UnitBundle\\');
-//        $logicalTest::setUpBeforeClass();
-//        $logicalTest->setUp();
-//
-//        $this->assertInstanceOf(Client::class, $logicalTest->getReference('client-1'));
-//
-//        $logicalTest->tearDown();
-//        $logicalTest->tearDownAfterClass();
-//    }
+    /**
+     * @return void
+     */
+    public function testGetReference()
+    {
+        $logicalTest = new LogicalTestCase();
+        $logicalTest->setNamespaceFixtures('Chaplean\Bundle\UnitBundle\\');
+        $logicalTest::setUpBeforeClass();
+        $logicalTest->setUp();
+
+        $this->assertInstanceOf(Client::class, $logicalTest->getReference('client-1'));
+
+        $logicalTest->tearDown();
+        $logicalTest->tearDownAfterClass();
+    }
 
     /**
      * @return void
