@@ -256,7 +256,7 @@ class FixtureUtility
         }
 
         if ($this->databaseUtility === null || !isset($this->cachedExecutor[$this->databaseUtility->getHash()])) {
-            throw new \Exception('Executer cannot be found');
+            throw new \Exception('Executor cannot be found');
         }
 
         $executor->setReferenceRepository($this->cachedExecutor[$this->databaseUtility->getHash()]->getReferenceRepository());

@@ -1,6 +1,6 @@
 <?php
 
-namespace Chaplean\Bundle\UnitBundle\DataFixtures\Liip;
+namespace Chaplean\Bundle\UnitBundle\DataFixtures\Liip\LoadPartial;
 
 use Chaplean\Bundle\UnitBundle\Entity\Product;
 use Chaplean\Bundle\UnitBundle\Entity\Provider;
@@ -45,6 +45,6 @@ class LoadProviderData extends AbstractFixture implements DependentFixtureInterf
      */
     public function getDependencies()
     {
-        return array('Chaplean\Bundle\UnitBundle\DataFixtures\Liip\LoadProductData');
+        return array('Chaplean\Bundle\UnitBundle\DataFixtures\Liip\LoadPartial\LoadProductData');
     }
 }

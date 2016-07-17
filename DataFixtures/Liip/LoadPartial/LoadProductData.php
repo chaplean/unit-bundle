@@ -1,11 +1,10 @@
 <?php
 
-namespace Chaplean\Bundle\UnitBundle\DataFixtures\Liip;
+namespace Chaplean\Bundle\UnitBundle\DataFixtures\Liip\LoadPartial;
 
 use Chaplean\Bundle\UnitBundle\Entity\Client;
 use Chaplean\Bundle\UnitBundle\Entity\Product;
 use Chaplean\Bundle\UnitBundle\Utility\AbstractFixture;
-use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 use Doctrine\Common\Persistence\ObjectManager;
 
 /**
@@ -15,7 +14,7 @@ use Doctrine\Common\Persistence\ObjectManager;
  * @copyright 2014 - 2015 Chaplean (http://www.chaplean.com)
  * @since     2.0.0
  */
-class LoadProductData extends AbstractFixture implements DependentFixtureInterface
+class LoadProductData extends AbstractFixture
 {
     /**
      * @param ObjectManager $manager
@@ -26,6 +25,7 @@ class LoadProductData extends AbstractFixture implements DependentFixtureInterfa
     {
         /** @var Client $client1 */
         $client1 = $this->getReference('client-1');
+
         $product = new Product();
 
         $product->setName('Stylo');
@@ -35,16 +35,5 @@ class LoadProductData extends AbstractFixture implements DependentFixtureInterfa
         $this->setReference('product-1', $product);
 
         $manager->flush();
-    }
-
-    /**
-     * This method must return an array of fixtures classes
-     * on which the implementing class depends on
-     *
-     * @return array
-     */
-    public function getDependencies()
-    {
-        return array('Chaplean\Bundle\UnitBundle\DataFixtures\Liip\LoadClientData');
     }
 }

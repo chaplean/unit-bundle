@@ -4,6 +4,7 @@ namespace Chaplean\Bundle\UnitBundle\DataFixtures\Liip\FixturesWithError;
 
 use Chaplean\Bundle\UnitBundle\Entity\Product;
 use Chaplean\Bundle\UnitBundle\Utility\AbstractFixture;
+use Chaplean\Bundle\UnitBundle\Utility\Client;
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 use Doctrine\Common\Persistence\ObjectManager;
 
@@ -23,10 +24,12 @@ class LoadProductData extends AbstractFixture implements DependentFixtureInterfa
      */
     public function load(ObjectManager $manager)
     {
+        /** @var Client $client2 */
+        $client2 = $this->getReference('client-2');
         $product = new Product();
 
         $product->setName('Stylo');
-        $product->setClient($this->getEntity('client-2', $manager));
+        $product->setClient($client2);
 
         $this->persist($product, $manager);
         $this->setReference('product-1', $product);
