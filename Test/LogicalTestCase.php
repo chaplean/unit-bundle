@@ -427,21 +427,6 @@ class LogicalTestCase extends WebTestCase
     }
 
     /**
-     * @param object $service  Class of service
-     * @param string $property Property name in service
-     * @param object $mock     Mock to set
-     *
-     * @return void
-     */
-    public function setMockInService($service, $property, $mock)
-    {
-        $reflectionClassService = new \ReflectionClass($service);
-        $reflectionProperty = $reflectionClassService->getProperty($property);
-        $reflectionProperty->setAccessible(true);
-        $reflectionProperty->setValue($service, $mock);
-    }
-
-    /**
      * Start transaction
      *
      * @return void
