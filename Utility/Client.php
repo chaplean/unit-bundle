@@ -112,6 +112,14 @@ class Client
     }
 
     /**
+     * @return Response
+     */
+    public function getResponse()
+    {
+        return $this->response;
+    }
+
+    /**
      * @param string $type
      * @param string $uri
      *
