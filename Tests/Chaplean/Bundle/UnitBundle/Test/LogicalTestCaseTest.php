@@ -42,6 +42,7 @@ class LogicalTestCaseTest extends WebTestCase
 
     /**
      * @return void
+     * @runInSeparateProcess
      */
     public function testGetDefaultFixturesNamespaceWithParameter()
     {
@@ -132,7 +133,6 @@ class LogicalTestCaseTest extends WebTestCase
      */
     public function testLoadPartialFixturesWithoutManager()
     {
-        $this->markTestSkipped('Problem oid !');
         $logicalTest = new LogicalTestCase();
         $logicalTest::setUpBeforeClass();
         $logicalTest->setUp();
