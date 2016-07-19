@@ -29,10 +29,32 @@ class RestClientTest extends LogicalTestCase
      *
      * @return void
      */
-    public function testGetContainer()
+    public function testGetResponseNotFlush()
     {
         $client = new RestClient($this->getContainer());
 
         $client->getContent();
+    }
+
+    /**
+     * @return void
+     */
+    public function testGetResponse()
+    {
+        $client = new RestClient($this->getContainer());
+
+        $response = $client->request('GET', '/');
+
+        $this->assertEquals($response, $client->getResponse());
+    }
+
+    /**
+     * @return void
+     */
+    public function testGetContainer()
+    {
+        $client = new RestClient($this->getContainer());
+
+        $this->assertEquals($this->getContainer(), $client->getContainer());
     }
 }

@@ -104,12 +104,12 @@ abstract class AbstractFixture extends BaseAbstractFixture
      * @param ObjectManager $manager
      *
      * @return mixed
+     * @deprecated To be removed, use getReference()
+     * @see AbstractFixture::getReference()
      */
     public function getEntity($name, ObjectManager $manager)
     {
-        $entity = $this->getReference($name);
-
-        return $manager->find(get_class($entity), $entity->getId());
+        return $this->getReference($name);
     }
 
     /**
