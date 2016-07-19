@@ -2,6 +2,7 @@
 
 namespace Chaplean\Bundle\UnitBundle\DataFixtures\Liip\PartialProvider;
 
+use Chaplean\Bundle\UnitBundle\Entity\Product;
 use Chaplean\Bundle\UnitBundle\Entity\Provider;
 use Chaplean\Bundle\UnitBundle\Utility\AbstractFixture;
 use Doctrine\Common\Persistence\ObjectManager;
@@ -22,10 +23,12 @@ class LoadProviderData extends AbstractFixture
      */
     public function load(ObjectManager $manager)
     {
+        /** @var Product $product1 */
+        $product1 = $this->getReference('product-1');
         $provider = new Provider();
 
         $provider->setName('Stylo');
-        $provider->setProduct($this->getEntity('product-1', $manager));
+        $provider->setProduct($product1);
 
         $this->persist($provider, $manager);
         $this->setReference('provider-1', $provider);

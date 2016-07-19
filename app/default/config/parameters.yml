@@ -1,6 +1,0 @@
-parameters:
-    locale: fr
-    secret: Pl3as3Chang3Th1sS3cr3tT0k3n
-    database_name: test_database
-    database_user: root
-    database_password: root

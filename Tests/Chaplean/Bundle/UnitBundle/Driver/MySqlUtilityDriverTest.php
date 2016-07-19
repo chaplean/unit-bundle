@@ -2,7 +2,7 @@
 
 namespace Tests\Chaplean\Bundle\UnitBundle\Driver;
 
-use Chaplean\Bundle\UnitBundle\Test\LogicalTest;
+use Chaplean\Bundle\UnitBundle\Test\LogicalTestCase;
 use Chaplean\Bundle\UnitBundle\Utility\Driver\MySqlUtilityDriver;
 use Doctrine\DBAL\DriverManager;
 
@@ -13,7 +13,7 @@ use Doctrine\DBAL\DriverManager;
  * @copyright 2014 - 2016 Chaplean (http://www.chaplean.com)
  * @since     3.0.0
  */
-class MySqlUtilityDriverTest extends LogicalTest
+class MySqlUtilityDriverTest extends LogicalTestCase
 {
     /**
      * @var array
@@ -25,6 +25,8 @@ class MySqlUtilityDriverTest extends LogicalTest
      */
     public static function setUpBeforeClass()
     {
+        self::loadStaticFixtures();
+        parent::setUpBeforeClass();
     }
 
     /**
@@ -34,13 +36,13 @@ class MySqlUtilityDriverTest extends LogicalTest
     {
         $this->params = array(
             'driver'        => 'pdo_mysql',
-            'host'          => '127.0.0.1',
-            'port'          => '3306',
+            'host'          => $this->getContainer()->getParameter('database_host'),
+            'port'          => $this->getContainer()->getParameter('database_port'),
             'dbname'        => 'test_database_doesnt_exist',
             'user'          => $this->getContainer()->getParameter('database_user'),
             'password'      => $this->getContainer()->getParameter('database_password'),
             'charset'       => 'UTF8',
-            'serverVersion' => '5.5',
+            'serverVersion' => '5.6',
         );
     }
 

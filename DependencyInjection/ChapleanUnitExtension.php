@@ -2,7 +2,6 @@
 
 namespace Chaplean\Bundle\UnitBundle\DependencyInjection;
 
-use Symfony\Component\ClassLoader\Psr4ClassLoader;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Loader;
@@ -29,12 +28,6 @@ class ChapleanUnitExtension extends Extension
         $loader = new Loader\YamlFileLoader($container, new FileLocator(__DIR__ . '/../Resources/config'));
         $loader->load('services.yml');
 
-//        $container->setParameter($this->getAlias(), $config);
-//
-//        $classLoader = new Psr4ClassLoader();
-//        $classLoader->addPrefix('Mockery\\', $container->getParameter('kernel.root_dir') . '/../vendor/mockery/mockery/library/');
-//        $classLoader->register();
-
         $container->setParameter('chaplean_unit', $config);
         $this->setParameters($container, 'chaplean_unit', $config);
     }
@@ -46,7 +39,7 @@ class ChapleanUnitExtension extends Extension
      *
      * @return void
      */
-    public function setParameters($container, $name, $config)
+    public function setParameters(ContainerBuilder $container, $name, array $config)
     {
         foreach ($config as $key => $parameter) {
             $container->setParameter($name . '.' . $key, $parameter);

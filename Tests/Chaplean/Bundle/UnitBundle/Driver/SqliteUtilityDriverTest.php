@@ -2,7 +2,7 @@
 
 namespace Tests\Chaplean\Bundle\UnitBundle\Driver;
 
-use Chaplean\Bundle\UnitBundle\Test\LogicalTest;
+use Chaplean\Bundle\UnitBundle\Test\LogicalTestCase;
 use Chaplean\Bundle\UnitBundle\Utility\Driver\SqliteUtilityDriver;
 use Doctrine\DBAL\DriverManager;
 
@@ -13,7 +13,7 @@ use Doctrine\DBAL\DriverManager;
  * @copyright 2014 - 2016 Chaplean (http://www.chaplean.com)
  * @since     3.0.0
  */
-class SqliteUtilityDriverTest extends LogicalTest
+class SqliteUtilityDriverTest extends LogicalTestCase
 {
     private $params;
 
@@ -22,6 +22,8 @@ class SqliteUtilityDriverTest extends LogicalTest
      */
     public static function setUpBeforeClass()
     {
+        self::loadStaticFixtures();
+        parent::setUpBeforeClass();
     }
 
     /**
@@ -31,14 +33,11 @@ class SqliteUtilityDriverTest extends LogicalTest
     {
         $this->params = array(
             'driver'        => 'pdo_sqlite',
-            'host'          => '127.0.0.1',
-            'port'          => '3306',
+            'host'          => $this->getContainer()->getParameter('database_host'),
             'path'          => $this->getContainer()->getParameter('kernel.cache_dir') . '/test.db',
-            'charset'       => 'UTF8',
-            'serverVersion' => '5.5',
+            'charset'       => 'UTF8'
         );
     }
-
 
     /**
      * @return void
@@ -59,10 +58,16 @@ class SqliteUtilityDriverTest extends LogicalTest
      */
     public function testIsBackupUpToDate()
     {
-        $date = new \DateTime('-3 days');
-        touch(__FILE__, $date->getTimestamp());
+        $connection = DriverManager::getConnection($this->params);
+        $fileDatabase = $connection->getParams()['path'];
 
-        $this->assertFalse(SqliteUtilityDriver::isBackupUpToDate(array('Chaplean\Bundle\UnitBundle\DataFixtures\Liip\LoadProviderData'), __FILE__));
+        $threeDaysAgo = new \DateTime('-3 days');
+        $fourDaysAgo = new \DateTime('-4 days');
+
+        touch($fileDatabase, $fourDaysAgo->getTimestamp());
+        touch($this->getContainer()->getParameter('kernel.root_dir') . '/../DataFixtures/Liip/LoadProviderData.php', $threeDaysAgo->getTimestamp());
+
+        $this->assertFalse(SqliteUtilityDriver::isBackupUpToDate(array('Chaplean\Bundle\UnitBundle\DataFixtures\Liip\LoadProviderData'), $fileDatabase));
     }
 
     /**
@@ -71,9 +76,13 @@ class SqliteUtilityDriverTest extends LogicalTest
     public function testExistWithOlderDatabase()
     {
         $connection = DriverManager::getConnection($this->params);
-        $fileDatabse = $connection->getParams()['path'];
-        $date = new \DateTime('-3 days');
-        touch($fileDatabse, $date->getTimestamp());
+        $fileDatabase = $connection->getParams()['path'];
+
+        $threeDaysAgo = new \DateTime('-3 days');
+        $fourDaysAgo = new \DateTime('-4 days');
+
+        touch($fileDatabase, $fourDaysAgo->getTimestamp());
+        touch($this->getContainer()->getParameter('kernel.root_dir') . '/../DataFixtures/Liip/LoadProviderData.php', $threeDaysAgo->getTimestamp());
 
         $this->assertFalse(SqliteUtilityDriver::exist($connection, array('Chaplean\Bundle\UnitBundle\DataFixtures\Liip\LoadProviderData')));
     }

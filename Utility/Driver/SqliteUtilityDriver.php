@@ -20,7 +20,7 @@ class SqliteUtilityDriver
      * @return void
      * @throws \Doctrine\DBAL\DBALException
      */
-    public static function createDatabase($connection)
+    public static function createDatabase(Connection $connection)
     {
         $params = $connection->getParams();
         $dbname = $params['path'];
@@ -38,7 +38,7 @@ class SqliteUtilityDriver
      *
      * @return mixed
      */
-    public static function exist($connection, $classNames = null, $hash = null)
+    public static function exist(Connection $connection, array $classNames = null, $hash = null)
     {
         $file = $connection->getParams()['path'];
 
@@ -97,7 +97,7 @@ class SqliteUtilityDriver
         $reflClass = new \ReflectionClass($class);
         $classFileName = $reflClass->getFileName();
 
-        if (\file_exists($classFileName)) {
+        if (file_exists($classFileName)) {
             $lastModifiedDateTime = new \DateTime();
             $lastModifiedDateTime->setTimestamp(filemtime($classFileName));
         }
@@ -111,7 +111,7 @@ class SqliteUtilityDriver
      *
      * @return void
      */
-    public static function copyDatabase($src, $dest)
+    public static function copyDatabase(Connection $src, Connection $dest)
     {
         $fileSrc = $src->getParams()['path'];
         $fileDest = $dest->getParams()['path'];

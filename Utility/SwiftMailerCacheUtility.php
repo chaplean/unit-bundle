@@ -25,7 +25,7 @@ class SwiftMailerCacheUtility
      *
      * @param Container $container
      */
-    public function __construct($container)
+    public function __construct(Container $container)
     {
         try {
             $this->swiftmailerCacheDir = $container->getParameter('swiftmailer.spool.default.file.path');
@@ -50,23 +50,29 @@ class SwiftMailerCacheUtility
     }
 
     /**
-     * @return mixed
+     * @return array
      * @throws \Exception
      */
     public function readMessages()
     {
-        $messages = array();
         $finder = Finder::create()->files()->in($this->swiftmailerCacheDir);
 
-        if ($finder->count() == 0) {
+        if ($finder->count() === 0) {
             return null;
         }
 
+        $messages = array();
+        $messagesTimes = array();
+
         /** @var SplFileInfo $file */
         foreach ($finder as $file) {
-            $messages[] = unserialize($file->getContents());
+            $message = unserialize($file->getContents());
+
+            $messagesTimes[] = $message->getTime();
+            $messages[] = $message;
         }
 
-        return count($messages) == 1 ? $messages[0] : $messages;
+        array_multisort($messagesTimes, $messages);
+        return array_values($messages);
     }
 }

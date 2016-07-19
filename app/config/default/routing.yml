@@ -1,0 +1,8 @@
+app_test_front:
+    resource: 'routing_front.yml'
+    prefix: /
+
+app_test_api:
+    type: rest
+    resource: 'routing_rest.yml'
+    prefix:   /rest/

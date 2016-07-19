@@ -1,0 +1,11 @@
+# Commands to execute in CodeShip
+- type: serial
+  services:
+  - application
+  steps:
+  - command: composer install --prefer-dist --no-interaction
+  - command: cp ./app/config/default/parameters.yml.dist ./app/config/default/parameters.yml
+  - command: cp ./app/config/sqlite/parameters.yml.dist ./app/config/sqlite/parameters.yml
+  - command: ./bin/phpunit.sh default mysql
+  - command: ./bin/phpunit.sh sqlite mysql
+  - command: php vendor/bin/coveralls

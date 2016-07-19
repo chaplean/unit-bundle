@@ -34,8 +34,6 @@ class ContainerUtility
         /** @var Kernel $kernel */
 
         switch ($typeTest) {
-            case 'behat':
-                return trigger_error('Behat type test is no longer available', E_USER_WARNING);
             case 'functional':
             case 'logical':
             default:

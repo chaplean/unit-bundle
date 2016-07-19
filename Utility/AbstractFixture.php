@@ -5,7 +5,6 @@ namespace Chaplean\Bundle\UnitBundle\Utility;
 use Doctrine\Common\DataFixtures\AbstractFixture as BaseAbstractFixture;
 use Doctrine\Common\Persistence\ObjectManager;
 use Doctrine\ORM\Mapping\ClassMetadata;
-use Symfony\Component\Debug\Exception\ContextErrorException;
 
 /**
  * AbstractFixture.php.
@@ -22,7 +21,7 @@ abstract class AbstractFixture extends BaseAbstractFixture
     private $em;
 
     /**
-     * @var GeneratorData
+     * @var GeneratorDataUtility
      */
     private $generator;
 
@@ -105,12 +104,12 @@ abstract class AbstractFixture extends BaseAbstractFixture
      * @param ObjectManager $manager
      *
      * @return mixed
+     * @deprecated To be removed, use getReference()
+     * @see AbstractFixture::getReference()
      */
-    public function getEntity($name, $manager)
+    public function getEntity($name, ObjectManager $manager)
     {
-        $entity = $this->getReference($name);
-
-        return $manager->find(get_class($entity), $entity->getId());
+        return $this->getReference($name);
     }
 
     /**
@@ -122,7 +121,7 @@ abstract class AbstractFixture extends BaseAbstractFixture
      *
      * @return void
      */
-    public function persist($entity, $manager = null)
+    public function persist($entity, ObjectManager $manager = null)
     {
         $this->setManager($manager);
 
@@ -173,7 +172,7 @@ abstract class AbstractFixture extends BaseAbstractFixture
      *
      * @return array
      */
-    public function getAccessor($field, $class)
+    public function getAccessor(array $field, $class)
     {
         $fieldName = ucfirst(str_replace(' ', '', ucwords(str_replace('_', ' ', $field['fieldName']))));
         if ($field['type'] == 'boolean') {
@@ -201,7 +200,8 @@ abstract class AbstractFixture extends BaseAbstractFixture
     public function getReference($name)
     {
         $reference = $this->referenceRepository->getReference($name);
-        if ($reference->getId() == null) {
+        
+        if ($reference->getId() === null) {
             throw new \Exception(sprintf('\'%s\' is not persisted !', $name));
         }
 
@@ -234,7 +234,7 @@ abstract class AbstractFixture extends BaseAbstractFixture
             $path = $reflectionClass->getFileName();
             $path = str_replace($reflectionClass->getShortName() . '.php', '', $path);
 
-            $this->generator = new GeneratorData($path . '../Resources/config/datafixtures.yml');
+            $this->generator = new GeneratorDataUtility($path . '../Resources/config/datafixtures.yml');
         }
     }
 }
