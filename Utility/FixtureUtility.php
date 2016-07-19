@@ -2,17 +2,18 @@
 
 namespace Chaplean\Bundle\UnitBundle\Utility;
 
-use Chaplean\Bundle\UnitBundle\Utility\Driver\MySqlUtilityDriver;
 use Doctrine\Bundle\DoctrineBundle\Registry;
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 use Doctrine\Common\DataFixtures\Executor\ORMExecutor;
 use Doctrine\Common\DataFixtures\Loader;
 use Doctrine\Common\DataFixtures\ProxyReferenceRepository;
 use Doctrine\Common\DataFixtures\Purger\ORMPurger;
+use Doctrine\Common\Persistence\ObjectManager;
 use Doctrine\DBAL\Driver\PDOMySql\Driver as MySqlDriver;
-use Doctrine\DBAL\Driver\PDOSqlite\Driver as SqliteDriver;
 use Doctrine\ORM\EntityManager;
 use Symfony\Component\DependencyInjection\Container;
+use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\HttpFoundation\File\Exception\FileException;
 
 /**
  * FixtureUtility.php.
@@ -24,56 +25,105 @@ use Symfony\Component\DependencyInjection\Container;
 class FixtureUtility
 {
     /**
-     * @var array
+     * @var ORMExecutor[]
      */
-    private static $loaded;
+    protected $cachedExecutor = array();
 
     /**
-     * @var ProxyReferenceRepository
+     * @var DatabaseUtility
      */
-    private static $referenceRepository;
+    private $databaseUtility;
+
+    /**
+     * @var FixtureUtility
+     */
+    private static $instance = null;
+
+    /**
+     * @var array
+     */
+    private $loaded = array();
 
     /**
      * @var Container
      */
-    private static $container;
+    private $container;
 
     /**
      * @var string
      */
-    public static $namespace;
+    private $namespace;
 
     /**
-     * @param array              $classNames    List of fully qualified class names of fixtures to load
-     * @param EntityManager|null $entityManager EntityManager to use
+     * Singleton
      *
-     * @return ORMExecutor
+     * @codeCoverageIgnore
+     * @return void
      */
-    public static function loadPartialFixtures(array $classNames, $entityManager)
+    private function __clone()
     {
-        if (empty($entityManager)) {
-            /** @var Registry $registry */
-            $registry = self::$container->get('doctrine');
-            /** @var EntityManager $om */
-            $entityManager = $registry->getManager();
+    }
+
+    /**
+     * Singleton
+     *
+     * FixtureUtility constructor.
+     *
+     * @codeCoverageIgnore
+     */
+    private function __construct()
+    {
+    }
+
+    /**
+     * Retrieve Doctrine DataFixtures loader.
+     *
+     * @param Container $container
+     * @param array     $classNames
+     *
+     * @return Loader
+     */
+    protected function getFixtureLoader(Container $container, array $classNames)
+    {
+        $loaderClass = 'Symfony\Bundle\DoctrineFixturesBundle\Common\DataFixtures\Loader';
+
+        if (class_exists('Symfony\Bridge\Doctrine\DataFixtures\ContainerAwareLoader')) {
+            $loaderClass = 'Symfony\Bridge\Doctrine\DataFixtures\ContainerAwareLoader';
+        } elseif (class_exists('Doctrine\Bundle\FixturesBundle\Common\DataFixtures\Loader')) {
+            $loaderClass = 'Doctrine\Bundle\FixturesBundle\Common\DataFixtures\Loader';
         }
 
-        $executor = new ORMExecutor($entityManager);
+        $loader = new $loaderClass($container);
 
-        $loader = self::getFixtureLoader(self::$container, $classNames);
-
-        $fixtures = array();
-        foreach ($loader->getFixtures() as $fixture) {
-            $fixtureClass = get_class($fixture);
-            if (!in_array($fixtureClass, self::$loaded)) {
-                $fixtures[] = new $fixtureClass();
-            }
+        foreach ($classNames as $className) {
+            self::loadFixtureClass($loader, $className);
         }
 
-        $executor->setReferenceRepository(self::$referenceRepository);
-        $executor->execute($fixtures, true);
+        return $loader;
+    }
 
-        return $executor;
+    /**
+     * Get Singleton Instance
+     *
+     * @return \Chaplean\Bundle\UnitBundle\Utility\FixtureUtility
+     */
+    public static function getInstance()
+    {
+        if (self::$instance === null) {
+            self::$instance = new self();
+        }
+
+        return self::$instance;
+    }
+
+    /**
+     * Get namespace.
+     *
+     * @return string
+     */
+    public function getNamespace()
+    {
+        return $this->namespace;
     }
 
     /**
@@ -92,98 +142,127 @@ class FixtureUtility
      * Depends on the doctrine data-fixtures library being available in the
      * class path.
      *
-     * @param array          $classNames List of fully qualified class names of fixtures to load
-     * @param string         $typeTest   Name of type test (logical, functional or behat)
-     * @param integer|string $purgeMode  Sets the ORM purge mode
+     * @param array $classNames List of fully qualified class names of fixtures to load
      *
      * @return ORMExecutor
+     * @throws \Exception
      */
-    public static function loadFixtures(array $classNames, $typeTest, $purgeMode = ORMPurger::PURGE_MODE_DELETE)
+    public function loadFixtures(array $classNames)
     {
-        self::$container = ContainerUtility::getContainer($typeTest);
         /** @var Registry $registry */
-        $registry = self::$container->get('doctrine');
-        /** @var EntityManager $om */
-        $om = $registry->getManager();
-
-        self::$referenceRepository = new ProxyReferenceRepository($om);
-
-        DatabaseUtility::initDatabase($typeTest, $registry);
-        $connection = $om->getConnection();
-        $driver = $connection->getDriver();
-        $name = DatabaseUtility::getParams()['dbname'];
-
+        $registry = $this->container->get('doctrine');
         $executor = null;
 
-        switch (true) {
-            case $driver instanceof SqliteDriver:
-                $executor = DatabaseUtility::initSqliteDatabase($classNames);
-                break;
-            case $driver instanceof MySqlDriver:
-                DatabaseUtility::initMySqlDatabase();
-                MySqlUtilityDriver::disableForeignKeyCheck($connection);
-                break;
-            default:
-                $executor = null;
-        }
+        $databaseUtility = new DatabaseUtility();
+        $databaseUtility->initDatabase($classNames, $registry, $this->container);
 
-        if (empty($executor)) {
-            $purger = new ORMPurger();
-            if (null !== $purgeMode) {
-                $purger->setPurgeMode($purgeMode);
+        $driverIsMysql = $databaseUtility->getDriver() instanceof MySqlDriver;
+
+        $databaseHash = $databaseUtility->getHash();
+        $sqlDirectory = $this->container->getParameter('kernel.cache_dir') . '/sql';
+
+        if (!$databaseUtility->exist($classNames)) {
+            $databaseUtility->createSchemaDatabase();
+        } else {
+            if (!$driverIsMysql || !array_key_exists($databaseHash, $this->cachedExecutor)) {
+                $databaseUtility->cleanDatabase();
+
+                if (!array_key_exists($databaseHash, $this->cachedExecutor)) {
+                    $databaseUtility->cleanDatabaseTemporary();
+                }
             }
-
-            $executor = new ORMExecutor($om, $purger);
-
-            $executor->setReferenceRepository(self::$referenceRepository);
-            $executor->purge();
         }
 
-        $loader = self::getFixtureLoader(self::$container, $classNames);
-        self::$loaded = array();
-        foreach ($loader->getFixtures() as $fixture) {
-            self::$loaded[] = get_class($fixture);
+        if (!array_key_exists($databaseHash, $this->cachedExecutor) || $driverIsMysql) {
+            if ($executor === null) {
+                $connection = $databaseUtility->getOm()
+                    ->getConnection();
+
+                $host = $connection->getHost();
+                $port = $connection->getPort();
+                $databaseName = $connection->getDatabase();
+                $user = $connection->getUsername();
+                $password = $connection->getPassword();
+
+                $referenceRepository = new ProxyReferenceRepository($databaseUtility->getOm());
+
+                $executor = new ORMExecutor($databaseUtility->getOm(), new ORMPurger());
+                $executor->setReferenceRepository($referenceRepository);
+
+                $loader = self::getFixtureLoader($this->container, $classNames);
+
+                $this->loaded = array();
+                foreach ($loader->getFixtures() as $fixture) {
+                    $this->loaded[] = get_class($fixture);
+                }
+
+                $cmdArgs = '-h' . $host . ' -P' . $port . ' -u' . $user . ' -p' . $password . ' ' . $databaseName;
+
+                if (array_key_exists($databaseHash, $this->cachedExecutor)) {
+                    if ($driverIsMysql) {
+                        $mysqlCmd = 'mysql ' . $cmdArgs . ' < ' . $sqlDirectory . '/' . $databaseHash . '.sql';
+
+                        exec($mysqlCmd, $output, $returnVar);
+
+                        $databaseUtility->getOm()->getUnitOfWork()->clear();
+                    }
+
+                    $executor = $this->cachedExecutor[$databaseHash];
+                } else {
+                    $executor->execute($loader->getFixtures());
+
+                    $this->cachedExecutor[$databaseHash] = $executor;
+
+                    if ($driverIsMysql) {
+                        if (!@mkdir($sqlDirectory) && !is_dir($sqlDirectory)) {
+                            throw new FileException('Directory is not created: ' . $sqlDirectory);
+                        }
+
+                        $mysqlDumpCmd = 'mysqldump ' . $cmdArgs . ' > ' . $sqlDirectory . '/' . $databaseHash . '.sql';
+
+                        exec($mysqlDumpCmd, $output, $returnVar);
+                    }
+                }
+            }
+        } else {
+            $executor = $this->cachedExecutor[$databaseHash];
         }
 
-        $executor->execute($loader->getFixtures(), true);
-
-        if (isset($name) && isset($backup)) {
-            /** @noinspection PhpUndefinedMethodInspection */
-            $executor->getReferenceRepository()->save($backup);
-            copy($name, $backup);
-        }
-
-        if ($driver instanceof MySqlDriver) {
-            MySqlUtilityDriver::enableForeignKeyCheck($connection);
-            $connection->close();
-        }
+        $databaseUtility->moveDatabase();
+        $this->databaseUtility = $databaseUtility;
 
         return $executor;
     }
 
     /**
-     * Retrieve Doctrine DataFixtures loader.
+     * @param array                       $classNames    List of fully qualified class names of fixtures to load
+     * @param EntityManager|ObjectManager $entityManager EntityManager to use
      *
-     * @param Container $container
-     * @param array     $classNames
-     *
-     * @return Loader
+     * @return ORMExecutor
+     * @throws \Exception
      */
-    protected static function getFixtureLoader(Container $container, array $classNames)
+    public function loadPartialFixtures(array $classNames, $entityManager)
     {
-        $loaderClass = class_exists(
-            'Symfony\Bridge\Doctrine\DataFixtures\ContainerAwareLoader'
-        ) ? 'Symfony\Bridge\Doctrine\DataFixtures\ContainerAwareLoader' : (class_exists(
-            'Doctrine\Bundle\FixturesBundle\Common\DataFixtures\Loader'
-        ) ? 'Doctrine\Bundle\FixturesBundle\Common\DataFixtures\Loader' : 'Symfony\Bundle\DoctrineFixturesBundle\Common\DataFixtures\Loader');
+        $executor = new ORMExecutor($entityManager);
 
-        $loader = new $loaderClass($container);
+        $loader = self::getFixtureLoader($this->container, $classNames);
 
-        foreach ($classNames as $className) {
-            self::loadFixtureClass($loader, $className);
+        $fixtures = array();
+        foreach ($loader->getFixtures() as $fixture) {
+            $fixtureClass = get_class($fixture);
+            if (!in_array($fixtureClass, $this->loaded)) {
+                $fixtures[] = new $fixtureClass();
+            }
         }
 
-        return $loader;
+        if ($this->databaseUtility === null || !isset($this->cachedExecutor[$this->databaseUtility->getHash()])) {
+            throw new \Exception('Executor cannot be found');
+        }
+
+        $executor->setReferenceRepository($this->cachedExecutor[$this->databaseUtility->getHash()]->getReferenceRepository());
+        $executor->execute($fixtures, true);
+
+        return $executor;
     }
 
     /**
@@ -194,7 +273,7 @@ class FixtureUtility
      *
      * @return void
      */
-    private static function loadFixtureClass($loader, $className)
+    private function loadFixtureClass(Loader $loader, $className)
     {
         $fixture = new $className();
 
@@ -214,23 +293,36 @@ class FixtureUtility
     }
 
     /**
-     * @param string|null $namespace
-     *
      * @return array
      */
-    public static function loadDefaultFixtures($namespace = null)
+    public function loadDefaultFixtures()
     {
-        if (!empty($namespace)) {
-            $namespaceBckup = self::$namespace;
-            self::$namespace = $namespace;
-        }
+        return NamespaceUtility::getClassNamesByContext($this->namespace, NamespaceUtility::DIR_DEFAULT_DATA);
+    }
 
-        $dataFixtures = NamespaceUtility::getClassNamesByContext(self::$namespace, NamespaceUtility::DIR_DEFAULT_DATA);
+    /**
+     * @param ContainerInterface $container
+     *
+     * @return FixtureUtility
+     */
+    public function setContainer(ContainerInterface $container)
+    {
+        $this->container = $container;
 
-        if (isset($namespaceBckup)) {
-            self::$namespace = $namespaceBckup;
-        }
+        return $this;
+    }
 
-        return $dataFixtures;
+    /**
+     * Set namespace.
+     *
+     * @param string $namespace
+     *
+     * @return FixtureUtility
+     */
+    public function setNamespace($namespace)
+    {
+        $this->namespace = $namespace;
+
+        return $this;
     }
 }

@@ -2,7 +2,6 @@
 
 namespace Chaplean\Bundle\UnitBundle\DependencyInjection;
 
-use Symfony\Component\ClassLoader\Psr4ClassLoader;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Loader;
@@ -23,18 +22,31 @@ class ChapleanUnitExtension extends Extension
      */
     public function load(array $configs, ContainerBuilder $container)
     {
-        $config = array();
-        foreach ($configs as $subConfig) {
-            $config = array_merge($config, $subConfig);
-        }
+        $configuration = new Configuration();
+        $config = $this->processConfiguration($configuration, $configs);
 
         $loader = new Loader\YamlFileLoader($container, new FileLocator(__DIR__ . '/../Resources/config'));
         $loader->load('services.yml');
 
-        $container->setParameter($this->getAlias(), $config);
+        $container->setParameter('chaplean_unit', $config);
+        $this->setParameters($container, 'chaplean_unit', $config);
+    }
 
-        $classLoader = new Psr4ClassLoader();
-        $classLoader->addPrefix('Mockery\\', $container->getParameter('kernel.root_dir') . '/../vendor/mockery/mockery/library/');
-        $classLoader->register();
+    /**
+     * @param ContainerBuilder $container
+     * @param string           $name
+     * @param array            $config
+     *
+     * @return void
+     */
+    public function setParameters(ContainerBuilder $container, $name, array $config)
+    {
+        foreach ($config as $key => $parameter) {
+            $container->setParameter($name . '.' . $key, $parameter);
+
+            if (is_array($parameter)) {
+                $this->setParameters($container, $name . '.' . $key, $parameter);
+            }
+        }
     }
 }

@@ -2,6 +2,9 @@
 
 namespace Chaplean\Bundle\UnitBundle\Utility\Driver;
 
+use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\DriverManager;
+
 /**
  * SqliteUtilityDriver.php.
  *
@@ -11,6 +14,47 @@ namespace Chaplean\Bundle\UnitBundle\Utility\Driver;
  */
 class SqliteUtilityDriver
 {
+    /**
+     * @param Connection $connection
+     *
+     * @return void
+     * @throws \Doctrine\DBAL\DBALException
+     */
+    public static function createDatabase(Connection $connection)
+    {
+        $params = $connection->getParams();
+        $dbname = $params['path'];
+
+        unset($params['path']);
+
+        $tmpConnection = DriverManager::getConnection($params);
+        $tmpConnection->getSchemaManager()->createDatabase($dbname);
+    }
+
+    /**
+     * @param Connection $connection
+     * @param array      $classNames
+     * @param string     $hash
+     *
+     * @return mixed
+     */
+    public static function exist(Connection $connection, array $classNames = null, $hash = null)
+    {
+        $file = $connection->getParams()['path'];
+
+        if ($hash !== null) {
+            $file = (str_replace('.db', ('_' . $hash), $file) . '.db');
+        }
+
+        $exist = file_exists($file);
+        if ($exist && $classNames != null && !self::isBackupUpToDate($classNames, $file)) {
+            unlink($file);
+            $exist = false;
+        }
+
+        return $exist;
+    }
+
     /**
      * Determine if the Fixtures that define a database backup have been
      * modified since the backup was made.
@@ -26,7 +70,7 @@ class SqliteUtilityDriver
         $backupLastModifiedDateTime = new \DateTime();
         $backupLastModifiedDateTime->setTimestamp(filemtime($backup));
 
-        foreach ($classNames as &$className) {
+        foreach ($classNames as $className) {
             $fixtureLastModifiedDateTime = self::getFixtureLastModified($className);
             if ($backupLastModifiedDateTime < $fixtureLastModifiedDateTime) {
                 return false;
@@ -46,7 +90,7 @@ class SqliteUtilityDriver
      *
      * @return \DateTime|null
      */
-    private static function getFixtureLastModified($class)
+    public static function getFixtureLastModified($class)
     {
         $lastModifiedDateTime = null;
 
@@ -59,5 +103,19 @@ class SqliteUtilityDriver
         }
 
         return $lastModifiedDateTime;
+    }
+
+    /**
+     * @param Connection $src
+     * @param Connection $dest
+     *
+     * @return void
+     */
+    public static function copyDatabase(Connection $src, Connection $dest)
+    {
+        $fileSrc = $src->getParams()['path'];
+        $fileDest = $dest->getParams()['path'];
+
+        copy($fileSrc, $fileDest);
     }
 }

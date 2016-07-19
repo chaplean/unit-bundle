@@ -1,5 +1,7 @@
 <?php
 
+// @codingStandardsIgnoreFile
+
 use Symfony\Component\HttpKernel\Kernel;
 use Symfony\Component\Config\Loader\LoaderInterface;
 
@@ -18,33 +20,30 @@ class AppKernel extends Kernel
     public function registerBundles()
     {
         $bundles = array(
-            new Sensio\Bundle\FrameworkExtraBundle\SensioFrameworkExtraBundle(),
             new Symfony\Bundle\FrameworkBundle\FrameworkBundle(),
-            new Doctrine\Bundle\DoctrineBundle\DoctrineBundle(),
-            new Doctrine\Bundle\FixturesBundle\DoctrineFixturesBundle(),
             new Symfony\Bundle\MonologBundle\MonologBundle(),
+            new Symfony\Bundle\SwiftmailerBundle\SwiftmailerBundle(),
+            new Doctrine\Bundle\DoctrineBundle\DoctrineBundle(),
+            new Sensio\Bundle\FrameworkExtraBundle\SensioFrameworkExtraBundle(),
+            new Doctrine\Bundle\FixturesBundle\DoctrineFixturesBundle(),
             new Chaplean\Bundle\UnitBundle\ChapleanUnitBundle(),
             new Liip\FunctionalTestBundle\LiipFunctionalTestBundle(),
+            new FOS\RestBundle\FOSRestBundle(),
+            new JMS\SerializerBundle\JMSSerializerBundle(),
+            new Symfony\Bundle\TwigBundle\TwigBundle(),
+            new Symfony\Bundle\SecurityBundle\SecurityBundle(),
+            new Chaplean\Bundle\MailerBundle\ChapleanMailerBundle(),
         );
-
-        if (in_array($this->getEnvironment(), array('dev', 'test', 'behat'))) {
-            $bundles[] = new Symfony\Bundle\SwiftmailerBundle\SwiftmailerBundle();
-            $bundles[] = new FOS\RestBundle\FOSRestBundle();
-            $bundles[] = new JMS\SerializerBundle\JMSSerializerBundle();
-            $bundles[] = new Symfony\Bundle\TwigBundle\TwigBundle();
-        }
 
         return $bundles;
     }
 
     /**
-     * @param LoaderInterface $loader
-     *
-     * @return void
+     * @return string
      */
-    public function registerContainerConfiguration(LoaderInterface $loader)
+    public function getRootDir()
     {
-        $loader->load(__DIR__.'/config/config.yml');
+        return __DIR__;
     }
 
     /**
@@ -52,12 +51,7 @@ class AppKernel extends Kernel
      */
     public function getCacheDir()
     {
-        $cacheDir = sys_get_temp_dir().'/cache';
-        if (!is_dir($cacheDir)) {
-            mkdir($cacheDir, 0777, true);
-        }
-
-        return $cacheDir;
+        return dirname(__DIR__) . '/var/cache/' . $this->getEnvironment();
     }
 
     /**
@@ -65,11 +59,22 @@ class AppKernel extends Kernel
      */
     public function getLogDir()
     {
-        $logDir = sys_get_temp_dir().'/logs';
-        if (!is_dir($logDir)) {
-            mkdir($logDir, 0777, true);
+        return dirname(__DIR__) . '/var/logs';
+    }
+
+    /**
+     * @param LoaderInterface $loader Resource loader.
+     *
+     * @return void
+     */
+    public function registerContainerConfiguration(LoaderInterface $loader)
+    {
+        $configType = $_SERVER['CONFIG_TYPE'] ?? null;
+
+        if (!in_array($configType, array('default', 'sqlite'))) {
+            $configType = 'default';
         }
 
-        return $logDir;
+        $loader->load($this->getRootDir() . '/config/' . $configType . '/config.yml');
     }
 }

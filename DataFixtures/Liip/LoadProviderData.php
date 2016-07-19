@@ -2,6 +2,7 @@
 
 namespace Chaplean\Bundle\UnitBundle\DataFixtures\Liip;
 
+use Chaplean\Bundle\UnitBundle\Entity\Product;
 use Chaplean\Bundle\UnitBundle\Entity\Provider;
 use Chaplean\Bundle\UnitBundle\Utility\AbstractFixture;
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
@@ -23,13 +24,15 @@ class LoadProviderData extends AbstractFixture implements DependentFixtureInterf
      */
     public function load(ObjectManager $manager)
     {
-        $product = new Provider();
+        /** @var Product $product1 */
+        $product1 = $this->getReference('product-1');
+        $provider = new Provider();
 
-        $product->setName('Stylo');
-        $product->setProduct($this->getEntity('product-1', $manager));
+        $provider->setName('Stylo');
+        $provider->setProduct($product1);
 
-        $this->persist($product, $manager);
-        $this->setReference('provider-1', $product);
+        $this->persist($provider, $manager);
+        $this->setReference('provider-1', $provider);
 
         $manager->flush();
     }

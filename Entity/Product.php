@@ -60,7 +60,7 @@ class Product
     /**
      * Get id.
      *
-     * @return int
+     * @return integer
      */
     public function getId()
     {
@@ -84,7 +84,7 @@ class Product
      *
      * @return self
      */
-    public function setClient($client)
+    public function setClient(Client $client)
     {
         $this->client = $client;
 

@@ -92,7 +92,7 @@ class User
      *
      * @return self
      */
-    public function setStatus($status)
+    public function setStatus(Status $status)
     {
         $this->status = $status;
 

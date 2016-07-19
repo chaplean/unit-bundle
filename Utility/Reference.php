@@ -66,8 +66,12 @@ class Reference
         preg_match('/@(.[^<>\[\]]*)(<\d*,*\s*\d*>|\[.*,?\])?/', $property, $matches);
 
         if (count($matches) >= 2) {
-            $this->key = $matches[1];
+            if ($matches[0] == '@new()') {
+                $this->key = null;
+                return;
+            }
 
+            $this->key = $matches[1];
             if (isset($matches[2])) {
                 $options = $matches[2];
                 preg_match('/<(\d*),\s*(\d*)>/', $options, $matches);

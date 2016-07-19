@@ -1,12 +1,11 @@
 <?php
-/**
- * autoload.php.
- *
- * @author    Valentin - Chaplean <valentin@chaplean.com>
- * @copyright 2014 - 2015 Chaplean (http://www.chaplean.com)
- * @since     2.0.0
- */
 
+use Doctrine\Common\Annotations\AnnotationRegistry;
+use Composer\Autoload\ClassLoader;
+
+/**
+ * @var ClassLoader $loader
+ */
 $loader = require_once __DIR__  . '/../vendor/autoload.php';
 
 if (class_exists('\Doctrine\Common\Annotations\AnnotationRegistry')) {
