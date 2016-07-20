@@ -74,6 +74,11 @@ class LogicalTestCase extends WebTestCase
     protected static $withDefaultData = true;
 
     /**
+     * @var boolean
+     */
+    protected static $datafixturesEnabled = true;
+
+    /**
      * Construct
      *
      * @param string|null $name
@@ -204,6 +209,10 @@ class LogicalTestCase extends WebTestCase
         try {
             $dataFixturesNamespaceParameter = self::$container->getParameter('data_fixtures_namespace');
 
+            if (is_bool($dataFixturesNamespaceParameter) && !$dataFixturesNamespaceParameter) {
+                self::$datafixturesEnabled = false;
+            }
+
             return $dataFixturesNamespaceParameter;
         } catch (InvalidArgumentException $e) {
             return 'App\Bundle\RestBundle\\';
@@ -296,6 +305,8 @@ class LogicalTestCase extends WebTestCase
     {
         if (self::$fixtureUtility === null) {
             throw new \Exception('FixtureUtility needs to be instanciated');
+        } elseif (!self::$datafixturesEnabled) {
+            throw new \Exception('Datafixture is disabled, check \'data_fixtures_namespace\' value');
         }
 
         $contextFixtures = NamespaceUtility::getClassNamesByContext(self::$fixtureUtility->getNamespace(), $context);
@@ -318,9 +329,14 @@ class LogicalTestCase extends WebTestCase
      * @param string $context
      *
      * @return void
+     * @throws \Exception
      */
     public function loadPartialFixturesByContext($context)
     {
+        if (!self::$datafixturesEnabled) {
+            throw new \Exception('Datafixture is disabled, check \'data_fixtures_namespace\' value');
+        }
+
         $fixtureUtility = $this->getFixtureUtility();
         $classNames = NamespaceUtility::getClassNamesByContext($fixtureUtility->getNamespace(), $context);
 
@@ -463,11 +479,13 @@ class LogicalTestCase extends WebTestCase
 
         $dataFixturesToLoad = self::$userFixtures;
 
-        if (self::$withDefaultData) {
+        if (self::$withDefaultData && self::$datafixturesEnabled) {
             $dataFixturesToLoad = array_merge(self::$fixtureUtility->loadDefaultFixtures(), $dataFixturesToLoad);
         }
 
-        self::loadFixturesOnSetUp($dataFixturesToLoad);
+        if (self::$datafixturesEnabled) {
+            self::loadFixturesOnSetUp($dataFixturesToLoad);
+        }
     }
 
     /**

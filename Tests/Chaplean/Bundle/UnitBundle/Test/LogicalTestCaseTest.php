@@ -65,6 +65,106 @@ class LogicalTestCaseTest extends WebTestCase
     }
 
     /**
+     * @return void
+     * @runInSeparateProcess
+     */
+    public function testDatafixturesDisabled()
+    {
+        $containerMock = $this->getMockBuilder('Symfony\Component\DependencyInjection\ContainerInterface')
+            ->getMock();
+
+        $logicalTest = new LogicalTestCase();
+
+        $containerMock
+            ->expects($this->any())
+            ->method('get')
+            ->withConsecutive(
+                array($this->equalTo('doctrine')),
+                array($this->equalTo('chaplean_unit.swiftmailer_cache'))
+            )
+            ->willReturnOnConsecutiveCalls(
+                $logicalTest->getContainer()->get('doctrine'),
+                $logicalTest->getContainer()->get('chaplean_unit.swiftmailer_cache')
+            );
+
+        $containerMock
+            ->expects($this->once())
+            ->method('getParameter')
+            ->with($this->equalTo('data_fixtures_namespace'))
+            ->will($this->returnValue(false));
+
+        $logicalTest->setContainer($containerMock);
+        $this->assertEquals(false, $logicalTest->getDefaultFixturesNamespace());
+
+        $logicalTest::setUpBeforeClass();
+    }
+
+    /**
+     * @return void
+     * @runInSeparateProcess
+     * @expectedException \Exception
+     * @expectedExceptionMessage Datafixture is disabled, check 'data_fixtures_namespace' value
+     */
+    public function testDatafixturesDisabledAndLoadByContext()
+    {
+        $containerMock = $this->getMockBuilder('Symfony\Component\DependencyInjection\ContainerInterface')
+            ->getMock();
+
+        $logicalTest = new LogicalTestCase();
+
+        $containerMock
+            ->expects($this->once())
+            ->method('getParameter')
+            ->with($this->equalTo('data_fixtures_namespace'))
+            ->will($this->returnValue(false));
+
+        $logicalTest->setContainer($containerMock);
+        $this->assertEquals(false, $logicalTest->getDefaultFixturesNamespace());
+
+        $logicalTest::loadFixturesByContext('Foo');
+    }
+
+    /**
+     * @return void
+     * @runInSeparateProcess
+     * @expectedException \Exception
+     * @expectedExceptionMessage Datafixture is disabled, check 'data_fixtures_namespace' value
+     */
+    public function testDatafixturesDisabledAndLoadPartialByContext()
+    {
+        $containerMock = $this->getMockBuilder('Symfony\Component\DependencyInjection\ContainerInterface')
+            ->getMock();
+
+        $logicalTest = new LogicalTestCase();
+
+        $containerMock
+            ->expects($this->any())
+            ->method('get')
+            ->withConsecutive(
+                array($this->equalTo('doctrine')),
+                array($this->equalTo('chaplean_unit.swiftmailer_cache'))
+            )
+            ->willReturnOnConsecutiveCalls(
+                $logicalTest->getContainer()->get('doctrine'),
+                $logicalTest->getContainer()->get('chaplean_unit.swiftmailer_cache')
+            );
+
+        $containerMock
+            ->expects($this->once())
+            ->method('getParameter')
+            ->with($this->equalTo('data_fixtures_namespace'))
+            ->will($this->returnValue(false));
+
+        $logicalTest->setContainer($containerMock);
+        $this->assertEquals(false, $logicalTest->getDefaultFixturesNamespace());
+
+        $logicalTest::setUpBeforeClass();
+        $logicalTest->setUp();
+
+        $logicalTest->loadPartialFixturesByContext('Bar');
+    }
+
+    /**
      * @expectedException \Exception
      * @return void
      */

@@ -17,13 +17,13 @@ Installation step process:
 
 Include ChapleanUnitBundle in `composer.json`
 
-``` json
+```json
 {
 ...
-"require-dev": {
-        "chaplean/unit-bundle": "2.0.*"
+    "require-dev": {
+        "chaplean/unit-bundle": "^4.0"
         ...
-        }
+    }
 }
 ```
 
@@ -33,7 +33,7 @@ Composer will install the bundle to your project's `vendor/chaplean` directory.
 
 Add the bundle and dependency in the kernel:
 
-``` php
+```php
 <?php
 // app/AppKernel.php
 
@@ -50,8 +50,10 @@ public function registerBundles()
 
 Open `app/config/parameters*` files
 
-Add and change the default value
+Add and change the default value. The `false` value disable the loading of datafixtures.
 
-```
-    data_fixtures_namespace: App\Bundle\RestBundle\
+```yaml
+parameters:
+    ...
+    data_fixtures_namespace: App\Bundle\RestBundle\|false
 ```

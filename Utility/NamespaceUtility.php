@@ -21,11 +21,16 @@ class NamespaceUtility
      * @param string $context
      *
      * @return array
+     * @throws \Exception
      */
     public static function getClassNamesByContext($namespace, $context)
     {
         $defaultFixtures = array();
-        list($namespaceContext, $pathDatafixtures) = self::getNamespacePathDataFixtures($namespace, $context);
+        try {
+            list($namespaceContext, $pathDatafixtures) = self::getNamespacePathDataFixtures($namespace, $context);
+        } catch (\ReflectionException $e) {
+            throw new \Exception(sprintf('\'%s\' namespace is not available. Check \'data_fixtures_namespace\' parameter !', $namespace));
+        }
 
         if (is_dir($pathDatafixtures)) {
             $files = Finder::create()->files()->in($pathDatafixtures);
@@ -45,7 +50,7 @@ class NamespaceUtility
      *
      * @return array
      */
-    public static function getNamespacePathDataFixtures($namespace, $subfolder = '')
+    private static function getNamespacePathDataFixtures($namespace, $subfolder = '')
     {
         $classBundleName = str_replace(array('\\Bundle', '\\'), '', $namespace);
         $classBundle = new \ReflectionClass($namespace . $classBundleName);
