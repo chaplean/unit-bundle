@@ -1,6 +1,7 @@
 imports:
     - { resource: parameters.yml }
     - { resource: security.yml }
+    - { resource: '@ChapleanMailerBundle/Resources/config/config.yml' }
 
 framework:
     test: ~
@@ -65,10 +66,6 @@ doctrine:
 
 # Swiftmailer Configuration
 swiftmailer:
-    transport: '%mailer_transport%'
-    host:      '%mailer_host%'
-    username:  '%mailer_user%'
-    password:  '%mailer_password%'
     spool:
         type: file
 
