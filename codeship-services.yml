@@ -6,6 +6,7 @@ application:
         - .:/var/www/symfony
     links:
         - mysql:mysql
+    cached: true
 mysql:
     image: chaplean/mysql
     volumes:

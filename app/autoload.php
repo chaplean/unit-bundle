@@ -8,8 +8,8 @@ use Composer\Autoload\ClassLoader;
  */
 $loader = require_once __DIR__  . '/../vendor/autoload.php';
 
-if (class_exists('\Doctrine\Common\Annotations\AnnotationRegistry')) {
-    \Doctrine\Common\Annotations\AnnotationRegistry::registerLoader(array($loader, 'loadClass'));
-}
+require_once __DIR__ . '/AppKernel.php';
+
+AnnotationRegistry::registerLoader(array($loader, 'loadClass'));
 
 return $loader;

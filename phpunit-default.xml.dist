@@ -11,7 +11,7 @@
     <php>
         <ini name="error_reporting" value="-1" />
         <server name="KERNEL_DIR" value="app/" />
-        <server name="CONFIG_TYPE" value="sqlite" />
+        <server name="CONFIG_TYPE" value="default" />
     </php>
 
     <testsuites>
@@ -21,15 +21,19 @@
     </testsuites>
 
     <filter>
-        <blacklist>
-            <directory>app</directory>
-            <directory>bin</directory>
-            <directory>DataFixtures</directory>
-            <directory>DependencyInjection</directory>
-            <directory>Resources</directory>
-            <directory>Tests</directory>
-            <directory>var</directory>
-            <directory>vendor</directory>
-        </blacklist>
+        <whitelist>
+            <directory>.</directory>
+
+            <exclude>
+                <directory>app</directory>
+                <directory>bin</directory>
+                <directory>DataFixtures</directory>
+                <directory>DependencyInjection</directory>
+                <directory>Resources</directory>
+                <directory>Tests</directory>
+                <directory>var</directory>
+                <directory>vendor</directory>
+            </exclude>
+        </whitelist>
     </filter>
 </phpunit>
