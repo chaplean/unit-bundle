@@ -57,4 +57,30 @@ class RestClientTest extends LogicalTestCase
 
         $this->assertEquals($this->getContainer(), $client->getContainer());
     }
+
+    /**
+     * @return void
+     */
+    public function testGetCurrentRequest()
+    {
+        $client = $this->createRestClient();
+        $client->request('GET', '/', array(), array(), array(), array(), array(), array(), array('REMOTE_ADDR' => '0.0.0.0'));
+
+        $this->assertEquals('0.0.0.0', $client->getRequest()->server->get('REMOTE_ADDR'));
+        $this->assertEquals('0.0.0.0', $client->getResponse()->getContent());
+        $this->assertEquals('0.0.0.0', $this->getContainer()->get('request_stack')->getCurrentRequest()->getClientIp());
+    }
+
+    /**
+     * @return void
+     */
+    public function testGetAnotherRemoteAddress()
+    {
+        $client = $this->createRestClient();
+        $client->request('GET', '/', array(), array(), array(), array(), array(), array(), array('REMOTE_ADDR' => '1.1.1.1'));
+
+        $this->assertEquals('1.1.1.1', $client->getRequest()->server->get('REMOTE_ADDR'));
+        $this->assertEquals('1.1.1.1', $client->getResponse()->getContent());
+        $this->assertEquals('1.1.1.1', $this->getContainer()->get('request_stack')->getCurrentRequest()->getClientIp());
+    }
 }

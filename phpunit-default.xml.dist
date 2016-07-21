@@ -21,18 +21,19 @@
     </testsuites>
 
     <filter>
-        <blacklist>
-            <directory>app/</directory>
-            <directory>DataFixtures/</directory>
-            <directory>Entity/</directory>
-            <directory>Resources/</directory>
-            <directory>Repository/</directory>
-            <directory>Controller/</directory>
-        </blacklist>
         <whitelist>
-            <directory>Test/</directory>
-            <directory>Fixtures/</directory>
-            <directory>Utility/</directory>
+            <directory>.</directory>
+
+            <exclude>
+                <directory>app</directory>
+                <directory>bin</directory>
+                <directory>DataFixtures</directory>
+                <directory>DependencyInjection</directory>
+                <directory>Resources</directory>
+                <directory>Tests</directory>
+                <directory>var</directory>
+                <directory>vendor</directory>
+            </exclude>
         </whitelist>
     </filter>
 </phpunit>

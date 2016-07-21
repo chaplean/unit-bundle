@@ -112,6 +112,14 @@ class Client
     }
 
     /**
+     * @return Request
+     */
+    public function getRequest()
+    {
+        return $this->request;
+    }
+
+    /**
      * @return Response
      */
     public function getResponse()

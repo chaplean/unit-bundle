@@ -6,6 +6,7 @@ application:
         - .:/var/www/symfony
     links:
         - mysql:mysql
+    cached: true
 mysql:
     image: chaplean/mysql
     volumes:
@@ -14,4 +15,4 @@ mysql:
         MYSQL_ROOT_PASSWORD: root
         MYSQL_USER: app_user
         MYSQL_PASSWORD: app_password
-        MYSQL_DATABASE: unit_database
+        MYSQL_DATABASE: test_database
