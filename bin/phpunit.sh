@@ -13,4 +13,6 @@ fi
 
 ./bin/services-waiting.sh $2
 
+echo "MySQL is launched, we execute PHPUnit"
+
 phpunit --configuration ./phpunit-$1.xml --coverage-clover build/logs/clover-$1.xml
