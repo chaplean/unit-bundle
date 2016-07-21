@@ -209,7 +209,7 @@ class LogicalTestCase extends WebTestCase
         try {
             $dataFixturesNamespaceParameter = self::$container->getParameter('data_fixtures_namespace');
 
-            if (is_bool($dataFixturesNamespaceParameter) && !$dataFixturesNamespaceParameter) {
+            if ($dataFixturesNamespaceParameter === false) {
                 self::$datafixturesEnabled = false;
             }
 
@@ -483,9 +483,7 @@ class LogicalTestCase extends WebTestCase
             $dataFixturesToLoad = array_merge(self::$fixtureUtility->loadDefaultFixtures(), $dataFixturesToLoad);
         }
 
-        if (self::$datafixturesEnabled) {
-            self::loadFixturesOnSetUp($dataFixturesToLoad);
-        }
+         self::loadFixturesOnSetUp($dataFixturesToLoad);
     }
 
     /**
