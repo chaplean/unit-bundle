@@ -15,6 +15,6 @@ echo "Trying to connect to satis.chaplean.com"
 ssh chaplean@satis.chaplean.com /home/www/chaplean.com/satis/bin/satis build \
     /home/www/chaplean.com/satis/satis.json \
     /home/www/chaplean.com/satis/web \
-    $1 &
+    $1
 
 echo "Satis build finished"

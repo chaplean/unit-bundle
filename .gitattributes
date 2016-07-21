@@ -1,4 +1,5 @@
 app/ export-ignore
 bin/ export-ignore
+var/ export-ignore
 Tests export-ignore
 Entity export-ignore
