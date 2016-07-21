@@ -10,7 +10,7 @@ use Symfony\Component\Config\Loader\LoaderInterface;
  *
  * @author    Valentin - Chaplean <valentin@chaplean.com>
  * @copyright 2014 - 2015 Chaplean (http://www.chaplean.com)
- * @since     2.0.0
+ * @since     1.0.0
  */
 class AppKernel extends Kernel
 {
@@ -23,7 +23,6 @@ class AppKernel extends Kernel
             new Symfony\Bundle\FrameworkBundle\FrameworkBundle(),
             new Symfony\Bundle\MonologBundle\MonologBundle(),
             new Symfony\Bundle\SecurityBundle\SecurityBundle(),
-            new Symfony\Bundle\SwiftmailerBundle\SwiftmailerBundle(),
             new Doctrine\Bundle\DoctrineBundle\DoctrineBundle(),
             new Doctrine\Bundle\FixturesBundle\DoctrineFixturesBundle(),
             new Sensio\Bundle\FrameworkExtraBundle\SensioFrameworkExtraBundle(),
@@ -32,6 +31,7 @@ class AppKernel extends Kernel
             new Liip\FunctionalTestBundle\LiipFunctionalTestBundle(),
             new FOS\RestBundle\FOSRestBundle(),
             new JMS\SerializerBundle\JMSSerializerBundle(),
+            new Symfony\Bundle\SwiftmailerBundle\SwiftmailerBundle(),
             new Chaplean\Bundle\MailerBundle\ChapleanMailerBundle(),
         );
 
