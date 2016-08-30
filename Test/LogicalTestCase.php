@@ -209,7 +209,7 @@ class LogicalTestCase extends WebTestCase
         try {
             $dataFixturesNamespaceParameter = self::$container->getParameter('data_fixtures_namespace');
 
-            if (is_bool($dataFixturesNamespaceParameter) && !$dataFixturesNamespaceParameter) {
+            if ($dataFixturesNamespaceParameter === false) {
                 self::$datafixturesEnabled = false;
             }
 
@@ -322,7 +322,8 @@ class LogicalTestCase extends WebTestCase
     public function loadPartialFixtures(array $classNames)
     {
         self::$fixtures = $this->getFixtureUtility()
-            ->loadPartialFixtures($classNames, $this->getManager())->getReferenceRepository();
+            ->loadPartialFixtures($classNames, $this->getManager())
+            ->getReferenceRepository();
     }
 
     /**
@@ -340,7 +341,8 @@ class LogicalTestCase extends WebTestCase
         $fixtureUtility = $this->getFixtureUtility();
         $classNames = NamespaceUtility::getClassNamesByContext($fixtureUtility->getNamespace(), $context);
 
-        self::$fixtures = $fixtureUtility->loadPartialFixtures($classNames, $this->getManager())->getReferenceRepository();
+        self::$fixtures = $fixtureUtility->loadPartialFixtures($classNames, $this->getManager())
+            ->getReferenceRepository();
     }
 
     /**
@@ -360,7 +362,8 @@ class LogicalTestCase extends WebTestCase
         if ($hashFixtures !== self::$hashFixtures) {
             self::$hashFixtures = $hashFixtures;
 
-            self::$fixtures = self::$fixtureUtility->loadFixtures($classNames)->getReferenceRepository();
+            self::$fixtures = self::$fixtureUtility->loadFixtures($classNames)
+                ->getReferenceRepository();
         }
 
         self::$databaseLoaded = true;
@@ -413,6 +416,20 @@ class LogicalTestCase extends WebTestCase
     }
 
     /**
+     * runCommand with reuseKernel at "true" by default.
+     *
+     * @param string  $name
+     * @param array   $params
+     * @param boolean $reuseKernel
+     *
+     * @return string
+     */
+    public function runCommand($name, array $params = array(), $reuseKernel = true)
+    {
+        return parent::runCommand($name, $params, $reuseKernel);
+    }
+
+    /**
      * @param ContainerInterface $container
      *
      * @return void
@@ -454,8 +471,10 @@ class LogicalTestCase extends WebTestCase
         self::resetManagerIfNecessary();
 
         $manager = $this->getManager();
-        $manager->getUnitOfWork()->clear();
-        $nbTransactions = $manager->getConnection()->getTransactionNestingLevel();
+        $manager->getUnitOfWork()
+            ->clear();
+        $nbTransactions = $manager->getConnection()
+            ->getTransactionNestingLevel();
 
         if (self::$databaseLoaded && $nbTransactions < 1) {
             $manager->beginTransaction();
@@ -475,7 +494,9 @@ class LogicalTestCase extends WebTestCase
 
         self::$doctrineRegistry = self::$container->get('doctrine');
         self::$swiftmailerCacheUtility = self::$container->get('chaplean_unit.swiftmailer_cache');
-        self::$doctrineRegistry->getManager()->getUnitOfWork()->clear();
+        self::$doctrineRegistry->getManager()
+            ->getUnitOfWork()
+            ->clear();
 
         $dataFixturesToLoad = self::$userFixtures;
 
@@ -483,9 +504,7 @@ class LogicalTestCase extends WebTestCase
             $dataFixturesToLoad = array_merge(self::$fixtureUtility->loadDefaultFixtures(), $dataFixturesToLoad);
         }
 
-        if (self::$datafixturesEnabled) {
-            self::loadFixturesOnSetUp($dataFixturesToLoad);
-        }
+        self::loadFixturesOnSetUp($dataFixturesToLoad);
     }
 
     /**
