@@ -95,6 +95,7 @@ class LogicalTestCaseTest extends WebTestCase
             ->will($this->returnValue(false));
 
         $logicalTest->setContainer($containerMock);
+
         $this->assertEquals(false, $logicalTest->getDefaultFixturesNamespace());
 
         $logicalTest::setUpBeforeClass();
