@@ -2,3 +2,7 @@ services:
     chaplean_unit.swiftmailer_cache:
         class: Chaplean\Bundle\UnitBundle\Utility\SwiftMailerCacheUtility
         arguments: ['@service_container']
+
+    chaplean_unit.service_instance:
+        class: Chaplean\Bundle\UnitBundle\Utility\ServiceInstanceUtility
+        arguments: ['@chaplean_unit.swiftmailer_cache']

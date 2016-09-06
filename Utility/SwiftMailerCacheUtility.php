@@ -2,7 +2,7 @@
 
 namespace Chaplean\Bundle\UnitBundle\Utility;
 
-use Symfony\Component\DependencyInjection\Container;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\Finder\SplFileInfo;
 
@@ -23,9 +23,9 @@ class SwiftMailerCacheUtility
     /**
      * SwiftMailerCacheUtility constructor.
      *
-     * @param Container $container
+     * @param ContainerInterface $container
      */
-    public function __construct(Container $container)
+    public function __construct(ContainerInterface $container)
     {
         try {
             $this->swiftmailerCacheDir = $container->getParameter('swiftmailer.spool.default.file.path');
@@ -40,7 +40,9 @@ class SwiftMailerCacheUtility
     public function cleanMailDir()
     {
         if (is_dir($this->swiftmailerCacheDir)) {
-            $finder = Finder::create()->files()->in($this->swiftmailerCacheDir);
+            $finder = Finder::create()
+                ->files()
+                ->in($this->swiftmailerCacheDir);
 
             /** @var SplFileInfo $file */
             foreach ($finder as $file) {
@@ -55,7 +57,9 @@ class SwiftMailerCacheUtility
      */
     public function readMessages()
     {
-        $finder = Finder::create()->files()->in($this->swiftmailerCacheDir);
+        $finder = Finder::create()
+            ->files()
+            ->in($this->swiftmailerCacheDir);
 
         if ($finder->count() === 0) {
             return null;
@@ -73,6 +77,7 @@ class SwiftMailerCacheUtility
         }
 
         array_multisort($messagesTimes, $messages);
+
         return array_values($messages);
     }
 }

@@ -2,6 +2,8 @@
 
 namespace Chaplean\Bundle\UnitBundle\Utility;
 
+use Chaplean\Bundle\UnitBundle\Utility\Mysql\MysqlDumpCommandUtility;
+use Chaplean\Bundle\UnitBundle\Utility\Mysql\MysqlImportCommandUtility;
 use Doctrine\Bundle\DoctrineBundle\Registry;
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 use Doctrine\Common\DataFixtures\Executor\ORMExecutor;
@@ -161,6 +163,10 @@ class FixtureUtility
         $databaseHash = $databaseUtility->getHash();
         $sqlDirectory = $this->container->getParameter('kernel.cache_dir') . '/sql';
 
+        if (!@mkdir($sqlDirectory) && !is_dir($sqlDirectory)) {
+            throw new FileException('Directory is not created: ' . $sqlDirectory);
+        }
+
         if (!$databaseUtility->exist($classNames)) {
             $databaseUtility->createSchemaDatabase();
         } else {
@@ -178,12 +184,6 @@ class FixtureUtility
                 $connection = $databaseUtility->getOm()
                     ->getConnection();
 
-                $host = $connection->getHost();
-                $port = $connection->getPort();
-                $databaseName = $connection->getDatabase();
-                $user = $connection->getUsername();
-                $password = $connection->getPassword();
-
                 $referenceRepository = new ProxyReferenceRepository($databaseUtility->getOm());
 
                 $executor = new ORMExecutor($databaseUtility->getOm(), new ORMPurger());
@@ -196,13 +196,10 @@ class FixtureUtility
                     $this->loaded[] = get_class($fixture);
                 }
 
-                $cmdArgs = '-h' . $host . ' -P' . $port . ' -u' . $user . ' -p' . $password . ' ' . $databaseName;
-
                 if (array_key_exists($databaseHash, $this->cachedExecutor)) {
                     if ($driverIsMysql) {
-                        $mysqlCmd = 'mysql ' . $cmdArgs . ' < ' . $sqlDirectory . '/' . $databaseHash . '.sql';
-
-                        exec($mysqlCmd, $output, $returnVar);
+                        $mysqlImport = new MysqlImportCommandUtility($connection, $sqlDirectory . '/' . $databaseHash . '.sql');
+                        $mysqlImport->exec();
 
                         $databaseUtility->getOm()->getUnitOfWork()->clear();
                     }
@@ -214,13 +211,8 @@ class FixtureUtility
                     $this->cachedExecutor[$databaseHash] = $executor;
 
                     if ($driverIsMysql) {
-                        if (!@mkdir($sqlDirectory) && !is_dir($sqlDirectory)) {
-                            throw new FileException('Directory is not created: ' . $sqlDirectory);
-                        }
-
-                        $mysqlDumpCmd = 'mysqldump ' . $cmdArgs . ' > ' . $sqlDirectory . '/' . $databaseHash . '.sql';
-
-                        exec($mysqlDumpCmd, $output, $returnVar);
+                        $mysqlDump = new MysqlDumpCommandUtility($connection, $sqlDirectory . '/' . $databaseHash . '.sql');
+                        $mysqlDump->exec();
                     }
                 }
             }

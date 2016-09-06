@@ -7,6 +7,7 @@ use Chaplean\Bundle\UnitBundle\Utility\NamespaceUtility;
 use Chaplean\Bundle\UnitBundle\Utility\RestClient;
 use Chaplean\Bundle\UnitBundle\Utility\SwiftMailerCacheUtility;
 use Doctrine\Bundle\DoctrineBundle\Registry;
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\DataFixtures\ReferenceRepository;
 use Doctrine\ORM\EntityManager;
 use Liip\FunctionalTestBundle\Test\WebTestCase;
@@ -57,6 +58,11 @@ class LogicalTestCase extends WebTestCase
      * @var Registry
      */
     private static $doctrineRegistry = null;
+
+    /**
+     * @var ArrayCollection
+     */
+    private static $servicesToRefresh;
 
     /**
      * @var SwiftMailerCacheUtility
@@ -295,6 +301,22 @@ class LogicalTestCase extends WebTestCase
     }
 
     /**
+     * Get a service with refreshed parameters.
+     *
+     * @param string $serviceName
+     *
+     * @return mixed
+     */
+    public function getServiceRefreshed($serviceName)
+    {
+        $this->getContainer()->set($serviceName, null);
+
+        self::$servicesToRefresh->add($serviceName);
+
+        return $this->getContainer()->get($serviceName);
+    }
+
+    /**
      * @param string  $context
      * @param boolean $withDefaultData
      *
@@ -379,6 +401,20 @@ class LogicalTestCase extends WebTestCase
     {
         self::$userFixtures = $fixtures;
         self::$withDefaultData = $withDefaultData;
+    }
+
+    /**
+     * @param string $serviceName
+     * @param mixed  $instance
+     *
+     * @return void
+     */
+    public function mockService($serviceName, $instance)
+    {
+        $this->getContainer()
+            ->set($serviceName, $instance);
+
+        self::$servicesToRefresh->add($serviceName);
     }
 
     /**
@@ -492,6 +528,8 @@ class LogicalTestCase extends WebTestCase
     {
         parent::setUpBeforeClass();
 
+        self::$servicesToRefresh = new ArrayCollection();
+
         self::$doctrineRegistry = self::$container->get('doctrine');
         self::$swiftmailerCacheUtility = self::$container->get('chaplean_unit.swiftmailer_cache');
         self::$doctrineRegistry->getManager()
@@ -545,6 +583,14 @@ class LogicalTestCase extends WebTestCase
 
         self::resetDefaultNamespaceFixtures();
 
+        if (self::$container !== null) {
+            foreach (self::$servicesToRefresh as $mock) {
+                self::$container
+                    ->set($mock, null);
+            }
+        }
+
+        self::$servicesToRefresh = null;
         self::$userFixtures = array();
         self::$withDefaultData = true;
     }
