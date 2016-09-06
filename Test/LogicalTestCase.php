@@ -307,13 +307,13 @@ class LogicalTestCase extends WebTestCase
      *
      * @return mixed
      */
-    public function getServiceRefreshed($serviceName)
+    public static function getServiceRefreshed($serviceName)
     {
-        $this->getContainer()->set($serviceName, null);
+        self::$container->set($serviceName, null);
 
         self::$servicesToRefresh->add($serviceName);
 
-        return $this->getContainer()->get($serviceName);
+        return self::$container->get($serviceName);
     }
 
     /**
@@ -409,9 +409,9 @@ class LogicalTestCase extends WebTestCase
      *
      * @return void
      */
-    public function mockService($serviceName, $instance)
+    public static function mockService($serviceName, $instance)
     {
-        $this->getContainer()
+        self::$container
             ->set($serviceName, $instance);
 
         self::$servicesToRefresh->add($serviceName);
@@ -584,9 +584,9 @@ class LogicalTestCase extends WebTestCase
         self::resetDefaultNamespaceFixtures();
 
         if (self::$container !== null) {
-            foreach (self::$servicesToRefresh as $mock) {
+            foreach (self::$servicesToRefresh as $serviceName) {
                 self::$container
-                    ->set($mock, null);
+                    ->set($serviceName, null);
             }
         }
 
