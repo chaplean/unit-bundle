@@ -60,7 +60,7 @@ class MockServiceTest extends WebTestCase
         $swiftMock = \Mockery::mock(SwiftMailerCacheUtility::class);
 
         // We mock it but because SwiftMailer has been called before it's useless
-        $logicalTestCase->mockService('chaplean_unit.swiftmailer_cache', $swiftMock);
+        $logicalTestCase::mockService('chaplean_unit.swiftmailer_cache', $swiftMock);
 
         $swiftMailer = $logicalTestCase->getContainer()
             ->get('chaplean_unit.swiftmailer_cache');
@@ -88,14 +88,14 @@ class MockServiceTest extends WebTestCase
         $swiftMock = \Mockery::mock(SwiftMailerCacheUtility::class);
 
         // MockService alone is useless
-        $logicalTestCase->mockService('chaplean_unit.swiftmailer_cache', $swiftMock);
+        $logicalTestCase::mockService('chaplean_unit.swiftmailer_cache', $swiftMock);
 
         $serviceInstance = $logicalTestCase->getContainer()
             ->get('chaplean_unit.service_instance');
 
         $this->assertEquals('Chaplean\Bundle\UnitBundle\Utility\SwiftMailerCacheUtility', $serviceInstance->getSwiftMailerCacheClass());
 
-        $serviceInstance2 = $logicalTestCase->getServiceRefreshed('chaplean_unit.service_instance');
+        $serviceInstance2 = $logicalTestCase::getServiceRefreshed('chaplean_unit.service_instance');
 
         $this->assertNotEquals('Chaplean\Bundle\UnitBundle\Utility\SwiftMailerCacheUtility', $serviceInstance2->getSwiftMailerCacheClass());
         $this->assertEquals(
