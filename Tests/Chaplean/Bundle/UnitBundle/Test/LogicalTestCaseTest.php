@@ -8,6 +8,9 @@ use Chaplean\Bundle\UnitBundle\Utility\FixtureUtility;
 use Doctrine\ORM\EntityManager;
 use Liip\FunctionalTestBundle\Test\WebTestCase;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\Form\Tests\Extension\Core\Type\UrlTypeTest;
+use Symfony\Component\Form\Tests\Fixtures\Foo1Bar2Type;
+use Tests\Chaplean\Bundle\UnitBundle\Form\Type\FormWithoutCrsfTokenType;
 
 /**
  * LogicalTestCaseTest.php.
@@ -530,6 +533,37 @@ class LogicalTestCaseTest extends WebTestCase
         $logicalTest->setUp();
 
         $logicalTest->assertEquals(1, $logicalTest->em->getConnection()->getTransactionNestingLevel());
+
+        $logicalTest->tearDown();
+        $logicalTest::tearDownAfterClass();
+    }
+
+    /**
+     * @return void
+     */
+    public function testGetCrsfToken()
+    {
+        $logicalTest = new LogicalTestCase();
+        $logicalTest::setUpBeforeClass();
+        $logicalTest->setUp();
+
+        $this->assertNotEmpty($logicalTest->getCrsfToken(Foo1Bar2Type::class));
+
+        $logicalTest->tearDown();
+        $logicalTest::tearDownAfterClass();
+    }
+
+    /**
+     * @return void
+     * @expectedException \Exception
+     */
+    public function testGetCrsfTokenWithDisabledCrsfToken()
+    {
+        $logicalTest = new LogicalTestCase();
+        $logicalTest::setUpBeforeClass();
+        $logicalTest->setUp();
+
+        $logicalTest->getCrsfToken(FormWithoutCrsfTokenType::class);
 
         $logicalTest->tearDown();
         $logicalTest::tearDownAfterClass();
