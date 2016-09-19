@@ -15,6 +15,7 @@ use Symfony\Bundle\FrameworkBundle\Client;
 use Symfony\Component\BrowserKit\Cookie;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Exception\InvalidArgumentException;
+use Symfony\Component\Form\Form;
 use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
 
@@ -205,6 +206,25 @@ class LogicalTestCase extends WebTestCase
     public function getContainer()
     {
         return self::$container;
+    }
+
+    /**
+     * @param string $formClass
+     *
+     * @return string
+     * @throws \Exception
+     */
+    public function getCrsfToken($formClass)
+    {
+        /** @var Form $form */
+        $form = $this->getContainer()->get('form.factory')->create($formClass);
+        $fields = $form->createView()->children;
+
+        if (!array_key_exists('_token', $fields)) {
+            throw new \Exception('CrsfToken disabled');
+        }
+
+        return $fields['_token']->vars['value'];
     }
 
     /**
