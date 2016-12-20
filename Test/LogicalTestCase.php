@@ -13,6 +13,7 @@ use Doctrine\ORM\EntityManager;
 use Liip\FunctionalTestBundle\Test\WebTestCase;
 use Symfony\Bundle\FrameworkBundle\Client;
 use Symfony\Component\BrowserKit\Cookie;
+use Symfony\Component\DependencyInjection\Container;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Exception\InvalidArgumentException;
 use Symfony\Component\Form\Form;
@@ -31,7 +32,7 @@ use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
 class LogicalTestCase extends WebTestCase
 {
     /**
-     * @var ContainerInterface
+     * @var ContainerInterface|Container
      */
     protected static $container;
 
@@ -62,6 +63,7 @@ class LogicalTestCase extends WebTestCase
 
     /**
      * @var ArrayCollection
+     * @deprecated Remove in 5.1
      */
     private static $servicesToRefresh;
 
@@ -105,16 +107,16 @@ class LogicalTestCase extends WebTestCase
         }
 
         if (self::$doctrineRegistry === null) {
-            self::$doctrineRegistry = $this->getContainer()
-                ->get('doctrine');
+            self::$doctrineRegistry = $this->getContainer()->get('doctrine');
         }
 
-        $namespaceFixtures = $this->getFixtureUtility()
-            ->getNamespace();
+        $namespaceFixtures = $this->getFixtureUtility()->getNamespace();
 
         if (empty($namespaceFixtures)) {
             self::resetDefaultNamespaceFixtures();
         }
+
+        self::$servicesToRefresh = new ArrayCollection();
     }
 
     /**
@@ -141,25 +143,19 @@ class LogicalTestCase extends WebTestCase
     public function authenticate($user, Client $client = null)
     {
         $usernameTokenPassword = new UsernamePasswordToken($user, null, 'main', $user->getRoles());
-        $this->getContainer()
-            ->get('security.token_storage')
-            ->setToken($usernameTokenPassword);
+        $this->getContainer()->get('security.token_storage')->setToken($usernameTokenPassword);
 
         if ($client !== null) {
-            $client->getContainer()
-                ->get('security.token_storage')
-                ->setToken($usernameTokenPassword);
+            $client->getContainer()->get('security.token_storage')->setToken($usernameTokenPassword);
 
             /** @var Session $session */
-            $session = $client->getContainer()
-                ->get('session');
+            $session = $client->getContainer()->get('session');
 
             $session->set('_security_main', serialize($usernameTokenPassword));
             $session->save();
 
             $cookie = new Cookie($session->getName(), $session->getId());
-            $client->getCookieJar()
-                ->set($cookie);
+            $client->getCookieJar()->set($cookie);
         }
     }
 
@@ -201,7 +197,7 @@ class LogicalTestCase extends WebTestCase
     }
 
     /**
-     * @return ContainerInterface
+     * @return Container
      */
     public function getContainer()
     {
@@ -287,8 +283,7 @@ class LogicalTestCase extends WebTestCase
      */
     public function getNamespace()
     {
-        return $this->getFixtureUtility()
-            ->getNamespace();
+        return $this->getFixtureUtility()->getNamespace();
     }
 
     /**
@@ -304,6 +299,21 @@ class LogicalTestCase extends WebTestCase
         $method->setAccessible(true);
 
         return $method;
+    }
+
+    /**
+     * @param string $className
+     * @param string $propertyName
+     *
+     * @return \ReflectionProperty
+     */
+    public function getNotPublicProperty($className, $propertyName)
+    {
+        $class = new \ReflectionClass($className);
+        $property = $class->getProperty($propertyName);
+        $property->setAccessible(true);
+
+        return $property;
     }
 
     /**
@@ -326,6 +336,7 @@ class LogicalTestCase extends WebTestCase
      * @param string $serviceName
      *
      * @return mixed
+     * @deprecated Useless with the new mock system
      */
     public static function getServiceRefreshed($serviceName)
     {
@@ -428,6 +439,7 @@ class LogicalTestCase extends WebTestCase
      * @param mixed  $instance
      *
      * @return void
+     * @deprecated Useless with the new mock system (Set the service directly in the container)
      */
     public static function mockService($serviceName, $instance)
     {
@@ -527,10 +539,8 @@ class LogicalTestCase extends WebTestCase
         self::resetManagerIfNecessary();
 
         $manager = $this->getManager();
-        $manager->getUnitOfWork()
-            ->clear();
-        $nbTransactions = $manager->getConnection()
-            ->getTransactionNestingLevel();
+        $manager->getUnitOfWork()->clear();
+        $nbTransactions = $manager->getConnection()->getTransactionNestingLevel();
 
         if (self::$databaseLoaded && $nbTransactions < 1) {
             $manager->beginTransaction();
@@ -552,9 +562,7 @@ class LogicalTestCase extends WebTestCase
 
         self::$doctrineRegistry = self::$container->get('doctrine');
         self::$swiftmailerCacheUtility = self::$container->get('chaplean_unit.swiftmailer_cache');
-        self::$doctrineRegistry->getManager()
-            ->getUnitOfWork()
-            ->clear();
+        self::$doctrineRegistry->getManager()->getUnitOfWork()->clear();
 
         $dataFixturesToLoad = self::$userFixtures;
 
@@ -573,12 +581,10 @@ class LogicalTestCase extends WebTestCase
     public function tearDown()
     {
         if ($this->getManager() !== null) {
-            $connection = $this->getManager()
-                ->getConnection();
+            $connection = $this->getManager()->getConnection();
 
             if ($connection->getTransactionNestingLevel() == 1 && self::$databaseLoaded) {
-                $this->getManager()
-                    ->rollback();
+                $this->getManager()->rollback();
             }
 
             $connection->close();
@@ -586,10 +592,11 @@ class LogicalTestCase extends WebTestCase
 
         // Unauthenticate user between each test
         if ($this->getContainer() !== null) {
-            $this->getContainer()
-                ->get('security.token_storage')
-                ->setToken(null);
+            $this->getContainer()->get('security.token_storage')->setToken(null);
         }
+
+        \Mockery::close();
+        $this->clearContainer();
 
         parent::tearDown();
     }
@@ -605,13 +612,41 @@ class LogicalTestCase extends WebTestCase
 
         if (self::$container !== null) {
             foreach (self::$servicesToRefresh as $serviceName) {
-                self::$container
-                    ->set($serviceName, null);
+                self::$container->set($serviceName, null);
             }
         }
 
-        self::$servicesToRefresh = null;
+        self::$servicesToRefresh = new ArrayCollection();
         self::$userFixtures = array();
         self::$withDefaultData = true;
+    }
+
+    /**
+     * Throw Mockery's exception
+     *
+     * @return void
+     * @throws \Exception
+     */
+    public function throwMockerysException()
+    {
+        try {
+            \Mockery::close();
+        } catch (\Exception $e) {
+            throw $e;
+        }
+    }
+
+    /**
+     * Reset all non-important services (Important service: kernel, doctrine (+ related service) and orm (+ related service))
+     *
+     * @return void
+     */
+    public function clearContainer()
+    {
+        foreach ($this->getContainer()->getServiceIds() as $service) {
+            if (!preg_match_all('/(kernel|doctrine|[^f]orm)/', $service)) {
+                $this->getContainer()->set($service, null);
+            }
+        }
     }
 }
