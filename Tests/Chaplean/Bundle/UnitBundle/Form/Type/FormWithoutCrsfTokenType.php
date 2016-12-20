@@ -11,7 +11,7 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
  * @package   Tests\Chaplean\Bundle\UnitBundle\Form\Type
  * @author    Valentin - Chaplean <valentin@chaplean.com>
  * @copyright 2014 - 2016 Chaplean (http://www.chaplean.com)
- * @since     X.Y.Z
+ * @since     4.2.0
  */
 class FormWithoutCrsfTokenType extends AbstractType
 {
