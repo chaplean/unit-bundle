@@ -88,6 +88,14 @@ class LogicalTestCase extends WebTestCase
     protected static $datafixturesEnabled = true;
 
     /**
+     * @var array
+     */
+    protected $userRoles;
+
+    /** @var string */
+    protected $startsWith = 'createClientWithRole';
+
+    /**
      * Construct
      *
      * @param string|null $name
@@ -648,5 +656,80 @@ class LogicalTestCase extends WebTestCase
                 $this->getContainer()->set($service, null);
             }
         }
+    }
+
+    /**
+     * @param array $expectations
+     *
+     * @return array
+     */
+    public function rolesProvider(array $expectations)
+    {
+        try {
+            $this->userRoles = $this->getContainer()->getParameter('test_roles');
+        } catch (\InvalidArgumentException $e) {
+            throw new \LogicException("You must define test_roles in your parameters_test.yml to use this function.");
+        }
+
+        if (count($this->userRoles) === 0) {
+            throw new \LogicException("You must define test_roles in your parameters_test.yml to use this function.");
+        }
+
+        $countExpectations = count($expectations);
+        $rolesNames = array_keys($this->userRoles);
+        $countRoles = count($rolesNames);
+
+        if ($countExpectations !== $countRoles) {
+            throw new \LogicException(sprintf(
+                "The number of expecations (%d) must match the number of roles (%d)",
+                $countExpectations,
+                $countRoles
+            ));
+        }
+
+        if ($rolesNames !== array_keys($expectations)) {
+            throw new \LogicException('The roles in the expectations given don\'t match the existing roles');
+        }
+
+        return array_combine(
+            $rolesNames,
+            array_map(function($role, $expectation) {
+                $function = $this->startsWith . $role;
+                if (is_array($expectation)) {
+                    array_unshift($expectation, $function);
+                    return $expectation;
+                }
+
+                return array($function, $expectation);
+            }, $rolesNames, array_values($expectations))
+        );
+    }
+
+    /**
+     * @param $method
+     * @param $args
+     *
+     * @return Client
+     */
+    public function __call($method, $args)
+    {
+        if (strpos($method, $this->startsWith) === 0) {
+            if (count($this->userRoles) === 0) {
+                throw new \LogicException("You must define test_roles in your parameters_test.yml to use this function.");
+            }
+
+            $role = substr($method, strlen($this->startsWith));
+            $user = $this->userRoles[$role];
+
+            $client = self::createClient();
+
+            if ($user !== '') {
+                $this->authenticate($this->getReference($user), $client);
+            }
+
+            return $client;
+        }
+
+        return parent::__call($method, $args);
     }
 }

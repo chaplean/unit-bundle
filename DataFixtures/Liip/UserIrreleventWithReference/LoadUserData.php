@@ -27,6 +27,7 @@ class LoadUserData extends AbstractFixture
         for ($i = 0; $i < 7; $i++) {
             $user = new User();
             $this->persist($user, $manager);
+            $this->setReference('user-' . $i, $user);
         }
 
         $manager->flush();
