@@ -40,14 +40,15 @@ You can use phpunit's ```@dataProvider``` to automaticaly run a test with a
 list of different values. We can use this to test a route against different
 roles with a single unit test. To acheive this we will need to
 
-1) list the roles and how to log as a user of that role
-2) create a dataProvider giving for each role the expectations we want
+1. list the roles and how to log as a user of that role
+2. create a dataProvider giving for each role the expectations we want
 (usually a http code)
-3) write the test using the @dataProvider
+3. write the test using the @dataProvider
 
 ## 1. Listing the roles
 
 Add in your ```parameters_test.yml``` a ```test_roles``` dict as following:
+
 ```yaml
 parameters:
 
@@ -63,6 +64,7 @@ parameters:
 ## 2. Create a dataProvider
 
 Add a provider in your test class:
+
 ```php
 class ExampleTest extends LogicalTestCase
 {
@@ -128,7 +130,6 @@ class ExampleTest extends LogicalTestCase
         $this->assertEquals($expectedCode, $response->getStatusCode());
     }
     
-    
     /**
      * @dataProvider rolesWithDifferentExpectations
      * 
@@ -143,3 +144,4 @@ class ExampleTest extends LogicalTestCase
         // $otherExpectation is not defined for every value in the provider so we must default to null
     }
 }
+```

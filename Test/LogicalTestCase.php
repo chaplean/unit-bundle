@@ -125,6 +125,12 @@ class LogicalTestCase extends WebTestCase
         }
 
         self::$servicesToRefresh = new ArrayCollection();
+
+        try {
+            $this->userRoles = $this->getContainer()->getParameter('test_roles');
+        } catch (\InvalidArgumentException $e) {
+            $this->userRoles = array();
+        }
     }
 
     /**
@@ -665,12 +671,6 @@ class LogicalTestCase extends WebTestCase
      */
     public function rolesProvider(array $expectations)
     {
-        try {
-            $this->userRoles = $this->getContainer()->getParameter('test_roles');
-        } catch (\InvalidArgumentException $e) {
-            throw new \LogicException("You must define test_roles in your parameters_test.yml to use this function.");
-        }
-
         if (count($this->userRoles) === 0) {
             throw new \LogicException("You must define test_roles in your parameters_test.yml to use this function.");
         }
