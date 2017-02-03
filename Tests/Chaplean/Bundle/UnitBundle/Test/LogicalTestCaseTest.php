@@ -8,6 +8,8 @@ use Chaplean\Bundle\UnitBundle\Utility\FixtureUtility;
 use Doctrine\ORM\EntityManager;
 use Liip\FunctionalTestBundle\Test\WebTestCase;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\Form\Tests\Fixtures\Foo1Bar2Type;
+use Tests\Chaplean\Bundle\UnitBundle\Form\Type\FormWithoutCrsfTokenType;
 
 /**
  * LogicalTestCaseTest.php.
@@ -533,6 +535,163 @@ class LogicalTestCaseTest extends WebTestCase
 
         $logicalTest->tearDown();
         $logicalTest::tearDownAfterClass();
+    }
+
+    /**
+     * @return void
+     */
+    public function testGetCrsfToken()
+    {
+        $logicalTest = new LogicalTestCase();
+        $logicalTest::setUpBeforeClass();
+        $logicalTest->setUp();
+
+        $this->assertNotEmpty($logicalTest->getCrsfToken(Foo1Bar2Type::class));
+
+        $logicalTest->tearDown();
+        $logicalTest::tearDownAfterClass();
+    }
+
+    /**
+     * @return void
+     * @expectedException \Exception
+     */
+    public function testGetCrsfTokenWithDisabledCrsfToken()
+    {
+        $logicalTest = new LogicalTestCase();
+        $logicalTest::setUpBeforeClass();
+        $logicalTest->setUp();
+
+        $logicalTest->getCrsfToken(FormWithoutCrsfTokenType::class);
+
+        $logicalTest->tearDown();
+        $logicalTest::tearDownAfterClass();
+    }
+
+    /**
+     * @return void
+     * @expectedException \LogicException
+     * @expectedExceptionMessage You must define test_roles in your parameters_test.yml to use this function.
+     */
+    public function testRolesProviderWithoutConfiguration()
+    {
+        $logicalTest = new LogicalTestCase();
+
+        $logicalTest->rolesProvider(array());
+    }
+
+    /**
+     * @return void
+     * @runInSeparateProcess
+     */
+    public function testRolesProviderWithConfiguration()
+    {
+        $containerMock = $this->getMockBuilder('Symfony\Component\DependencyInjection\ContainerInterface')
+            ->getMock();
+
+        $containerMock->expects($this->once())
+            ->method('getParameter')
+            ->with($this->equalTo('test_roles'))
+            ->will($this->returnValue(array('NotLogged' => '', 'User' => 'user-1')));
+
+        $logicalTest = new LogicalTestCase();
+        $logicalTest->setContainer($containerMock);
+
+        $expected = array(
+            'NotLogged' => array('createClientWithRoleNotLogged', 'one param'),
+            'User'      => array('createClientWithRoleUser', 'two', 'param')
+        );
+        $actual = $logicalTest->rolesProvider(array(
+            'NotLogged' => 'one param',
+            'User'      => array('two', 'param')
+        ));
+        $this->assertEquals($expected, $actual);
+    }
+
+    /**
+     * @return void
+     * @runInSeparateProcess
+     * @expectedException \LogicException
+     */
+    public function testRolesProviderWithBadParameter()
+    {
+        $containerMock = $this->getMockBuilder('Symfony\Component\DependencyInjection\ContainerInterface')
+            ->getMock();
+
+        $containerMock->expects($this->once())
+            ->method('getParameter')
+            ->with($this->equalTo('test_roles'))
+            ->will($this->returnValue(array('NotLogged' => '', 'User' => 'user-1')));
+
+        $logicalTest = new LogicalTestCase();
+        $logicalTest->setContainer($containerMock);
+
+        $logicalTest->rolesProvider(array(
+              'NotLogged'      => 'one param',
+              'UnexpectedRole' => array('two', 'param')
+        ));
+    }
+
+    /**
+     * @return void
+     * @runInSeparateProcess
+     * @expectedException \LogicException
+     */
+    public function testRolesProviderWithMissingParameter()
+    {
+        $containerMock = $this->getMockBuilder('Symfony\Component\DependencyInjection\ContainerInterface')
+            ->getMock();
+
+        $containerMock->expects($this->once())
+            ->method('getParameter')
+            ->with($this->equalTo('test_roles'))
+            ->will($this->returnValue(array('NotLogged' => '', 'User' => 'user-1')));
+
+        $logicalTest = new LogicalTestCase();
+        $logicalTest->setContainer($containerMock);
+
+        $logicalTest->rolesProvider(array(
+            'NotLogged'      => 'one param',
+        ));
+    }
+
+    /**
+     * @return void
+     * @expectedException \LogicException
+     * @expectedExceptionMessage You must define test_roles in your parameters_test.yml to use this function.
+     */
+    public function testCreateClientWithRoleWithoutConfiguration()
+    {
+        $logicalTest = new LogicalTestCase();
+
+        $logicalTest->createClientWithRoleSomething();
+    }
+
+    /**
+     * @return void
+     * @runInSeparateProcess
+     */
+    public function testCreateClientWithRole()
+    {
+        $containerMock = $this->getMockBuilder('Symfony\Component\DependencyInjection\ContainerInterface')
+            ->getMock();
+
+        $containerMock->expects($this->once())
+            ->method('getParameter')
+            ->with($this->equalTo('test_roles'))
+            ->will($this->returnValue(array('NotLogged' => '', 'User' => 'user-1')));
+
+        $logicalTest = new LogicalTestCase();
+        $logicalTest->setContainer($containerMock);
+
+        $logicalTest->rolesProvider(array(
+            'NotLogged'      => 'one param',
+            'User' => array('two', 'param')
+        ));
+
+        $client = $logicalTest->createClientWithRoleNotLogged();
+        $this->assertInstanceOf(\Symfony\Bundle\FrameworkBundle\Client::class, $client);
+        $this->assertNull($client->getContainer()->get('security.token_storage')->getToken());
     }
 }
 
