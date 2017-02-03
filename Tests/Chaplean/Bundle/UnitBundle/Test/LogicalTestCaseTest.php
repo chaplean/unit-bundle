@@ -6,7 +6,6 @@ use Chaplean\Bundle\UnitBundle\Entity\Client;
 use Chaplean\Bundle\UnitBundle\Test\LogicalTestCase;
 use Chaplean\Bundle\UnitBundle\Utility\FixtureUtility;
 use Doctrine\ORM\EntityManager;
-use Liip\FunctionalTestBundle\Test\WebTestCase;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\Form\Tests\Fixtures\Foo1Bar2Type;
 use Tests\Chaplean\Bundle\UnitBundle\Form\Type\FormWithoutCrsfTokenType;
@@ -18,8 +17,31 @@ use Tests\Chaplean\Bundle\UnitBundle\Form\Type\FormWithoutCrsfTokenType;
  * @copyright              2014 - 2016 Chaplean (http://www.chaplean.com)
  * @since                  3.0.0
  */
-class LogicalTestCaseTest extends WebTestCase
+class LogicalTestCaseTest extends LogicalTestCase
 {
+    /** @var ContainerInterface */
+    private $oldContainer = null;
+
+    /**
+     * @return void
+     */
+    public function setUp()
+    {
+        parent::setUp();
+
+        $this->oldContainer = LogicalTestCase::$container;
+    }
+
+    /**
+     * @return void
+     */
+    public function tearDown()
+    {
+        LogicalTestCase::$container = $this->oldContainer;
+
+        parent::tearDown();
+    }
+
     /**
      * @return void
      */
@@ -56,14 +78,10 @@ class LogicalTestCaseTest extends WebTestCase
             ->with($this->equalTo('data_fixtures_namespace'))
             ->will($this->returnValue('Test\\'));
 
-        $oldContainer = $this->getContainer();
-
         $logicalTest = new LogicalTestCase();
         $logicalTest->setContainer($containerMock);
 
         $this->assertEquals('Test\\', $logicalTest->getDefaultFixturesNamespace());
-
-        $logicalTest->setContainer($oldContainer);
     }
 
     /**
@@ -594,8 +612,8 @@ class LogicalTestCaseTest extends WebTestCase
             ->with($this->equalTo('test_roles'))
             ->will($this->returnValue(array('NotLogged' => '', 'User' => 'user-1')));
 
+        LogicalTestCase::$container = $containerMock;
         $logicalTest = new LogicalTestCase();
-        $logicalTest->setContainer($containerMock);
 
         $expected = array(
             'NotLogged' => array('createClientWithRoleNotLogged', 'one param'),
@@ -623,8 +641,8 @@ class LogicalTestCaseTest extends WebTestCase
             ->with($this->equalTo('test_roles'))
             ->will($this->returnValue(array('NotLogged' => '', 'User' => 'user-1')));
 
+        LogicalTestCase::$container = $containerMock;
         $logicalTest = new LogicalTestCase();
-        $logicalTest->setContainer($containerMock);
 
         $logicalTest->rolesProvider(array(
               'NotLogged'      => 'one param',
@@ -647,8 +665,8 @@ class LogicalTestCaseTest extends WebTestCase
             ->with($this->equalTo('test_roles'))
             ->will($this->returnValue(array('NotLogged' => '', 'User' => 'user-1')));
 
+        LogicalTestCase::$container = $containerMock;
         $logicalTest = new LogicalTestCase();
-        $logicalTest->setContainer($containerMock);
 
         $logicalTest->rolesProvider(array(
             'NotLogged'      => 'one param',
@@ -681,8 +699,8 @@ class LogicalTestCaseTest extends WebTestCase
             ->with($this->equalTo('test_roles'))
             ->will($this->returnValue(array('NotLogged' => '', 'User' => 'user-1')));
 
+        LogicalTestCase::$container = $containerMock;
         $logicalTest = new LogicalTestCase();
-        $logicalTest->setContainer($containerMock);
 
         $logicalTest->rolesProvider(array(
             'NotLogged'      => 'one param',
