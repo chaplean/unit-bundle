@@ -101,6 +101,27 @@ class ExampleTest extends LogicalTestCase
             )
         );
     }
+
+    /**
+     * @return array
+     */
+    public function rolesWithExtraRoles()
+    {
+        return $this->rolesProvider(
+            array(
+                'NotLogged' => Response::HTTP_FORBIDDEN,
+                'User'      => Response::HTTP_OK,
+                'Admin'     => Response::HTTP_OK,
+            ),
+            // You can also provide extra roles, thoses are added to the list
+            // of default roles. Like with regular roles you provide the role
+            // name as key and then the expectations as value, but the first
+            // expectation must be the user to use to log in as.
+            array(
+                'SpecialCase' => array('user-3', Response::HTTP_OK)
+            )
+        );
+    }
 }
 ```
 
@@ -116,14 +137,14 @@ class ExampleTest extends LogicalTestCase
     /**
      * @dataProvider rolesMustBeLoggedProvider
      * 
-     * @param string  $client
+     * @param string  $user
      * @param integer $expectedCode
      *
      * @return void
      */
-    public function testRouteMustBeLogged($client, $expectedCode)
+    public function testRouteMustBeLogged($user, $expectedCode)
     {
-        $client = $this->$client();
+        $client = $this->createClientWith($user);
         $client->request('/protected/url');
         
         $response = $client->getResponse();

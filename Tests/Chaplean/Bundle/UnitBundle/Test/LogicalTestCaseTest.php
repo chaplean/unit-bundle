@@ -616,8 +616,8 @@ class LogicalTestCaseTest extends LogicalTestCase
         $logicalTest = new LogicalTestCase();
 
         $expected = array(
-            'NotLogged' => array('createClientWithRoleNotLogged', 'one param'),
-            'User'      => array('createClientWithRoleUser', 'two', 'param')
+            'NotLogged' => array('', 'one param'),
+            'User'      => array('user-1', 'two', 'param')
         );
         $actual = $logicalTest->rolesProvider(array(
             'NotLogged' => 'one param',
@@ -675,18 +675,6 @@ class LogicalTestCaseTest extends LogicalTestCase
 
     /**
      * @return void
-     * @expectedException \LogicException
-     * @expectedExceptionMessage You must define test_roles in your parameters_test.yml to use this function.
-     */
-    public function testCreateClientWithRoleWithoutConfiguration()
-    {
-        $logicalTest = new LogicalTestCase();
-
-        $logicalTest->createClientWithRoleSomething();
-    }
-
-    /**
-     * @return void
      * @runInSeparateProcess
      */
     public function testCreateClientWithRole()
@@ -702,12 +690,14 @@ class LogicalTestCaseTest extends LogicalTestCase
         LogicalTestCase::$container = $containerMock;
         $logicalTest = new LogicalTestCase();
 
-        $logicalTest->rolesProvider(array(
-            'NotLogged'      => 'one param',
-            'User' => array('two', 'param')
-        ));
+        $logicalTest->rolesProvider(
+            array(
+                'NotLogged' => 'one param',
+                'User'      => array('two', 'param')
+            )
+        );
 
-        $client = $logicalTest->createClientWithRoleNotLogged();
+        $client = $logicalTest->createClientWith('');
         $this->assertInstanceOf(\Symfony\Bundle\FrameworkBundle\Client::class, $client);
         $this->assertNull($client->getContainer()->get('security.token_storage')->getToken());
     }
