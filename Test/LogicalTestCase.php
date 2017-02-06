@@ -92,9 +92,6 @@ class LogicalTestCase extends WebTestCase
      */
     protected $userRoles;
 
-    /** @var string */
-    protected $startsWith = 'createClientWithRole';
-
     /**
      * Construct
      *
