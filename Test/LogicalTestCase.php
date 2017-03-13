@@ -16,6 +16,7 @@ use Symfony\Component\BrowserKit\Cookie;
 use Symfony\Component\DependencyInjection\Container;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Exception\InvalidArgumentException;
+use Symfony\Component\DependencyInjection\Exception\ServiceNotFoundException;
 use Symfony\Component\Form\Form;
 use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
@@ -154,7 +155,11 @@ class LogicalTestCase extends WebTestCase
     public function authenticate($user, Client $client = null)
     {
         $usernameTokenPassword = new UsernamePasswordToken($user, null, 'main', $user->getRoles());
-        $this->getContainer()->get('security.token_storage')->setToken($usernameTokenPassword);
+        try {
+            $this->getContainer()->get('security.token_storage')->setToken($usernameTokenPassword);
+        } catch (ServiceNotFoundException $e) {
+            throw new \LogicException("You can't authenticate as you don't have the \"security.token_storage\" service in your container.");
+        }
 
         if ($client !== null) {
             $client->getContainer()->get('security.token_storage')->setToken($usernameTokenPassword);
@@ -603,7 +608,11 @@ class LogicalTestCase extends WebTestCase
 
         // Unauthenticate user between each test
         if ($this->getContainer() !== null) {
-            $this->getContainer()->get('security.token_storage')->setToken(null);
+            try {
+                $this->getContainer()->get('security.token_storage')->setToken(null);
+            } catch (ServiceNotFoundException $e) {
+                // Intentionnaly empty
+            }
         }
 
         \Mockery::close();
