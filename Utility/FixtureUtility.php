@@ -178,42 +178,45 @@ class FixtureUtility
             }
         }
 
-        $isNew = false;
+        if (!array_key_exists($databaseHash, $this->cachedExecutor) || $driverIsMysql) {
+            if ($executor === null) {
+                $connection = $databaseUtility->getOm()
+                    ->getConnection();
 
-        if (!array_key_exists($databaseHash, $this->cachedExecutor)) {
-            $isNew = true;
+                $referenceRepository = new ProxyReferenceRepository($databaseUtility->getOm());
 
-            $loader = self::getFixtureLoader($this->container, $classNames);
+                $executor = new ORMExecutor($databaseUtility->getOm(), new ORMPurger());
+                $executor->setReferenceRepository($referenceRepository);
 
-            $this->loaded = array();
-            foreach ($loader->getFixtures() as $fixture) {
-                $this->loaded[] = get_class($fixture);
+                $loader = self::getFixtureLoader($this->container, $classNames);
+
+                $this->loaded = array();
+                foreach ($loader->getFixtures() as $fixture) {
+                    $this->loaded[] = get_class($fixture);
+                }
+
+                if (array_key_exists($databaseHash, $this->cachedExecutor)) {
+                    if ($driverIsMysql) {
+                        $mysqlImport = new MysqlImportCommandUtility($connection, $sqlDirectory . '/' . $databaseHash . '.sql');
+                        $mysqlImport->exec();
+
+                        $databaseUtility->getOm()->getUnitOfWork()->clear();
+                    }
+
+                    $executor = $this->cachedExecutor[$databaseHash];
+                } else {
+                    $executor->execute($loader->getFixtures());
+
+                    $this->cachedExecutor[$databaseHash] = $executor;
+
+                    if ($driverIsMysql) {
+                        $mysqlDump = new MysqlDumpCommandUtility($connection, $sqlDirectory . '/' . $databaseHash . '.sql');
+                        $mysqlDump->exec();
+                    }
+                }
             }
-
-            $referenceRepository = new ProxyReferenceRepository($databaseUtility->getOm());
-            $executor = new ORMExecutor($databaseUtility->getOm(), new ORMPurger());
-            $executor->setReferenceRepository($referenceRepository);
-
-//                $executor->execute($loader->getFixtures());
-
-            $this->cachedExecutor[$databaseHash] = $executor;
-
         } else {
             $executor = $this->cachedExecutor[$databaseHash];
-        }
-
-        if ($driverIsMysql) {
-            $connection = $databaseUtility->getOm()->getConnection();
-
-//            if ($isNew) {
-//                $mysqlDump = new MysqlDumpCommandUtility($connection, $sqlDirectory . '/' . $databaseHash . '.sql');
-//                $mysqlDump->exec();
-//            } else {
-//                $mysqlImport = new MysqlImportCommandUtility($connection, $sqlDirectory . '/' . $databaseHash . '.sql');
-//                $mysqlImport->exec();
-//
-//                $databaseUtility->getOm()->getUnitOfWork()->clear();
-//            }
         }
 
         $databaseUtility->moveDatabase();
