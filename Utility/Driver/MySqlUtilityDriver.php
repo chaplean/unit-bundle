@@ -47,29 +47,4 @@ class MySqlUtilityDriver
 
         return in_array($dbname, $tmpConnection->getSchemaManager()->listDatabases());
     }
-
-    /**
-     * Determine if the Fixtures that define a database backup have been
-     * modified since the backup was made.
-     *
-     * @param array  $classNames The fixture classnames to check
-     * @param string $backup     The fixture backup SQLite database file path
-     *
-     * @return bool TRUE if the backup was made since the modifications to the
-     * fixtures; FALSE otherwise
-     */
-    public static function isBackupUpToDate(array $classNames, $backup)
-    {
-        $backupLastModifiedDateTime = new \DateTime();
-        $backupLastModifiedDateTime->setTimestamp(filemtime($backup));
-
-        foreach ($classNames as $className) {
-            $fixtureLastModifiedDateTime = self::getFixtureLastModified($className);
-            if ($backupLastModifiedDateTime < $fixtureLastModifiedDateTime) {
-                return false;
-            }
-        }
-
-        return true;
-    }
 }
