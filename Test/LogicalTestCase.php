@@ -572,6 +572,7 @@ class LogicalTestCase extends WebTestCase
         $nbTransactions = $manager->getConnection()->getTransactionNestingLevel();
 
         if (self::$databaseLoaded && $nbTransactions < 1) {
+            $manager->getConnection()->setNestTransactionsWithSavepoints(true);
             $manager->beginTransaction();
         }
 
@@ -744,5 +745,19 @@ class LogicalTestCase extends WebTestCase
         }
 
         return $client;
+    }
+
+    /**
+     * @param string $input
+     *
+     * @return resource
+     */
+    public static function getInputStream($input)
+    {
+        $stream = fopen('php://memory', 'r+', false);
+        fputs($stream, $input);
+        rewind($stream);
+
+        return $stream;
     }
 }
