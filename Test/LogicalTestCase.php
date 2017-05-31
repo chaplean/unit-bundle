@@ -527,12 +527,11 @@ class LogicalTestCase extends WebTestCase
         self::resetManagerIfNecessary();
 
         $manager = $this->getManager();
-        $manager->getUnitOfWork()
-            ->clear();
-        $nbTransactions = $manager->getConnection()
-            ->getTransactionNestingLevel();
+        $manager->getUnitOfWork()->clear();
+        $nbTransactions = $manager->getConnection()->getTransactionNestingLevel();
 
         if (self::$databaseLoaded && $nbTransactions < 1) {
+            $manager->getConnection()->setNestTransactionsWithSavepoints(true);
             $manager->beginTransaction();
         }
 
@@ -613,5 +612,19 @@ class LogicalTestCase extends WebTestCase
         self::$servicesToRefresh = null;
         self::$userFixtures = array();
         self::$withDefaultData = true;
+    }
+
+    /**
+     * @param string $input
+     *
+     * @return resource
+     */
+    public static function getInputStream($input)
+    {
+        $stream = fopen('php://memory', 'r+', false);
+        fputs($stream, $input);
+        rewind($stream);
+
+        return $stream;
     }
 }
