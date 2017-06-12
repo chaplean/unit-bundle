@@ -224,25 +224,29 @@ class LogicalTestCase extends WebTestCase
      * @deprecated use getCsrfToken() instead
      *
      * @param string $formClass
+     * @param Client $client
      *
      * @return string
      * @throws \Exception
      */
-    public function getCrsfToken($formClass)
+    public function getCrsfToken($formClass, Client $client = null)
     {
-        return $this->getCsrfToken($formClass);
+        return $this->getCsrfToken($formClass, $client);
     }
 
     /**
      * @param string $formClass
+     * @param Client $client
      *
      * @return string
      * @throws \Exception
      */
-    public function getCsrfToken($formClass)
+    public function getCsrfToken($formClass, Client $client = null)
     {
+        $client = $client ?: $this;
+
         /** @var Form $form */
-        $form = $this->getContainer()->get('form.factory')->create($formClass);
+        $form = $client->getContainer()->get('form.factory')->create($formClass);
         $fields = $form->createView()->children;
 
         if (!array_key_exists('_token', $fields)) {
@@ -572,6 +576,7 @@ class LogicalTestCase extends WebTestCase
         $nbTransactions = $manager->getConnection()->getTransactionNestingLevel();
 
         if (self::$databaseLoaded && $nbTransactions < 1) {
+            $manager->getConnection()->setNestTransactionsWithSavepoints(true);
             $manager->beginTransaction();
         }
 
@@ -744,5 +749,19 @@ class LogicalTestCase extends WebTestCase
         }
 
         return $client;
+    }
+
+    /**
+     * @param string $input
+     *
+     * @return resource
+     */
+    public static function getInputStream($input)
+    {
+        $stream = fopen('php://memory', 'r+', false);
+        fputs($stream, $input);
+        rewind($stream);
+
+        return $stream;
     }
 }
