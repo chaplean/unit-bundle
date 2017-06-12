@@ -1,3 +1,6 @@
+parameters:
+    test.session.listener.class: Chaplean\Bundle\UnitBundle\EventListener\TestSessionListener
+
 services:
     chaplean_unit.swiftmailer_cache:
         class: Chaplean\Bundle\UnitBundle\Utility\SwiftMailerCacheUtility

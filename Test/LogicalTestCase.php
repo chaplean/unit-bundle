@@ -224,25 +224,29 @@ class LogicalTestCase extends WebTestCase
      * @deprecated use getCsrfToken() instead
      *
      * @param string $formClass
+     * @param Client $client
      *
      * @return string
      * @throws \Exception
      */
-    public function getCrsfToken($formClass)
+    public function getCrsfToken($formClass, Client $client = null)
     {
-        return $this->getCsrfToken($formClass);
+        return $this->getCsrfToken($formClass, $client);
     }
 
     /**
      * @param string $formClass
+     * @param Client $client
      *
      * @return string
      * @throws \Exception
      */
-    public function getCsrfToken($formClass)
+    public function getCsrfToken($formClass, Client $client = null)
     {
+        $client = $client ?: $this;
+
         /** @var Form $form */
-        $form = $this->getContainer()->get('form.factory')->create($formClass);
+        $form = $client->getContainer()->get('form.factory')->create($formClass);
         $fields = $form->createView()->children;
 
         if (!array_key_exists('_token', $fields)) {
