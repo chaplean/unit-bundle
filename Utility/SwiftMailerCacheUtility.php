@@ -2,6 +2,7 @@
 
 namespace Chaplean\Bundle\UnitBundle\Utility;
 
+use Chaplean\Bundle\MailerBundle\lib\classes\Chaplean\Message;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\Finder\SplFileInfo;
@@ -65,19 +66,29 @@ class SwiftMailerCacheUtility
             return null;
         }
 
-        $messages = array();
+        $timedMessages = array();
+        $basicMessages = array();
         $messagesTimes = array();
 
         /** @var SplFileInfo $file */
         foreach ($finder as $file) {
             $message = unserialize($file->getContents());
 
-            $messagesTimes[] = $message->getTime();
+            if ($message instanceof Message) {
+                $messagesTimes[] = $message->getTime();
+                $timedMessages[] = $message;
+            } else {
+                $basicMessages[] = $message;
+            }
+        }
+
+        array_multisort($messagesTimes, $timedMessages);
+        $messages = array_values($timedMessages);
+
+        foreach ($basicMessages as $message) {
             $messages[] = $message;
         }
 
-        array_multisort($messagesTimes, $messages);
-
-        return array_values($messages);
+        return $messages;
     }
 }
