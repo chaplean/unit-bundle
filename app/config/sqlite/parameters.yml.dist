@@ -11,6 +11,7 @@ parameters:
     mailer_port: 465
     mailer_user: null
     mailer_password: null
+    mailer_encryption: null
 
     locale: fr
     secret: Secr3tTok3nForChapleanUnitBun2le
