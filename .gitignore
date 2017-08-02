@@ -3,8 +3,7 @@
 !var/.gitkeep
 
 # Parameters
-/app/config/default/parameters.yml
-/app/config/sqlite/parameters.yml
+/app/config/*/parameters.yml
 
 # Managed by Composer
 /bin/*

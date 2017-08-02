@@ -70,7 +70,8 @@ class AppKernel extends Kernel
     {
         $configType = $_SERVER['CONFIG_TYPE'] ?? null;
 
-        if (!in_array($configType, array('default', 'sqlite'))) {
+        /** Only if we want to implement new configurations in future (like sqlite for example) */
+        if (!in_array($configType, array('default'))) {
             $configType = 'default';
         }
 

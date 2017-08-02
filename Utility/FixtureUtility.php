@@ -171,10 +171,6 @@ class FixtureUtility
         } else {
             if (!$driverIsMysql || !array_key_exists($databaseHash, $this->cachedExecutor)) {
                 $databaseUtility->cleanDatabase();
-
-                if (!array_key_exists($databaseHash, $this->cachedExecutor)) {
-                    $databaseUtility->cleanDatabaseTemporary();
-                }
             }
         }
 
@@ -219,7 +215,6 @@ class FixtureUtility
             $executor = $this->cachedExecutor[$databaseHash];
         }
 
-        $databaseUtility->moveDatabase();
         $this->databaseUtility = $databaseUtility;
 
         return $executor;
