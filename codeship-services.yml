@@ -6,7 +6,7 @@ application:
         - mysql:mysql
     cached: true
 mysql:
-    image: chaplean/mysql
+    image: chaplean/mysql:mariadb10.1
     environment:
         MYSQL_ROOT_PASSWORD: root
         MYSQL_USER: app_user
