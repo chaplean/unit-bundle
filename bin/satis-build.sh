@@ -10,11 +10,11 @@ elif [ $# -gt 1 ]; then
     exit 2
 fi
 
-echo "Trying to connect to satis.chaplean.com"
+echo "Trying to connect to satis.chaplean.coop"
 
-ssh chaplean@satis.chaplean.com /home/www/chaplean.com/satis/bin/satis build \
-    /home/www/chaplean.com/satis/satis.json \
-    /home/www/chaplean.com/satis/web \
+ssh chaplean@satis.chaplean.coop /home/www/chaplean.coop/satis/bin/satis build \
+    /home/www/chaplean.coop/satis/satis.json \
+    /home/www/chaplean.coop/satis/web \
     $1
 
 echo "Satis build finished"

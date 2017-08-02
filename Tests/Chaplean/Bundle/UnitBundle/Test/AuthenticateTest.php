@@ -8,8 +8,8 @@ use Symfony\Component\Security\Core\User\User;
 /**
  * AuthenticateTest.php.
  *
- * @author    Valentin - Chaplean <valentin@chaplean.com>
- * @copyright 2014 - 2016 Chaplean (http://www.chaplean.com)
+ * @author    Valentin - Chaplean <valentin@chaplean.coop>
+ * @copyright 2014 - 2016 Chaplean (http://www.chaplean.coop)
  * @since     2.1.0
  */
 class AuthenticateTest extends LogicalTestCase

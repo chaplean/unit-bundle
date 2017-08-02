@@ -8,8 +8,8 @@ use Chaplean\Bundle\UnitBundle\Test\LogicalTestCase;
 /**
  * TransactionTest.php.
  *
- * @author    Matthias - Chaplean <matthias@chaplean.com>
- * @copyright 2014 - 2015 Chaplean (http://www.chaplean.com)
+ * @author    Matthias - Chaplean <matthias@chaplean.coop>
+ * @copyright 2014 - 2015 Chaplean (http://www.chaplean.coop)
  * @since     2.0.0
  */
 class TransactionTest extends LogicalTestCase

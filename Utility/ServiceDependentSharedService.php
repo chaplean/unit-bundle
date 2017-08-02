@@ -6,8 +6,8 @@ namespace Chaplean\Bundle\UnitBundle\Utility;
  * Class ServiceDependentSharedService.
  *
  * @package   Chaplean\Bundle\UnitBundle\Utility
- * @author    Valentin - Chaplean <valentin@chaplean.com>
- * @copyright 2014 - 2016 Chaplean (http://www.chaplean.com)
+ * @author    Valentin - Chaplean <valentin@chaplean.coop>
+ * @copyright 2014 - 2016 Chaplean (http://www.chaplean.coop)
  * @since     4.2.0
  */
 class ServiceDependentSharedService

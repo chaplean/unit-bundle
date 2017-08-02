@@ -9,8 +9,8 @@ use Chaplean\Bundle\UnitBundle\Utility\ServiceInstanceUtility;
  * Class ServiceInstanceUtilityTest.
  *
  * @package   Tests\Chaplean\Bundle\UnitBundle\Utility
- * @author    Tom - Chaplean <tom@chaplean.com>
- * @copyright 2014 - 2016 Chaplean (http://www.chaplean.com)
+ * @author    Tom - Chaplean <tom@chaplean.coop>
+ * @copyright 2014 - 2016 Chaplean (http://www.chaplean.coop)
  * @since     4.2.0
  */
 class ServiceInstanceUtilityTest extends LogicalTestCase

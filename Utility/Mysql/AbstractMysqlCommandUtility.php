@@ -8,8 +8,8 @@ use Doctrine\DBAL\Connection;
  * Class AbstractMysqlCommandUtility.
  *
  * @package   Tests\Chaplean\Bundle\UnitBundle\Utility\Mysql
- * @author    Tom - Chaplean <tom@chaplean.com>
- * @copyright 2014 - 2016 Chaplean (http://www.chaplean.com)
+ * @author    Tom - Chaplean <tom@chaplean.coop>
+ * @copyright 2014 - 2016 Chaplean (http://www.chaplean.coop)
  * @since     4.2.0
  */
 abstract class AbstractMysqlCommandUtility implements MysqlCommandUtilityInterface

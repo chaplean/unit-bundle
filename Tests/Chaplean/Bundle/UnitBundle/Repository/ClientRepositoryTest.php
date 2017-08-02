@@ -9,8 +9,8 @@ use Doctrine\ORM\EntityManager;
  * Class ClientRepositoryTest.
  *
  * @package   Tests\Chaplean\Bundle\UnitBundle\Test
- * @author    Tom - Chaplean <tom@chaplean.com>
- * @copyright 2014 - 2016 Chaplean (http://www.chaplean.com)
+ * @author    Tom - Chaplean <tom@chaplean.coop>
+ * @copyright 2014 - 2016 Chaplean (http://www.chaplean.coop)
  * @since     4.0.0
  */
 class ClientRepositoryTest extends LogicalTestCase

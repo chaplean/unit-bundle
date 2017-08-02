@@ -8,8 +8,8 @@ use Symfony\Bundle\FrameworkBundle\EventListener\TestSessionListener as BaseTest
 /**
  * Class TestSessionListener.
  *
- * @author    Matthias - Chaplean <matthias@chaplean.com>
- * @copyright 2014 - 2017 Chaplean (http://www.chaplean.com)
+ * @author    Matthias - Chaplean <matthias@chaplean.coop>
+ * @copyright 2014 - 2017 Chaplean (http://www.chaplean.coop)
  * @since     5.2.5
  */
 class TestSessionListener extends BaseTestSessionListener
