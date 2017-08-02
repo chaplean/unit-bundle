@@ -71,10 +71,10 @@ swiftmailer:
 
 # Chapleanmailer Configuration
 chaplean_mailer:
-    sender_address: 'staff@chaplean.com'
+    sender_address: 'staff@chaplean.coop'
     sender_name: 'Chaplean'
     subject:
-        prefix: '[TEST] '
+        prefix: '[TEST]'
     test: true
 
 fos_rest:

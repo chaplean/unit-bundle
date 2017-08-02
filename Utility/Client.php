@@ -17,8 +17,8 @@ use Symfony\Component\Routing\Route;
  * Class Client.
  *
  * @package   Chaplean\Bundle\UnitBundle\Utility
- * @author    Valentin - Chaplean <valentin@chaplean.com>
- * @copyright 2014 - 2016 Chaplean (http://www.chaplean.com)
+ * @author    Valentin - Chaplean <valentin@chaplean.coop>
+ * @copyright 2014 - 2016 Chaplean (http://www.chaplean.coop)
  * @since     2.2.0
  */
 class Client

@@ -8,8 +8,8 @@ use Chaplean\Bundle\UnitBundle\Test\LogicalTestCase;
 /**
  * MessageTest.php.
  *
- * @author    Valentin - Chaplean <valentin@chaplean.com>
- * @copyright 2014 - 2015 Chaplean (http://www.chaplean.com)
+ * @author    Valentin - Chaplean <valentin@chaplean.coop>
+ * @copyright 2014 - 2015 Chaplean (http://www.chaplean.coop)
  * @since     2.0.0
  */
 class MessageTest extends LogicalTestCase
@@ -61,7 +61,7 @@ class MessageTest extends LogicalTestCase
         $messageSended = $this->readMessages()[0];
 
         $this->assertTrue(array_key_exists('foo_bar_com@yopmail.com', $messageSended->getTo()));
-        $this->assertEquals(array('staff@chaplean.com' => 'Chaplean'), $messageSended->getFrom());
+        $this->assertEquals(array('staff@chaplean.coop' => 'Chaplean'), $messageSended->getFrom());
         $this->assertEquals('[TEST] message test', $messageSended->getSubject());
         $this->assertEquals('Chaplean is Awesome !!', $messageSended->getBody());
     }

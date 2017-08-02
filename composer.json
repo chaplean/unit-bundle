@@ -6,7 +6,7 @@
     "authors": [
         {
             "name": "Chaplean",
-            "homepage": "http://www.chaplean.com"
+            "homepage": "http://www.chaplean.coop"
         }
     ],
     "autoload": {
@@ -18,33 +18,32 @@
     "repositories": [
         {
             "type": "composer",
-            "url": "https://satis.chaplean.com"
+            "url": "https://satis.chaplean.coop"
         }
     ],
     "require": {
         "php": ">=7.0.8",
-        "symfony/symfony": "2.8.*",
-        "doctrine/orm": "^2.4.8",
         "doctrine/doctrine-bundle": "~1.4",
-        "symfony/swiftmailer-bundle": "~2.3",
-        "symfony/monolog-bundle": "~2.4",
+        "doctrine/orm": "^2.4.8",
         "sensio/distribution-bundle": "~5.0",
         "sensio/framework-extra-bundle": "^3.0.2",
-        "liip/functional-test-bundle": "^1.6",
+        "symfony/monolog-bundle": "^3.0.2",
+        "symfony/symfony": "2.8.*",
         "doctrine/doctrine-fixtures-bundle": "~2.2",
-        "mockery/mockery": "^0.9.4",
-        "php-mock/php-mock": "^1.0",
         "jms/di-extra-bundle": "^1.6.0",
-        "jms/security-extra-bundle": "1.*",
+        "jms/security-extra-bundle": "^1.6",
+        "liip/functional-test-bundle": "^1.6",
+        "mockery/mockery": "dev-master",
         "nelmio/alice": "^2.1",
-        "phpunit/phpunit": "^5.4"
+        "php-mock/php-mock": "^2.0",
+        "phpunit/phpunit": "^6.2"
     },
     "require-dev": {
         "chaplean/coding-standard": "1.1.*",
         "chaplean/mailer-bundle": "^3.0",
         "friendsofsymfony/rest-bundle": "~2.0",
-        "jms/serializer-bundle": "^1.1",
-        "satooshi/php-coveralls": "^1.0"
+        "jms/serializer-bundle": "^2.0",
+        "satooshi/php-coveralls": "dev-master"
     },
     "scripts": {
         "post-install-cmd": [

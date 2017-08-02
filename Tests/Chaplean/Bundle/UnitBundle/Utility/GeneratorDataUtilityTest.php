@@ -10,8 +10,8 @@ use Chaplean\Bundle\UnitBundle\Utility\GeneratorDataUtility;
 /**
  * GeneratorDataUtilityTest.php.
  *
- * @author    Valentin - Chaplean <valentin@chaplean.com>
- * @copyright 2014 - 2016 Chaplean (http://www.chaplean.com)
+ * @author    Valentin - Chaplean <valentin@chaplean.coop>
+ * @copyright 2014 - 2016 Chaplean (http://www.chaplean.coop)
  * @since     3.0.0
  */
 class GeneratorDataUtilityTest extends LogicalTestCase
@@ -50,13 +50,14 @@ class GeneratorDataUtilityTest extends LogicalTestCase
 
     /**
      * @return void
+     *
+     * @expectedException \Exception
      * @expectedExceptionMessage No definition load !
      */
     public function testClassDefinitionExistWithEmptyDefinition()
     {
-        $mock = $this->getMockBuilder(GeneratorDataUtility::class)
-                ->disableOriginalConstructor()
-                ->getMock();
+        $mock = \Mockery::mock(GeneratorDataUtility::class)
+            ->makePartial();
 
         /** @noinspection PhpUndefinedMethodInspection */
         $mock->classDefinitionExist('', '');

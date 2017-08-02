@@ -13,15 +13,14 @@ use Doctrine\Common\DataFixtures\Purger\ORMPurger;
 use Doctrine\Common\Persistence\ObjectManager;
 use Doctrine\DBAL\Driver\PDOMySql\Driver as MySqlDriver;
 use Doctrine\ORM\EntityManager;
-use Symfony\Component\DependencyInjection\Container;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
 
 /**
  * FixtureUtility.php.
  *
- * @author    Valentin - Chaplean <valentin@chaplean.com>
- * @copyright 2014 - 2015 Chaplean (http://www.chaplean.com)
+ * @author    Valentin - Chaplean <valentin@chaplean.coop>
+ * @copyright 2014 - 2015 Chaplean (http://www.chaplean.coop)
  * @since     1.2.0
  */
 class FixtureUtility
@@ -47,7 +46,7 @@ class FixtureUtility
     private $loaded = array();
 
     /**
-     * @var Container
+     * @var ContainerInterface
      */
     private $container;
 
@@ -80,12 +79,12 @@ class FixtureUtility
     /**
      * Retrieve Doctrine DataFixtures loader.
      *
-     * @param Container $container
-     * @param array     $classNames
+     * @param ContainerInterface $container
+     * @param array              $classNames
      *
      * @return Loader
      */
-    protected function getFixtureLoader(Container $container, array $classNames)
+    protected function getFixtureLoader(ContainerInterface $container, array $classNames)
     {
         $loaderClass = 'Symfony\Bundle\DoctrineFixturesBundle\Common\DataFixtures\Loader';
 
@@ -172,10 +171,6 @@ class FixtureUtility
         } else {
             if (!$driverIsMysql || !array_key_exists($databaseHash, $this->cachedExecutor)) {
                 $databaseUtility->cleanDatabase();
-
-                if (!array_key_exists($databaseHash, $this->cachedExecutor)) {
-                    $databaseUtility->cleanDatabaseTemporary();
-                }
             }
         }
 
@@ -220,7 +215,6 @@ class FixtureUtility
             $executor = $this->cachedExecutor[$databaseHash];
         }
 
-        $databaseUtility->moveDatabase();
         $this->databaseUtility = $databaseUtility;
 
         return $executor;

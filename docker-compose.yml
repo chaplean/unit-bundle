@@ -1,19 +1,17 @@
 version: '2'
 services:
     application:
-        container_name: unit_application
+        container_name: unit_bundle_app
         build: .
-        expose:
-            - "9000"
         volumes:
             - .:/var/www/symfony
         links:
             - mysql:mysql
     mysql:
-        container_name: unit_mysql
-        image: chaplean/mysql
+        container_name: unit_bundle_mysql
+        image: chaplean/mysql:mariadb10.1
         volumes:
-            - ./.db:/var/lib/mysql:rw
+            - mysql_data:/var/lib/mysql:rw
         restart: always
         environment:
             MYSQL_ROOT_PASSWORD: root
@@ -21,4 +19,5 @@ services:
             MYSQL_PASSWORD: app_password
             MYSQL_DATABASE: test_database
 networks: {}
-volumes: {}
+volumes:
+    mysql_data: ~

@@ -1,13 +1,11 @@
-FROM chaplean/phpunit
-MAINTAINER Tom - Chaplean <tom@chaplean.com>
-
-VOLUME /var/www/symfony
-WORKDIR /var/www/symfony/
+FROM chaplean/php:7.1
+MAINTAINER Tom - Chaplean <tom@chaplean.coop>
 
 # Get SSH user key
-RUN mkdir /root/.ssh
+RUN mkdir -p /root/.ssh
 ADD ./app/config/ssh /root/.ssh
-RUN chmod 600 /root/.ssh/id_rsa
-RUN chmod 600 /root/.ssh/id_rsa.pub
+RUN chmod 600 /root/.ssh/*
 
-#COPY . ./
+# Workdir
+VOLUME /var/www/symfony
+WORKDIR /var/www/symfony/

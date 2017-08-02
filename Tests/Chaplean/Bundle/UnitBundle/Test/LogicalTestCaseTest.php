@@ -6,18 +6,42 @@ use Chaplean\Bundle\UnitBundle\Entity\Client;
 use Chaplean\Bundle\UnitBundle\Test\LogicalTestCase;
 use Chaplean\Bundle\UnitBundle\Utility\FixtureUtility;
 use Doctrine\ORM\EntityManager;
-use Liip\FunctionalTestBundle\Test\WebTestCase;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\Form\Tests\Fixtures\Foo1Bar2Type;
+use Tests\Chaplean\Bundle\UnitBundle\Form\Type\FormWithoutCrsfTokenType;
 
 /**
  * LogicalTestCaseTest.php.
  *
- * @author                 Valentin - Chaplean <valentin@chaplean.com>
- * @copyright              2014 - 2016 Chaplean (http://www.chaplean.com)
+ * @author                 Valentin - Chaplean <valentin@chaplean.coop>
+ * @copyright              2014 - 2016 Chaplean (http://www.chaplean.coop)
  * @since                  3.0.0
  */
-class LogicalTestCaseTest extends WebTestCase
+class LogicalTestCaseTest extends LogicalTestCase
 {
+    /** @var ContainerInterface */
+    private $oldContainer = null;
+
+    /**
+     * @return void
+     */
+    public function setUp()
+    {
+        parent::setUp();
+
+        $this->oldContainer = LogicalTestCase::$container;
+    }
+
+    /**
+     * @return void
+     */
+    public function tearDown()
+    {
+        LogicalTestCase::$container = $this->oldContainer;
+
+        parent::tearDown();
+    }
+
     /**
      * @return void
      */
@@ -54,14 +78,10 @@ class LogicalTestCaseTest extends WebTestCase
             ->with($this->equalTo('data_fixtures_namespace'))
             ->will($this->returnValue('Test\\'));
 
-        $oldContainer = $this->getContainer();
-
         $logicalTest = new LogicalTestCase();
         $logicalTest->setContainer($containerMock);
 
         $this->assertEquals('Test\\', $logicalTest->getDefaultFixturesNamespace());
-
-        $logicalTest->setContainer($oldContainer);
     }
 
     /**
@@ -534,14 +554,161 @@ class LogicalTestCaseTest extends WebTestCase
         $logicalTest->tearDown();
         $logicalTest::tearDownAfterClass();
     }
+
+    /**
+     * @return void
+     */
+    public function testGetCrsfToken()
+    {
+        $logicalTest = new LogicalTestCase();
+        $logicalTest::setUpBeforeClass();
+        $logicalTest->setUp();
+
+        $this->assertNotEmpty($logicalTest->getCrsfToken(Foo1Bar2Type::class));
+
+        $logicalTest->tearDown();
+        $logicalTest::tearDownAfterClass();
+    }
+
+    /**
+     * @return void
+     * @expectedException \Exception
+     */
+    public function testGetCrsfTokenWithDisabledCrsfToken()
+    {
+        $logicalTest = new LogicalTestCase();
+        $logicalTest::setUpBeforeClass();
+        $logicalTest->setUp();
+
+        $logicalTest->getCrsfToken(FormWithoutCrsfTokenType::class);
+
+        $logicalTest->tearDown();
+        $logicalTest::tearDownAfterClass();
+    }
+
+    /**
+     * @return void
+     * @expectedException \LogicException
+     * @expectedExceptionMessage You must define test_roles in your parameters_test.yml to use this function.
+     */
+    public function testRolesProviderWithoutConfiguration()
+    {
+        $logicalTest = new LogicalTestCase();
+
+        $logicalTest->rolesProvider(array());
+    }
+
+    /**
+     * @return void
+     * @runInSeparateProcess
+     */
+    public function testRolesProviderWithConfiguration()
+    {
+        $containerMock = $this->getMockBuilder('Symfony\Component\DependencyInjection\ContainerInterface')
+            ->getMock();
+
+        $containerMock->expects($this->once())
+            ->method('getParameter')
+            ->with($this->equalTo('test_roles'))
+            ->will($this->returnValue(array('NotLogged' => '', 'User' => 'user-1')));
+
+        LogicalTestCase::$container = $containerMock;
+        $logicalTest = new LogicalTestCase();
+
+        $expected = array(
+            'NotLogged' => array('', 'one param'),
+            'User'      => array('user-1', 'two', 'param')
+        );
+        $actual = $logicalTest->rolesProvider(array(
+            'NotLogged' => 'one param',
+            'User'      => array('two', 'param')
+        ));
+        $this->assertEquals($expected, $actual);
+    }
+
+    /**
+     * @return void
+     * @runInSeparateProcess
+     * @expectedException \LogicException
+     */
+    public function testRolesProviderWithBadParameter()
+    {
+        $containerMock = $this->getMockBuilder('Symfony\Component\DependencyInjection\ContainerInterface')
+            ->getMock();
+
+        $containerMock->expects($this->once())
+            ->method('getParameter')
+            ->with($this->equalTo('test_roles'))
+            ->will($this->returnValue(array('NotLogged' => '', 'User' => 'user-1')));
+
+        LogicalTestCase::$container = $containerMock;
+        $logicalTest = new LogicalTestCase();
+
+        $logicalTest->rolesProvider(array(
+              'NotLogged'      => 'one param',
+              'UnexpectedRole' => array('two', 'param')
+        ));
+    }
+
+    /**
+     * @return void
+     * @runInSeparateProcess
+     * @expectedException \LogicException
+     */
+    public function testRolesProviderWithMissingParameter()
+    {
+        $containerMock = $this->getMockBuilder('Symfony\Component\DependencyInjection\ContainerInterface')
+            ->getMock();
+
+        $containerMock->expects($this->once())
+            ->method('getParameter')
+            ->with($this->equalTo('test_roles'))
+            ->will($this->returnValue(array('NotLogged' => '', 'User' => 'user-1')));
+
+        LogicalTestCase::$container = $containerMock;
+        $logicalTest = new LogicalTestCase();
+
+        $logicalTest->rolesProvider(array(
+            'NotLogged'      => 'one param',
+        ));
+    }
+
+    /**
+     * @return void
+     * @runInSeparateProcess
+     */
+    public function testCreateClientWithRole()
+    {
+        $containerMock = $this->getMockBuilder('Symfony\Component\DependencyInjection\ContainerInterface')
+            ->getMock();
+
+        $containerMock->expects($this->once())
+            ->method('getParameter')
+            ->with($this->equalTo('test_roles'))
+            ->will($this->returnValue(array('NotLogged' => '', 'User' => 'user-1')));
+
+        LogicalTestCase::$container = $containerMock;
+        $logicalTest = new LogicalTestCase();
+
+        $logicalTest->rolesProvider(
+            array(
+                'NotLogged' => 'one param',
+                'User'      => array('two', 'param')
+            )
+        );
+
+        $client = $logicalTest->createClientWith('');
+        $this->assertInstanceOf(\Symfony\Bundle\FrameworkBundle\Client::class, $client);
+        $this->assertNull($client->getContainer()->get('security.token_storage')->getToken());
+    }
 }
 
 /**
  * Class DummyClassWithNotPublicMethod.
  *
  * @package   Tests\Chaplean\Bundle\UnitBundle\Test
- * @author    Valentin - Chaplean <valentin@chaplean.com>
- * @copyright 2014 - 2016 Chaplean (http://www.chaplean.com)
+ * @author    Valentin - Chaplean <valentin@chaplean.coop>
+ * @copyright 2014 - 2016 Chaplean (http://www.chaplean.coop)
  * @since     4.0.0
  */
 class DummyClassWithNotPublicMethod

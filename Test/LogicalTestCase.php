@@ -13,16 +13,19 @@ use Doctrine\ORM\EntityManager;
 use Liip\FunctionalTestBundle\Test\WebTestCase;
 use Symfony\Bundle\FrameworkBundle\Client;
 use Symfony\Component\BrowserKit\Cookie;
+use Symfony\Component\DependencyInjection\Container;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Exception\InvalidArgumentException;
+use Symfony\Component\DependencyInjection\Exception\ServiceNotFoundException;
+use Symfony\Component\Form\Form;
 use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
 
 /**
  * LogicalTestCase.
  *
- * @author    Matthias - Chaplean <matthias@chaplean.com>
- * @copyright 2014 - 2015 Chaplean (http://www.chaplean.com)
+ * @author    Matthias - Chaplean <matthias@chaplean.coop>
+ * @copyright 2014 - 2015 Chaplean (http://www.chaplean.coop)
  * @since     4.0.0
  *
  * @property EntityManager em Entity Manager.
@@ -30,7 +33,7 @@ use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
 class LogicalTestCase extends WebTestCase
 {
     /**
-     * @var ContainerInterface
+     * @var ContainerInterface|Container
      */
     protected static $container;
 
@@ -61,6 +64,7 @@ class LogicalTestCase extends WebTestCase
 
     /**
      * @var ArrayCollection
+     * @deprecated Remove in 5.1
      */
     private static $servicesToRefresh;
 
@@ -85,6 +89,11 @@ class LogicalTestCase extends WebTestCase
     protected static $datafixturesEnabled = true;
 
     /**
+     * @var array
+     */
+    protected $userRoles;
+
+    /**
      * Construct
      *
      * @param string|null $name
@@ -104,15 +113,21 @@ class LogicalTestCase extends WebTestCase
         }
 
         if (self::$doctrineRegistry === null) {
-            self::$doctrineRegistry = $this->getContainer()
-                ->get('doctrine');
+            self::$doctrineRegistry = $this->getContainer()->get('doctrine');
         }
 
-        $namespaceFixtures = $this->getFixtureUtility()
-            ->getNamespace();
+        $namespaceFixtures = $this->getFixtureUtility()->getNamespace();
 
         if (empty($namespaceFixtures)) {
             self::resetDefaultNamespaceFixtures();
+        }
+
+        self::$servicesToRefresh = new ArrayCollection();
+
+        try {
+            $this->userRoles = $this->getContainer()->getParameter('test_roles');
+        } catch (\InvalidArgumentException $e) {
+            $this->userRoles = array();
         }
     }
 
@@ -140,25 +155,23 @@ class LogicalTestCase extends WebTestCase
     public function authenticate($user, Client $client = null)
     {
         $usernameTokenPassword = new UsernamePasswordToken($user, null, 'main', $user->getRoles());
-        $this->getContainer()
-            ->get('security.token_storage')
-            ->setToken($usernameTokenPassword);
+        try {
+            $this->getContainer()->get('security.token_storage')->setToken($usernameTokenPassword);
+        } catch (ServiceNotFoundException $e) {
+            throw new \LogicException("You can't authenticate as you don't have the \"security.token_storage\" service in your container.");
+        }
 
         if ($client !== null) {
-            $client->getContainer()
-                ->get('security.token_storage')
-                ->setToken($usernameTokenPassword);
+            $client->getContainer()->get('security.token_storage')->setToken($usernameTokenPassword);
 
             /** @var Session $session */
-            $session = $client->getContainer()
-                ->get('session');
+            $session = $client->getContainer()->get('session');
 
             $session->set('_security_main', serialize($usernameTokenPassword));
             $session->save();
 
             $cookie = new Cookie($session->getName(), $session->getId());
-            $client->getCookieJar()
-                ->set($cookie);
+            $client->getCookieJar()->set($cookie);
         }
     }
 
@@ -200,11 +213,47 @@ class LogicalTestCase extends WebTestCase
     }
 
     /**
-     * @return ContainerInterface
+     * @return Container
      */
     public function getContainer()
     {
         return self::$container;
+    }
+
+    /**
+     * @deprecated use getCsrfToken() instead
+     *
+     * @param string $formClass
+     * @param Client $client
+     *
+     * @return string
+     * @throws \Exception
+     */
+    public function getCrsfToken($formClass, Client $client = null)
+    {
+        return $this->getCsrfToken($formClass, $client);
+    }
+
+    /**
+     * @param string $formClass
+     * @param Client $client
+     *
+     * @return string
+     * @throws \Exception
+     */
+    public function getCsrfToken($formClass, Client $client = null)
+    {
+        $client = $client ?: $this;
+
+        /** @var Form $form */
+        $form = $client->getContainer()->get('form.factory')->create($formClass);
+        $fields = $form->createView()->children;
+
+        if (!array_key_exists('_token', $fields)) {
+            throw new \Exception('CrsfToken disabled');
+        }
+
+        return $fields['_token']->vars['value'];
     }
 
     /**
@@ -267,8 +316,7 @@ class LogicalTestCase extends WebTestCase
      */
     public function getNamespace()
     {
-        return $this->getFixtureUtility()
-            ->getNamespace();
+        return $this->getFixtureUtility()->getNamespace();
     }
 
     /**
@@ -284,6 +332,21 @@ class LogicalTestCase extends WebTestCase
         $method->setAccessible(true);
 
         return $method;
+    }
+
+    /**
+     * @param string $className
+     * @param string $propertyName
+     *
+     * @return \ReflectionProperty
+     */
+    public function getNotPublicProperty($className, $propertyName)
+    {
+        $class = new \ReflectionClass($className);
+        $property = $class->getProperty($propertyName);
+        $property->setAccessible(true);
+
+        return $property;
     }
 
     /**
@@ -306,6 +369,7 @@ class LogicalTestCase extends WebTestCase
      * @param string $serviceName
      *
      * @return mixed
+     * @deprecated Useless with the new mock system
      */
     public static function getServiceRefreshed($serviceName)
     {
@@ -408,6 +472,7 @@ class LogicalTestCase extends WebTestCase
      * @param mixed  $instance
      *
      * @return void
+     * @deprecated Useless with the new mock system (Set the service directly in the container)
      */
     public static function mockService($serviceName, $instance)
     {
@@ -507,12 +572,11 @@ class LogicalTestCase extends WebTestCase
         self::resetManagerIfNecessary();
 
         $manager = $this->getManager();
-        $manager->getUnitOfWork()
-            ->clear();
-        $nbTransactions = $manager->getConnection()
-            ->getTransactionNestingLevel();
+        $manager->getUnitOfWork()->clear();
+        $nbTransactions = $manager->getConnection()->getTransactionNestingLevel();
 
         if (self::$databaseLoaded && $nbTransactions < 1) {
+            $manager->getConnection()->setNestTransactionsWithSavepoints(true);
             $manager->beginTransaction();
         }
 
@@ -532,9 +596,7 @@ class LogicalTestCase extends WebTestCase
 
         self::$doctrineRegistry = self::$container->get('doctrine');
         self::$swiftmailerCacheUtility = self::$container->get('chaplean_unit.swiftmailer_cache');
-        self::$doctrineRegistry->getManager()
-            ->getUnitOfWork()
-            ->clear();
+        self::$doctrineRegistry->getManager()->getUnitOfWork()->clear();
 
         $dataFixturesToLoad = self::$userFixtures;
 
@@ -553,12 +615,10 @@ class LogicalTestCase extends WebTestCase
     public function tearDown()
     {
         if ($this->getManager() !== null) {
-            $connection = $this->getManager()
-                ->getConnection();
+            $connection = $this->getManager()->getConnection();
 
             if ($connection->getTransactionNestingLevel() == 1 && self::$databaseLoaded) {
-                $this->getManager()
-                    ->rollback();
+                $this->getManager()->rollback();
             }
 
             $connection->close();
@@ -566,10 +626,15 @@ class LogicalTestCase extends WebTestCase
 
         // Unauthenticate user between each test
         if ($this->getContainer() !== null) {
-            $this->getContainer()
-                ->get('security.token_storage')
-                ->setToken(null);
+            try {
+                $this->getContainer()->get('security.token_storage')->setToken(null);
+            } catch (ServiceNotFoundException $e) {
+                // Intentionnaly empty
+            }
         }
+
+        \Mockery::close();
+        $this->clearContainer();
 
         parent::tearDown();
     }
@@ -585,13 +650,118 @@ class LogicalTestCase extends WebTestCase
 
         if (self::$container !== null) {
             foreach (self::$servicesToRefresh as $serviceName) {
-                self::$container
-                    ->set($serviceName, null);
+                self::$container->set($serviceName, null);
             }
         }
 
-        self::$servicesToRefresh = null;
+        self::$servicesToRefresh = new ArrayCollection();
         self::$userFixtures = array();
         self::$withDefaultData = true;
+    }
+
+    /**
+     * Throw Mockery's exception
+     *
+     * @return void
+     * @throws \Exception
+     */
+    public function throwMockerysException()
+    {
+        try {
+            \Mockery::close();
+        } catch (\Exception $e) {
+            throw $e;
+        }
+    }
+
+    /**
+     * Reset all non-important services (Important service: kernel, doctrine (+ related service) and orm (+ related service))
+     *
+     * @return void
+     */
+    public function clearContainer()
+    {
+        foreach ($this->getContainer()->getServiceIds() as $service) {
+            if (!preg_match_all('/(kernel|doctrine|[^f]orm)/', $service)) {
+                $this->getContainer()->set($service, null);
+            }
+        }
+    }
+
+    /**
+     * @param array $expectations
+     * @param array $extraRoles
+     *
+     * @return array
+     */
+    public function rolesProvider(array $expectations, array $extraRoles = array())
+    {
+        if (count($this->userRoles) === 0) {
+            throw new \LogicException("You must define test_roles in your parameters_test.yml to use this function.");
+        }
+
+        $countExpectations = count($expectations);
+        $rolesNames = array_keys($this->userRoles);
+        $countRoles = count($rolesNames);
+
+        if ($countExpectations !== $countRoles) {
+            throw new \LogicException(
+                sprintf(
+                    "The number of expecations (%d) must match the number of roles (%d)",
+                    $countExpectations,
+                    $countRoles
+                )
+            );
+        }
+
+        if ($rolesNames !== array_keys($expectations)) {
+            throw new \LogicException('The roles in the expectations given don\'t match the existing roles');
+        }
+
+        $mapUserExpectation = array_map(
+            function($userReference, $expectation) {
+                if (is_array($expectation)) {
+                    array_unshift($expectation, $userReference);
+                    return $expectation;
+                }
+
+                return array($userReference, $expectation);
+            }, array_values($this->userRoles), array_values($expectations)
+        );
+
+        return array_merge(
+            array_combine($rolesNames, $mapUserExpectation),
+            $extraRoles
+        );
+    }
+
+    /**
+     * @param string $userReference
+     *
+     * @return Client
+     */
+    public function createClientWith($userReference)
+    {
+        $client = self::createClient();
+
+        if ($userReference !== '') {
+            $this->authenticate($this->getReference($userReference), $client);
+        }
+
+        return $client;
+    }
+
+    /**
+     * @param string $input
+     *
+     * @return resource
+     */
+    public static function getInputStream($input)
+    {
+        $stream = fopen('php://memory', 'r+', false);
+        fputs($stream, $input);
+        rewind($stream);
+
+        return $stream;
     }
 }

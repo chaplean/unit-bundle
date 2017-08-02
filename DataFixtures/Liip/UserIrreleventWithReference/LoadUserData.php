@@ -9,8 +9,8 @@ use Doctrine\Common\Persistence\ObjectManager;
 /**
  * LoadUserData.php.
  *
- * @author    Valentin - Chaplean <valentin@chaplean.com>
- * @copyright 2014 - 2015 Chaplean (http://www.chaplean.com)
+ * @author    Valentin - Chaplean <valentin@chaplean.coop>
+ * @copyright 2014 - 2015 Chaplean (http://www.chaplean.coop)
  * @since     2.0.0
  */
 class LoadUserData extends AbstractFixture
@@ -27,6 +27,7 @@ class LoadUserData extends AbstractFixture
         for ($i = 0; $i < 7; $i++) {
             $user = new User();
             $this->persist($user, $manager);
+            $this->setReference('user-' . $i, $user);
         }
 
         $manager->flush();

@@ -9,8 +9,8 @@ use Doctrine\DBAL\DriverManager;
 /**
  * MySqlUtilityDriverTest.php.
  *
- * @author    Valentin - Chaplean <valentin@chaplean.com>
- * @copyright 2014 - 2016 Chaplean (http://www.chaplean.com)
+ * @author    Valentin - Chaplean <valentin@chaplean.coop>
+ * @copyright 2014 - 2016 Chaplean (http://www.chaplean.coop)
  * @since     3.0.0
  */
 class MySqlUtilityDriverTest extends LogicalTestCase
