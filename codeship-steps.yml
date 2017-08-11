@@ -3,9 +3,9 @@
   services:
   - application
   steps:
-  - command: cp ./app/config/default/parameters.yml.dist ./app/config/default/parameters.yml
+  - command: cp ./app/config/parameters.yml.dist ./app/config/parameters.yml
   - command: composer install --prefer-dist --no-interaction
-  - command: cp ./phpunit-default.xml.dist ./phpunit-default.xml
+  - command: cp ./phpunit.xml.dist ./phpunit-default.xml
   - command: chmod -R +x ./bin/
   - command: ./bin/phpunit.sh default mysql
   - command: php bin/coveralls

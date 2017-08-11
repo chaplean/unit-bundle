@@ -68,13 +68,6 @@ class AppKernel extends Kernel
      */
     public function registerContainerConfiguration(LoaderInterface $loader)
     {
-        $configType = $_SERVER['CONFIG_TYPE'] ?? null;
-
-        /** Only if we want to implement new configurations in future (like sqlite for example) */
-        if (!in_array($configType, array('default'))) {
-            $configType = 'default';
-        }
-
-        $loader->load($this->getRootDir() . '/config/' . $configType . '/config.yml');
+        $loader->load($this->getRootDir() . '/config/config.yml');
     }
 }
