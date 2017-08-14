@@ -235,6 +235,8 @@ class LogicalTestCase extends WebTestCase
     }
 
     /**
+     * @todo Check that symfony/form is installed on project
+     *
      * @param string $formClass
      * @param Client $client
      *
@@ -682,7 +684,7 @@ class LogicalTestCase extends WebTestCase
     public function clearContainer()
     {
         foreach ($this->getContainer()->getServiceIds() as $service) {
-            if (!preg_match_all('/(kernel|doctrine|[^f]orm)/', $service)) {
+            if (!preg_match_all('/(kernel|doctrine|[^f]orm|service_container)/', $service)) {
                 $this->getContainer()->set($service, null);
             }
         }
