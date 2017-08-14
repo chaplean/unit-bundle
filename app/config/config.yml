@@ -1,6 +1,5 @@
 imports:
     - { resource: parameters.yml }
-    - { resource: security.yml }
     - { resource: '@ChapleanMailerBundle/Resources/config/config.yml' }
 
 framework:
@@ -9,11 +8,6 @@ framework:
     secret:          '%secret%'
     router:
         resource: '%kernel.root_dir%/config/routing.yml'
-    form:            ~
-    csrf_protection: ~
-    validation:      { enable_annotations: true }
-    templating:
-        engines: ['twig']
     default_locale:  '%locale%'
     trusted_hosts:   ~
     trusted_proxies: ~
@@ -25,11 +19,6 @@ framework:
     http_method_override: true
     profiler:
         collect: false
-
-# Twig Configuration
-twig:
-    debug:            '%kernel.debug%'
-    strict_variables: '%kernel.debug%'
 
 # Doctrine Configuration
 doctrine:
