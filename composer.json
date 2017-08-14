@@ -12,7 +12,8 @@
     "autoload": {
         "psr-4": {
             "Chaplean\\Bundle\\UnitBundle\\": "",
-            "Foo\\Bundle\\FooBundle\\": ""
+            "Foo\\Bundle\\FooBundle\\": "",
+            "Tests\\": "Tests"
         }
     },
     "repositories": [
@@ -23,8 +24,8 @@
     ],
     "require": {
         "php": ">=7.0.8",
-        "doctrine/doctrine-bundle": "~1.4",
-        "doctrine/doctrine-fixtures-bundle": "~2.2",
+        "doctrine/doctrine-bundle": "^1.4",
+        "doctrine/doctrine-fixtures-bundle": "^2.2",
         "doctrine/orm": "^2.4",
         "liip/functional-test-bundle": "^1.8",
         "mockery/mockery": "dev-master",
@@ -42,7 +43,7 @@
         "chaplean/coding-standard": "^1.1",
         "chaplean/mailer-bundle": "^3.0",
         "friendsofsymfony/rest-bundle": "^2.0",
-        "jms/serializer-bundle": "^1.1|^2.0",
+        "jms/serializer-bundle": "^1.1 || ^2.0",
         "satooshi/php-coveralls": "dev-master",
         "sensio/distribution-bundle": "^4.0 || ^5.0",
         "sensio/framework-extra-bundle": "^2.8 || ^3.0 || ^4.0",
@@ -67,10 +68,7 @@
         ]
     },
     "config": {
-        "bin-dir": "bin",
-        "platform": {
-            "php": "7.0.8"
-        }
+        "bin-dir": "bin"
     },
     "extra": {
         "symfony-app-dir": "app",
