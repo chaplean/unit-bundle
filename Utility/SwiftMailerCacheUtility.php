@@ -47,7 +47,7 @@ class SwiftMailerCacheUtility
 
             /** @var SplFileInfo $file */
             foreach ($finder as $file) {
-                unlink($file->getRealPath());
+                @unlink($file->getRealPath());
             }
         }
     }
