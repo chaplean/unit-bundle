@@ -76,7 +76,7 @@ class LogicalTestCase extends WebTestCase
     /**
      * @var array
      */
-    private static $userFixtures = array();
+    private static $userFixtures = [];
 
     /**
      * @var boolean
@@ -100,7 +100,7 @@ class LogicalTestCase extends WebTestCase
      * @param array       $data
      * @param string      $dataName
      */
-    public function __construct($name = null, array $data = array(), $dataName = '')
+    public function __construct($name = null, array $data = [], $dataName = '')
     {
         parent::__construct($name, $data, $dataName);
 
@@ -127,8 +127,34 @@ class LogicalTestCase extends WebTestCase
         try {
             $this->userRoles = $this->getContainer()->getParameter('test_roles');
         } catch (\InvalidArgumentException $e) {
-            $this->userRoles = array();
+            $this->userRoles = [];
         }
+    }
+
+    /**
+     * @param $container
+     *
+     * @return mixed
+     */
+    private static function overrideContainer($container)
+    {
+        $servicesToOverride = [];
+
+        if (class_exists('Knp\Bundle\SnappyBundle\Snappy\LoggableGenerator')) {
+            $pdf = file_get_contents(__DIR__ . '/../Resources/pdf.pdf');
+
+            $knpPdf = \Mockery::mock('Knp\Bundle\SnappyBundle\Snappy\LoggableGenerator');
+            $knpPdf->shouldReceive('getOutputFromHtml')->andReturn($pdf);
+            $knpPdf->shouldReceive('getOutput')->andReturn($pdf);
+
+            $servicesToOverride[] = ['knp_snappy.pdf', $knpPdf];
+        }
+
+        foreach ($servicesToOverride as $serviceToOverride) {
+            $container->set(...$serviceToOverride);
+        }
+
+        return $container;
     }
 
     /**
@@ -203,11 +229,13 @@ class LogicalTestCase extends WebTestCase
      *
      * @return Client A Client instance
      */
-    protected static function createClient(array $options = array(), array $server = array())
+    protected static function createClient(array $options = [], array $server = [])
     {
         $client = parent::createClient($options, $server);
         $client->getContainer()
             ->set('doctrine', self::$doctrineRegistry);
+
+        self::overrideContainer($client->getContainer());
 
         return $client;
     }
@@ -463,7 +491,7 @@ class LogicalTestCase extends WebTestCase
      *
      * @return void
      */
-    public static function loadStaticFixtures(array $fixtures = array(), $withDefaultData = false)
+    public static function loadStaticFixtures(array $fixtures = [], $withDefaultData = false)
     {
         self::$userFixtures = $fixtures;
         self::$withDefaultData = $withDefaultData;
@@ -527,7 +555,7 @@ class LogicalTestCase extends WebTestCase
      *
      * @return string
      */
-    public function runCommand($name, array $params = array(), $reuseKernel = true)
+    public function runCommand($name, array $params = [], $reuseKernel = true)
     {
         return parent::runCommand($name, $params, $reuseKernel);
     }
@@ -542,8 +570,7 @@ class LogicalTestCase extends WebTestCase
         self::$container = $container;
 
         if ($this->getFixtureUtility() !== null) {
-            $this->getFixtureUtility()
-                ->setContainer($container);
+            $this->getFixtureUtility()->setContainer($container);
         }
     }
 
@@ -577,12 +604,16 @@ class LogicalTestCase extends WebTestCase
         $manager->getUnitOfWork()->clear();
         $nbTransactions = $manager->getConnection()->getTransactionNestingLevel();
 
+        $manager->getConnection()->query('PRAGMA foreign_keys = ON;');
+
         if (self::$databaseLoaded && $nbTransactions < 1) {
             $manager->getConnection()->setNestTransactionsWithSavepoints(true);
             $manager->beginTransaction();
         }
 
         $this->cleanMailDir();
+
+        self::overrideContainer($this->getContainer());
     }
 
     /**
@@ -616,6 +647,7 @@ class LogicalTestCase extends WebTestCase
      */
     public function tearDown()
     {
+//        var_dump('Ouhouh \o');
         if ($this->getManager() !== null) {
             $connection = $this->getManager()->getConnection();
 
@@ -635,7 +667,6 @@ class LogicalTestCase extends WebTestCase
             }
         }
 
-        \Mockery::close();
         $this->clearContainer();
 
         parent::tearDown();
@@ -657,23 +688,8 @@ class LogicalTestCase extends WebTestCase
         }
 
         self::$servicesToRefresh = new ArrayCollection();
-        self::$userFixtures = array();
+        self::$userFixtures = [];
         self::$withDefaultData = true;
-    }
-
-    /**
-     * Throw Mockery's exception
-     *
-     * @return void
-     * @throws \Exception
-     */
-    public function throwMockerysException()
-    {
-        try {
-            \Mockery::close();
-        } catch (\Exception $e) {
-            throw $e;
-        }
     }
 
     /**
@@ -696,7 +712,7 @@ class LogicalTestCase extends WebTestCase
      *
      * @return array
      */
-    public function rolesProvider(array $expectations, array $extraRoles = array())
+    public function rolesProvider(array $expectations, array $extraRoles = [])
     {
         if (count($this->userRoles) === 0) {
             throw new \LogicException("You must define test_roles in your parameters_test.yml to use this function.");
@@ -727,7 +743,7 @@ class LogicalTestCase extends WebTestCase
                     return $expectation;
                 }
 
-                return array($userReference, $expectation);
+                return [$userReference, $expectation];
             }, array_values($this->userRoles), array_values($expectations)
         );
 
