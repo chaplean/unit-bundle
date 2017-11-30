@@ -290,20 +290,6 @@ class FixtureLiteUtility
     }
 
     /**
-     * Set namespace.
-     *
-     * @param string $namespace
-     *
-     * @return self
-     */
-    public function setNamespace($namespace)
-    {
-        $this->namespace = $namespace;
-
-        return $this;
-    }
-
-    /**
      * Determine if the Fixtures that define a database backup have been
      * modified since the backup was made.
      *

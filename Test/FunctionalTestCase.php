@@ -4,6 +4,7 @@ namespace Chaplean\Bundle\UnitBundle\Test;
 
 use Chaplean\Bundle\UnitBundle\Utility\FixtureLiteUtility;
 use Chaplean\Bundle\UnitBundle\Utility\NamespaceUtility;
+use Chaplean\Bundle\UnitBundle\Utility\RestClient;
 use Doctrine\Common\DataFixtures\ReferenceRepository;
 use Doctrine\ORM\EntityManager;
 use Liip\FunctionalTestBundle\Test\WebTestCase;
@@ -155,6 +156,14 @@ class FunctionalTestCase extends WebTestCase
     }
 
     /**
+     * @return RestClient
+     */
+    public function createRestClient()
+    {
+        return new RestClient($this->getContainer());
+    }
+
+    /**
      * @return Container
      */
     protected function getContainer()
@@ -211,6 +220,22 @@ class FunctionalTestCase extends WebTestCase
 
         return $stream;
     }
+
+    /**
+     * @param string $className
+     * @param string $methodName
+     *
+     * @return \ReflectionMethod
+     */
+    public function getNotPublicMethod($className, $methodName)
+    {
+        $class = new \ReflectionClass($className);
+        $method = $class->getMethod($methodName);
+        $method->setAccessible(true);
+
+        return $method;
+    }
+
 
     /**
      * @param string $reference
