@@ -211,7 +211,6 @@ class FixtureLiteUtility
             /** @noinspection PhpUndefinedMethodInspection */
             $executor->getReferenceRepository()->save($backup);
 
-//            var_dump($backup);
             copy($name, $backup);
         }
 
@@ -316,12 +315,6 @@ class FixtureLiteUtility
      */
     protected function isBackupUpToDate(array $classNames, $backup)
     {
-        $nowPlus1Hour = new \DateTime('+1 hour');
-
-        if (filemtime($backup) < $nowPlus1Hour->getTimestamp()) {
-            return false;
-        }
-
         $backupLastModifiedDateTime = new \DateTime();
         $backupLastModifiedDateTime->setTimestamp(filemtime($backup));
 
