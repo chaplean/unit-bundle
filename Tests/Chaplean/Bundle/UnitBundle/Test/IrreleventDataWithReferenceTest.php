@@ -19,6 +19,8 @@ class IrreleventDataWithReferenceTest extends LogicalTestCase
      */
     public static function setUpBeforeClass()
     {
+        self::markTestSkipped('');
+
         self::loadStaticFixtures(array(
             'Chaplean\Bundle\UnitBundle\DataFixtures\Liip\UserIrreleventWithReference\LoadUserData'
         ), true);

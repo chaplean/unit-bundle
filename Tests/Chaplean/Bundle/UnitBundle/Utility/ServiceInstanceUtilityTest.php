@@ -2,8 +2,8 @@
 
 namespace Tests\Chaplean\Bundle\UnitBundle\Utility;
 
-use Chaplean\Bundle\UnitBundle\Test\LogicalTestCase;
 use Chaplean\Bundle\UnitBundle\Utility\ServiceInstanceUtility;
+use Liip\FunctionalTestBundle\Test\WebTestCase;
 
 /**
  * Class ServiceInstanceUtilityTest.
@@ -13,7 +13,7 @@ use Chaplean\Bundle\UnitBundle\Utility\ServiceInstanceUtility;
  * @copyright 2014 - 2016 Chaplean (http://www.chaplean.coop)
  * @since     4.2.0
  */
-class ServiceInstanceUtilityTest extends LogicalTestCase
+class ServiceInstanceUtilityTest extends WebTestCase
 {
     /**
      * @var ServiceInstanceUtility
@@ -27,8 +27,7 @@ class ServiceInstanceUtilityTest extends LogicalTestCase
     {
         parent::setUp();
 
-        $this->serviceInstance = $this->getContainer()
-            ->get('chaplean_unit.service_instance');
+        $this->serviceInstance = $this->getContainer()->get('chaplean_unit.service_instance');
     }
 
     /**

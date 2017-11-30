@@ -3,7 +3,7 @@
 namespace Tests\Chaplean\Bundle\UnitBundle\Test;
 
 use Chaplean\Bundle\UnitBundle\Entity\Client;
-use Chaplean\Bundle\UnitBundle\Test\LogicalTestCase;
+use Chaplean\Bundle\UnitBundle\Test\FunctionalTestCase;
 
 /**
  * TransactionTest.php.
@@ -12,23 +12,14 @@ use Chaplean\Bundle\UnitBundle\Test\LogicalTestCase;
  * @copyright 2014 - 2015 Chaplean (http://www.chaplean.coop)
  * @since     2.0.0
  */
-class TransactionTest extends LogicalTestCase
+class TransactionTest extends FunctionalTestCase
 {
-    /**
-     * @return void
-     */
-    public static function setUpBeforeClass()
-    {
-        self::loadStaticFixtures();
-        parent::setUpBeforeClass();
-    }
-
     /**
      * @return void
      */
     public function testBeforeAnnotationEmptyFixtureLoaded()
     {
-        $this->assertCount(0, $this->em->getRepository('ChapleanUnitBundle:Client')->findAll());
+        $this->assertCount(1, $this->em->getRepository('ChapleanUnitBundle:Client')->findAll());
         $this->assertTrue($this->em->isOpen());
     }
 
@@ -49,7 +40,7 @@ class TransactionTest extends LogicalTestCase
         $this->em->persist($client);
         $this->em->flush($client);
 
-        $this->assertCount(1, $this->em->getRepository('ChapleanUnitBundle:Client')->findAll());
+        $this->assertCount(2, $this->em->getRepository('ChapleanUnitBundle:Client')->findAll());
         $this->assertTrue($this->em->getConnection()->isTransactionActive());
     }
 
@@ -58,25 +49,6 @@ class TransactionTest extends LogicalTestCase
      */
     public function testAfterAnnotationWithoutFixture()
     {
-        $this->assertCount(0, $this->em->getRepository('ChapleanUnitBundle:Client')->findAll());
-    }
-
-    /**
-     * @return void
-     */
-    public function testDuringTransactionWithFixture()
-    {
-        $this->loadPartialFixtures(array('Chaplean\Bundle\UnitBundle\DataFixtures\Liip\LoadClientData'));
-
         $this->assertCount(1, $this->em->getRepository('ChapleanUnitBundle:Client')->findAll());
-        $this->assertTrue($this->em->getConnection()->isTransactionActive());
-    }
-
-    /**
-     * @return void
-     */
-    public function testAfterAnnotationWithoutFixtureFile()
-    {
-        $this->assertCount(0, $this->em->getRepository('ChapleanUnitBundle:Client')->findAll());
     }
 }

@@ -19,6 +19,7 @@ class LoadByContextTest extends LogicalTestCase
      */
     public static function setUpBeforeClass()
     {
+        self::markTestSkipped('');
         self::loadFixturesByContext('ForIrreleventDependencies');
         parent::setUpBeforeClass();
     }

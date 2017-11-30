@@ -2,8 +2,8 @@
 
 namespace Tests\Chaplean\Bundle\UnitBundle\Test;
 
-use Chaplean\Bundle\UnitBundle\Test\LogicalTestCase;
 use Chaplean\Bundle\UnitBundle\Utility\Reference;
+use PHPUnit\Framework\TestCase;
 use Symfony\Component\Process\Exception\InvalidArgumentException;
 
 /**
@@ -13,17 +13,8 @@ use Symfony\Component\Process\Exception\InvalidArgumentException;
  * @copyright 2014 - 2015 Chaplean (http://www.chaplean.coop)
  * @since     2.0.0
  */
-class ReferenceTest extends LogicalTestCase
+class ReferenceTest extends TestCase
 {
-    /**
-     * @return void
-     */
-    public static function setUpBeforeClass()
-    {
-        self::loadStaticFixtures();
-        parent::setUpBeforeClass();
-    }
-
     /**
      * @return void
      */

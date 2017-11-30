@@ -19,6 +19,7 @@ class IrreleventDependenciesTest extends LogicalTestCase
      */
     public static function setUpBeforeClass()
     {
+        self::markTestSkipped('');
         self::loadStaticFixtures();
         parent::setUpBeforeClass();
     }

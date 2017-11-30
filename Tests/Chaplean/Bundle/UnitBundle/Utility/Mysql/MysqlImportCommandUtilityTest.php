@@ -6,6 +6,7 @@ use Chaplean\Bundle\UnitBundle\Test\LogicalTestCase;
 use Chaplean\Bundle\UnitBundle\Utility\Mysql\MysqlImportCommandUtility;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Driver\PDOSqlite\Driver;
+use PHPUnit\Framework\TestCase;
 
 /**
  * Class MysqlImportCommandUtilityTest.
@@ -14,7 +15,7 @@ use Doctrine\DBAL\Driver\PDOSqlite\Driver;
  * @copyright 2014 - 2016 Chaplean (http://www.chaplean.coop)
  * @since     4.2.0
  */
-class MysqlImportCommandUtilityTest extends LogicalTestCase
+class MysqlImportCommandUtilityTest extends TestCase
 {
     private static $connection;
 
@@ -29,13 +30,13 @@ class MysqlImportCommandUtilityTest extends LogicalTestCase
         $driver = new Driver();
 
         self::$connection = new Connection(
-            array(
+            [
                 'host'     => 'myhost',
                 'port'     => 'myport',
                 'user'     => 'myuser',
                 'password' => 'mypassword',
                 'path'     => 'mydatabase'
-            ),
+            ],
             $driver
         );
     }

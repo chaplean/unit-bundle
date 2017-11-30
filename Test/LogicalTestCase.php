@@ -11,6 +11,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\DataFixtures\ReferenceRepository;
 use Doctrine\ORM\EntityManager;
 use Liip\FunctionalTestBundle\Test\WebTestCase;
+use Mockery\Mock;
 use Symfony\Bundle\FrameworkBundle\Client;
 use Symfony\Component\BrowserKit\Cookie;
 use Symfony\Component\DependencyInjection\Container;
@@ -647,7 +648,6 @@ class LogicalTestCase extends WebTestCase
      */
     public function tearDown()
     {
-//        var_dump('Ouhouh \o');
         if ($this->getManager() !== null) {
             $connection = $this->getManager()->getConnection();
 

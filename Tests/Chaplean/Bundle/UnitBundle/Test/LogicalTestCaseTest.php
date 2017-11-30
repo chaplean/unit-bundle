@@ -22,6 +22,12 @@ class LogicalTestCaseTest extends LogicalTestCase
     /** @var ContainerInterface */
     private $oldContainer = null;
 
+    public static function setUpBeforeClass()
+    {
+        self::markTestSkipped('');
+        parent::setUpBeforeClass();
+    }
+
     /**
      * @return void
      */

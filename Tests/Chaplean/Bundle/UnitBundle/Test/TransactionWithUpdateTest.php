@@ -3,6 +3,7 @@
 namespace Tests\Chaplean\Bundle\UnitBundle\Test;
 
 use Chaplean\Bundle\UnitBundle\Entity\Client;
+use Chaplean\Bundle\UnitBundle\Test\FunctionalTestCase;
 use Chaplean\Bundle\UnitBundle\Test\LogicalTestCase;
 
 /**
@@ -13,7 +14,7 @@ use Chaplean\Bundle\UnitBundle\Test\LogicalTestCase;
  * @copyright 2014 - 2016 Chaplean (http://www.chaplean.coop)
  * @since     4.0.0
  */
-class TransactionWithUpdateTest extends LogicalTestCase
+class TransactionWithUpdateTest extends FunctionalTestCase
 {
     /**
      * @return void

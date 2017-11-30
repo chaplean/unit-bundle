@@ -4,8 +4,8 @@ namespace Tests\Chaplean\Bundle\UnitBundle\Utility;
 
 use Chaplean\Bundle\UnitBundle\Entity\Client;
 use Chaplean\Bundle\UnitBundle\Entity\Product;
-use Chaplean\Bundle\UnitBundle\Test\LogicalTestCase;
 use Chaplean\Bundle\UnitBundle\Utility\GeneratorDataUtility;
+use Mockery\Adapter\Phpunit\MockeryTestCase;
 
 /**
  * GeneratorDataUtilityTest.php.
@@ -14,17 +14,8 @@ use Chaplean\Bundle\UnitBundle\Utility\GeneratorDataUtility;
  * @copyright 2014 - 2016 Chaplean (http://www.chaplean.coop)
  * @since     3.0.0
  */
-class GeneratorDataUtilityTest extends LogicalTestCase
+class GeneratorDataUtilityTest extends MockeryTestCase
 {
-    /**
-     * @return void
-     */
-    public static function setUpBeforeClass()
-    {
-        self::loadStaticFixtures();
-        parent::setUpBeforeClass();
-    }
-
     /**
      * @return void
      * @expectedException \Exception
@@ -69,8 +60,8 @@ class GeneratorDataUtilityTest extends LogicalTestCase
     public function testHasReference()
     {
         $mock = $this->getMockBuilder('Chaplean\Bundle\UnitBundle\Utility\GeneratorDataUtility')
-            ->setConstructorArgs(array(__DIR__ . '/../../../../../Resources/config/datafixtures.yml'))
-            ->setMethods(array('classDefinitionExist'))
+            ->setConstructorArgs([__DIR__ . '/../../../../../Resources/config/datafixtures.yml'])
+            ->setMethods(['classDefinitionExist'])
             ->getMock();
 
         $mock->expects($this->any())

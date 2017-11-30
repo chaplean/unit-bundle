@@ -2,8 +2,8 @@
 
 namespace Tests\Chaplean\Bundle\UnitBundle\Utility;
 
-use Chaplean\Bundle\UnitBundle\Test\LogicalTestCase;
 use Chaplean\Bundle\UnitBundle\Utility\ContainerUtility;
+use Liip\FunctionalTestBundle\Test\WebTestCase;
 
 /**
  * ContainerUtilityTest.php.
@@ -12,17 +12,8 @@ use Chaplean\Bundle\UnitBundle\Utility\ContainerUtility;
  * @copyright 2014 - 2015 Chaplean (http://www.chaplean.coop)
  * @since     2.0.0
  */
-class ContainerUtilityTest extends LogicalTestCase
+class ContainerUtilityTest extends WebTestCase
 {
-    /**
-     * @return void
-     */
-    public static function setUpBeforeClass()
-    {
-        self::loadStaticFixtures();
-        parent::setUpBeforeClass();
-    }
-
     /**
      * @return void
      */

@@ -14,6 +14,12 @@ use Chaplean\Bundle\UnitBundle\Test\LogicalTestCase;
  */
 class MessageTest extends LogicalTestCase
 {
+    public static function setUpBeforeClass()
+    {
+        self::markTestSkipped('');
+        parent::setUpBeforeClass();
+    }
+
     /**
      * @return void
      */

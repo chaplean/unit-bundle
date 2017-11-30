@@ -2,8 +2,8 @@
 
 namespace Tests\Chaplean\Bundle\UnitBundle\Utility;
 
-use Chaplean\Bundle\UnitBundle\Test\LogicalTestCase;
 use Chaplean\Bundle\UnitBundle\Utility\NamespaceUtility;
+use PHPUnit\Framework\TestCase;
 
 /**
  * Class NamespaceUtilityTest.
@@ -13,7 +13,7 @@ use Chaplean\Bundle\UnitBundle\Utility\NamespaceUtility;
  * @copyright 2014 - 2016 Chaplean (http://www.chaplean.coop)
  * @since     4.1.0
  */
-class NamespaceUtilityTest extends LogicalTestCase
+class NamespaceUtilityTest extends TestCase
 {
     /**
      * @return void

@@ -2,8 +2,8 @@
 
 namespace Tests\Chaplean\Bundle\UnitBundle;
 
-use Chaplean\Bundle\UnitBundle\Test\LogicalTestCase;
 use Chaplean\Bundle\UnitBundle\Utility\RestClient;
+use Liip\FunctionalTestBundle\Test\WebTestCase;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
@@ -13,23 +13,14 @@ use Symfony\Component\HttpFoundation\Request;
  * @copyright 2014 - 2015 Chaplean (http://www.chaplean.coop)
  * @since     2.1.0
  */
-class RestClientTest extends LogicalTestCase
+class RestClientTest extends WebTestCase
 {
-    /**
-     * @return void
-     */
-    public static function setUpBeforeClass()
-    {
-        self::loadStaticFixtures();
-        parent::setUpBeforeClass();
-    }
-
     /**
      * @return void
      */
     public function testInstantiateRestClient()
     {
-        $restClient = $this->createRestClient();
+        $restClient = new RestClient($this->getContainer());
 
         $this->assertInstanceOf(RestClient::class, $restClient);
     }
@@ -39,7 +30,7 @@ class RestClientTest extends LogicalTestCase
      */
     public function testGet200()
     {
-        $restClient = $this->createRestClient();
+        $restClient = new RestClient($this->getContainer());
 
         $response = $restClient->request('GET', '/rest/unit/200');
 
@@ -51,7 +42,7 @@ class RestClientTest extends LogicalTestCase
      */
     public function testGet404()
     {
-        $restClient = $this->createRestClient();
+        $restClient = new RestClient($this->getContainer());
 
         $response = $restClient->request('GET', '/rest/unit/404');
 
@@ -63,15 +54,16 @@ class RestClientTest extends LogicalTestCase
      */
     public function testGetObject()
     {
-        $restClient = $this->createRestClient();
+        $restClient = new RestClient($this->getContainer());
 
         $response = $restClient->request('GET', '/rest/unit/object');
 
         $this->assertEquals(200, $response->getStatusCode());
-        $this->assertEquals(array(
+        $this->assertEquals(
+            [
             'id' => 1,
             'name' => 'foo',
-        ), $restClient->getContent());
+            ], $restClient->getContent());
     }
 
     /**
@@ -79,7 +71,7 @@ class RestClientTest extends LogicalTestCase
      */
     public function testPost()
     {
-        $restClient = $this->createRestClient();
+        $restClient = new RestClient($this->getContainer());
 
         $response = $restClient->request('POST', '/rest/unit');
 
@@ -91,12 +83,12 @@ class RestClientTest extends LogicalTestCase
      */
     public function testGetWithoutRequestAction()
     {
-        $restClient = $this->createRestClient();
+        $restClient = new RestClient($this->getContainer());
 
         $response = $restClient->request('GET', '/rest/unit');
 
         $this->assertEquals(200, $response->getStatusCode());
-        $this->assertEquals(array('http://:/'), $restClient->getContent());
+        $this->assertEquals(['http://:/'], $restClient->getContent());
     }
 
     /**
@@ -104,12 +96,12 @@ class RestClientTest extends LogicalTestCase
      */
     public function testGetWithoutRequestParameterAction()
     {
-        $restClient = $this->createRestClient();
+        $restClient = new RestClient($this->getContainer());
 
-        $response = $restClient->request('GET', '/rest/unit/{id}', array('id' => 5));
+        $response = $restClient->request('GET', '/rest/unit/{id}', ['id' => 5]);
 
         $this->assertEquals(200, $response->getStatusCode());
-        $this->assertEquals(array(5), $restClient->getContent());
+        $this->assertEquals([5], $restClient->getContent());
     }
 
     /**
@@ -117,12 +109,12 @@ class RestClientTest extends LogicalTestCase
      */
     public function testGetWithRequestAndParameterAction()
     {
-        $restClient = $this->createRestClient();
+        $restClient = new RestClient($this->getContainer());
 
-        $response = $restClient->request('GET', '/rest/unit/request/{id}', array('id' => 5));
+        $response = $restClient->request('GET', '/rest/unit/request/{id}', ['id' => 5]);
 
         $this->assertEquals(200, $response->getStatusCode());
-        $this->assertEquals(array('http://:/', 5), $restClient->getContent());
+        $this->assertEquals(['http://:/', 5], $restClient->getContent());
     }
 
     /**
@@ -130,12 +122,12 @@ class RestClientTest extends LogicalTestCase
      */
     public function testGetWithQuery()
     {
-        $restClient = $this->createRestClient();
+        $restClient = new RestClient($this->getContainer());
 
-        $response = $restClient->request('GET', '/rest/unit/query', array(), array('limit' => 150));
+        $response = $restClient->request('GET', '/rest/unit/query', [], ['limit' => 150]);
 
         $this->assertEquals(200, $response->getStatusCode());
-        $this->assertEquals(array(150), $restClient->getContent());
+        $this->assertEquals([150], $restClient->getContent());
     }
 
     /**
@@ -143,12 +135,12 @@ class RestClientTest extends LogicalTestCase
      */
     public function testPostWithRequest()
     {
-        $restClient = $this->createRestClient();
+        $restClient = new RestClient($this->getContainer());
 
-        $response = $restClient->request('POST', '/rest/unit/request', array(), array(), array('name' => 'foo'));
+        $response = $restClient->request('POST', '/rest/unit/request', [], [], ['name' => 'foo']);
 
         $this->assertEquals(200, $response->getStatusCode());
-        $this->assertEquals(array('foo'), $restClient->getContent());
+        $this->assertEquals(['foo'], $restClient->getContent());
     }
 
     /**
@@ -156,7 +148,7 @@ class RestClientTest extends LogicalTestCase
      */
     public function testDelete()
     {
-        $restClient = $this->createRestClient();
+        $restClient = new RestClient($this->getContainer());
 
         $response = $restClient->request('DELETE', '/rest/unit');
 
@@ -168,7 +160,7 @@ class RestClientTest extends LogicalTestCase
      */
     public function testPut()
     {
-        $restClient = $this->createRestClient();
+        $restClient = new RestClient($this->getContainer());
 
         $response = $restClient->request('PUT', '/rest/unit');
 
@@ -178,12 +170,12 @@ class RestClientTest extends LogicalTestCase
     /**
      * @return void
      *
-     * @expectedException Symfony\Component\Routing\Exception\RouteNotFoundException
+     * @expectedException \Symfony\Component\Routing\Exception\RouteNotFoundException
      * @expectedExceptionMessage GET '/route/not/found' not found route ! Check your routing ;)
      */
     public function testRouteNotFound()
     {
-        $restClient = $this->createRestClient();
+        $restClient = new RestClient($this->getContainer());
 
         $response = $restClient->request('GET', '/route/not/found');
 
@@ -198,7 +190,7 @@ class RestClientTest extends LogicalTestCase
      */
     public function testGetContentRestClient()
     {
-        $restClient = $this->createRestClient();
+        $restClient = new RestClient($this->getContainer());
 
         $restClient->getContent();
     }
@@ -208,9 +200,9 @@ class RestClientTest extends LogicalTestCase
      */
     public function testSetCurrentRequest()
     {
-        $restClient = $this->createRestClient();
+        $restClient = new RestClient($this->getContainer());
 
-        $restClient->setCurrentRequest(Request::create('', 'GET', array(), array(), array(), array('REMOTE_ADDR' => '82.226.243.129')));
+        $restClient->setCurrentRequest(Request::create('', 'GET', [], [], [], ['REMOTE_ADDR' => '82.226.243.129']));
 
         $this->assertEquals('82.226.243.129', $this->getContainer()->get('request_stack')->getCurrentRequest()->getClientIp());
     }

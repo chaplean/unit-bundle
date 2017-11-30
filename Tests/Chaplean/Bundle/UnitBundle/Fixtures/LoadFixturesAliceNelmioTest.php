@@ -18,6 +18,7 @@ class LoadFixturesAliceNelmioTest extends LogicalTestCase
      */
     public static function setUpBeforeClass()
     {
+        self::markTestSkipped('S');
         self::loadStaticFixtures(array(
             'Chaplean\Bundle\UnitBundle\DataFixtures\Liip\LoadFixturesData'
         ));

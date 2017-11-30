@@ -2,8 +2,8 @@
 
 namespace Tests\Chaplean\Bundle\UnitBundle\Utility;
 
-use Chaplean\Bundle\UnitBundle\Test\LogicalTestCase;
 use Chaplean\Bundle\UnitBundle\Utility\DatabaseUtility;
+use PHPUnit\Framework\TestCase;
 
 /**
  * DatabaseUtilityTest.php.
@@ -12,16 +12,8 @@ use Chaplean\Bundle\UnitBundle\Utility\DatabaseUtility;
  * @copyright 2014 - 2016 Chaplean (http://www.chaplean.coop)
  * @since     3.0.0
  */
-class DatabaseUtilityTest extends LogicalTestCase
+class DatabaseUtilityTest extends TestCase
 {
-    /**
-     * @return void
-     */
-    public static function setUpBeforeClass()
-    {
-        self::loadStaticFixtures();
-        parent::setUpBeforeClass();
-    }
 
     /**
      * @return void
@@ -32,7 +24,7 @@ class DatabaseUtilityTest extends LogicalTestCase
     {
         $database = new DatabaseUtility();
 
-        $params = array();
+        $params = [];
 
         $database->checkParams($params);
     }

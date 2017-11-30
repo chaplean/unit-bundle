@@ -23,9 +23,10 @@ class NamespaceUtility
      * @return array
      * @throws \Exception
      */
-    public static function getClassNamesByContext($namespace, $context)
+    public static function getClassNamesByContext($namespace, $context = self::DIR_DEFAULT_DATA)
     {
-        $defaultFixtures = array();
+        $defaultFixtures = [];
+
         try {
             list($namespaceContext, $pathDatafixtures) = self::getNamespacePathDataFixtures($namespace, $context);
         } catch (\ReflectionException $e) {
@@ -52,12 +53,12 @@ class NamespaceUtility
      */
     private static function getNamespacePathDataFixtures($namespace, $subfolder = '')
     {
-        $classBundleName = str_replace(array('\\Bundle', '\\'), '', $namespace);
+        $classBundleName = str_replace(['\\Bundle', '\\'], '', $namespace);
         $classBundle = new \ReflectionClass($namespace . $classBundleName);
         $path = str_replace($classBundleName . '.php', '', $classBundle->getFileName());
         $pathDatafixtures = $path . 'DataFixtures/Liip/' . ($subfolder ? ($subfolder . '/') : $subfolder);
         $namespaceDefaultContext = $namespace . 'DataFixtures\\Liip\\' . ($subfolder ? ($subfolder . '\\') : $subfolder);
 
-        return array($namespaceDefaultContext, $pathDatafixtures);
+        return [$namespaceDefaultContext, $pathDatafixtures];
     }
 }
