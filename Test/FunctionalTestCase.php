@@ -114,11 +114,11 @@ class FunctionalTestCase extends WebTestCase
      *
      * @return void
      */
-    private function clearContainer()
+    private static function clearContainer()
     {
-        foreach ($this->getContainer()->getServiceIds() as $service) {
+        foreach (self::$container->getServiceIds() as $service) {
             if (!preg_match_all('/(kernel|doctrine|[^f]orm|service_container)/', $service)) {
-                $this->getContainer()->set($service, null);
+                self::$container->set($service, null);
             }
         }
     }
@@ -394,6 +394,8 @@ class FunctionalTestCase extends WebTestCase
         parent::setUpBeforeClass();
 
         if (!self::$databaseLoaded) {
+            self::mockServices(self::$container);
+
             echo 'Initialization database....';
             $t = microtime(true);
 
@@ -401,6 +403,7 @@ class FunctionalTestCase extends WebTestCase
 
             echo sprintf(" Done (%.2fs)\n\n", microtime(true) - $t);
 
+            self::clearContainer();
             self::$databaseLoaded = true;
         }
     }
@@ -431,6 +434,6 @@ class FunctionalTestCase extends WebTestCase
             }
         }
 
-        $this->clearContainer();
+        self::clearContainer();
     }
 }

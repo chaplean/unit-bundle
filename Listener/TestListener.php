@@ -22,22 +22,6 @@ class TestListener implements \PHPUnit\Framework\TestListener
     private $timeTests = [];
 
     /**
-     * @var boolean
-     */
-    public static $run = false;
-
-    /**
-     * @param boolean $run
-     */
-    public static function setRun($run)
-    {
-        var_dump($run);
-        self::$run = $run;
-    }
-
-
-
-    /**
      * An error occurred.
      *
      * @param Test       $test
