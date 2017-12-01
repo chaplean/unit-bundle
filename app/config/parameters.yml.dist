@@ -1,8 +1,8 @@
 parameters:
-    database_driver: pdo_mysql
+    database_driver: pdo_sqlite
     database_host: mysql
     database_port: 3306
-    database_name: test_database
+    database_name: '%kernel.cache_dir%/test.db'
     database_user: root
     database_password: root
 
