@@ -1,5 +1,6 @@
 parameters:
     test.session.listener.class: Chaplean\Bundle\UnitBundle\EventListener\TestSessionListener
+    doctrine.dbal.connection_factory.class: Chaplean\Bundle\UnitBundle\Utility\MultipleTestDatabaseConnectionFactory
 
 services:
     chaplean_unit.swiftmailer_cache:
