@@ -3,7 +3,6 @@
 namespace Tests\Chaplean\Bundle\UnitBundle\Test\Command;
 
 use Chaplean\Bundle\UnitBundle\Test\FunctionalTestCase;
-use Chaplean\Bundle\UnitBundle\Test\LogicalTestCase;
 
 /**
  * Class DummyCommandTest.

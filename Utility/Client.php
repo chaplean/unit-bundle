@@ -82,12 +82,12 @@ class Client
     {
         $reflectionMethod = new \ReflectionMethod($class, $method);
 
-        list($query, $request, $attributes, $cookies, $files, $server, $content) = $this->parametersRequest;
-        $request = new Request($query, $request, $attributes, $cookies, $files, $server, $content);
+        $request = new Request(...$this->parametersRequest);
         $request->setMethod($type);
+
         $this->setCurrentRequest($request);
 
-        $args = array();
+        $args = [];
         $arguments = $reflectionMethod->getParameters();
 
         foreach ($arguments as $arg) {
@@ -171,16 +171,16 @@ class Client
     public function request(
         $type,
         $uri,
-        array $params = array(),
-        array $query = array(),
-        array $request = array(),
-        array $attributes = array(),
-        array $cookies = array(),
-        array $files = array(),
-        array $server = array(),
+        array $params = [],
+        array $query = [],
+        array $request = [],
+        array $attributes = [],
+        array $cookies = [],
+        array $files = [],
+        array $server = [],
         $content = null
     ) {
-        $this->parametersRequest = array($query, $request, $attributes, $cookies, $files, $server, $content);
+        $this->parametersRequest = [$query, $request, $attributes, $cookies, $files, $server, $content];
         $route = $this->getRouteByUri($type, $uri);
 
         $controller = $route->getDefault('_controller');
@@ -192,7 +192,7 @@ class Client
         $controller = new $class();
         $controller->setContainer($this->container);
 
-        $this->response = call_user_func_array(array($controller, $method), $args);
+        $this->response = $controller->$method(...$args);
 
         return $this->response;
     }

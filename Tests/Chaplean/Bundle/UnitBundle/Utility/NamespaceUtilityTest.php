@@ -16,12 +16,28 @@ use PHPUnit\Framework\TestCase;
 class NamespaceUtilityTest extends TestCase
 {
     /**
+     * @covers \Chaplean\Bundle\UnitBundle\Utility\NamespaceUtility::getClassNamesByContext()
+     * @covers \Chaplean\Bundle\UnitBundle\Utility\NamespaceUtility::getNamespacePathDataFixtures()
+     *
      * @return void
      * @expectedException \Exception
      * @expectedExceptionMessage 'Foo\Bar' namespace is not available. Check 'data_fixtures_namespace' parameter !
      */
+    public function testGetClassNamesByContextFail()
+    {
+        NamespaceUtility::getClassNamesByContext('Foo\Bar');
+    }
+
+    /**
+     * @covers \Chaplean\Bundle\UnitBundle\Utility\NamespaceUtility::getClassNamesByContext()
+     * @covers \Chaplean\Bundle\UnitBundle\Utility\NamespaceUtility::getNamespacePathDataFixtures()
+     *
+     * @return void
+     */
     public function testGetClassNamesByContext()
     {
-        NamespaceUtility::getClassNamesByContext('Foo\Bar', 'DefaultData');
+        $classNames = NamespaceUtility::getClassNamesByContext('Chaplean\Bundle\UnitBundle\\');
+
+        $this->assertCount(4, $classNames);
     }
 }

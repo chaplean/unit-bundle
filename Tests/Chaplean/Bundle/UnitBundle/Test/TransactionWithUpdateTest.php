@@ -4,7 +4,6 @@ namespace Tests\Chaplean\Bundle\UnitBundle\Test;
 
 use Chaplean\Bundle\UnitBundle\Entity\Client;
 use Chaplean\Bundle\UnitBundle\Test\FunctionalTestCase;
-use Chaplean\Bundle\UnitBundle\Test\LogicalTestCase;
 
 /**
  * Class TransactionWithUpdateTest.

@@ -8,6 +8,7 @@ use Doctrine\Common\DataFixtures\Executor\ORMExecutor;
 use Doctrine\Common\DataFixtures\Loader;
 use Doctrine\Common\DataFixtures\ProxyReferenceRepository;
 use Doctrine\Common\DataFixtures\Purger\ORMPurger;
+use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Driver\PDOSqlite\Driver as SqliteDriver;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Tools\SchemaTool;
@@ -60,6 +61,31 @@ class FixtureLiteUtility
     }
 
     /**
+     * This function finds the time when the data blocks of a class definition
+     * file were being written to, that is, the time when the content of the
+     * file was changed.
+     *
+     * @param string $class The fully qualified class name of the fixture class to
+     *                      check modification date on
+     *
+     * @return \DateTime|null
+     */
+    protected function getFixtureLastModified($class)
+    {
+        $lastModifiedDateTime = null;
+
+        $reflClass = new \ReflectionClass($class);
+        $classFileName = $reflClass->getFileName();
+
+        if (file_exists($classFileName)) {
+            $lastModifiedDateTime = new \DateTime();
+            $lastModifiedDateTime->setTimestamp(filemtime($classFileName));
+        }
+
+        return $lastModifiedDateTime;
+    }
+
+    /**
      * Retrieve Doctrine DataFixtures loader.
      *
      * @param ContainerInterface $container
@@ -101,6 +127,35 @@ class FixtureLiteUtility
         }
 
         return self::$instance;
+    }
+
+    /**
+     * Determine if the Fixtures that define a database backup have been
+     * modified since the backup was made.
+     *
+     * @param array  $classNames The fixture classnames to check
+     * @param string $backup     The fixture backup SQLite database file path
+     *
+     * @return bool TRUE if the backup was made since the modifications to the
+     *              fixtures; FALSE otherwise
+     */
+    protected function isBackupUpToDate(array $classNames, $backup)
+    {
+        $backupLastModifiedDateTime = new \DateTime();
+        $backupLastModifiedDateTime->setTimestamp(filemtime($backup));
+
+        /** @var \Symfony\Bridge\Doctrine\DataFixtures\ContainerAwareLoader $loader */
+        $loader = $this->getFixtureLoader($this->container, $classNames);
+
+        // Use loader in order to fetch all the dependencies fixtures.
+        foreach ($loader->getFixtures() as $className) {
+            $fixtureLastModifiedDateTime = $this->getFixtureLastModified($className);
+            if ($backupLastModifiedDateTime < $fixtureLastModifiedDateTime) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**
@@ -169,6 +224,7 @@ class FixtureLiteUtility
                 $backup = $container->getParameter('kernel.cache_dir') . '/test_' . md5(serialize($metadatas) . serialize($classNames)) . '.db';
 
                 if (file_exists($backup) && file_exists($backup . '.ser') && $this->isBackupUpToDate($classNames, $backup)) {
+                    /** @var Connection $connection */
                     $connection = $container->get('doctrine.orm.entity_manager')->getConnection();
 
                     if (null !== $connection) {
@@ -218,31 +274,6 @@ class FixtureLiteUtility
     }
 
     /**
-     * This function finds the time when the data blocks of a class definition
-     * file were being written to, that is, the time when the content of the
-     * file was changed.
-     *
-     * @param string $class The fully qualified class name of the fixture class to
-     *                      check modification date on
-     *
-     * @return \DateTime|null
-     */
-    protected function getFixtureLastModified($class)
-    {
-        $lastModifiedDateTime = null;
-
-        $reflClass = new \ReflectionClass($class);
-        $classFileName = $reflClass->getFileName();
-
-        if (file_exists($classFileName)) {
-            $lastModifiedDateTime = new \DateTime();
-            $lastModifiedDateTime->setTimestamp(filemtime($classFileName));
-        }
-
-        return $lastModifiedDateTime;
-    }
-
-    /**
      * Load a data fixture class.
      *
      * @param Loader $loader
@@ -270,14 +301,6 @@ class FixtureLiteUtility
     }
 
     /**
-     * @return array
-     */
-    public function loadDefaultFixtures()
-    {
-        return NamespaceUtility::getClassNamesByContext($this->namespace, NamespaceUtility::DIR_DEFAULT_DATA);
-    }
-
-    /**
      * @param ContainerInterface $container
      *
      * @return self
@@ -287,34 +310,5 @@ class FixtureLiteUtility
         $this->container = $container;
 
         return $this;
-    }
-
-    /**
-     * Determine if the Fixtures that define a database backup have been
-     * modified since the backup was made.
-     *
-     * @param array  $classNames The fixture classnames to check
-     * @param string $backup     The fixture backup SQLite database file path
-     *
-     * @return bool TRUE if the backup was made since the modifications to the
-     *              fixtures; FALSE otherwise
-     */
-    protected function isBackupUpToDate(array $classNames, $backup)
-    {
-        $backupLastModifiedDateTime = new \DateTime();
-        $backupLastModifiedDateTime->setTimestamp(filemtime($backup));
-
-        /** @var \Symfony\Bridge\Doctrine\DataFixtures\ContainerAwareLoader $loader */
-        $loader = $this->getFixtureLoader($this->container, $classNames);
-
-        // Use loader in order to fetch all the dependencies fixtures.
-        foreach ($loader->getFixtures() as $className) {
-            $fixtureLastModifiedDateTime = $this->getFixtureLastModified($className);
-            if ($backupLastModifiedDateTime < $fixtureLastModifiedDateTime) {
-                return false;
-            }
-        }
-
-        return true;
     }
 }

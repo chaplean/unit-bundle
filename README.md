@@ -22,7 +22,16 @@ Add
     $bundles[] = new Doctrine\Bundle\FixturesBundle\DoctrineFixturesBundle();
 ```
 
-## 3. Add parameter (optional)
+## 3. Import configuration
+
+##### 3.1. Import unit file config in `config_test.yml`
+
+```yaml
+imports:
+    - { resource: '@ChapleanUnitBundle/Resources/config/config.yml' }
+```
+
+##### 3.2. Add parameter (optional)
 
 Open `app/config/parameters*` files
 
@@ -31,7 +40,7 @@ Add and change the default value. The `false` value disable the loading of dataf
 ```yaml
 parameters:
     ...
-    data_fixtures_namespace: App\Bundle\RestBundle\|false
+    data_fixtures_namespace: App\Bundle\RestBundle\
 ```
 
 # Role Provider
@@ -66,7 +75,7 @@ parameters:
 Add a provider in your test class:
 
 ```php
-class ExampleTest extends LogicalTestCase
+class ExampleTest extends FunctionalTestCase
 {
     /**
      * @return array
@@ -130,7 +139,7 @@ class ExampleTest extends LogicalTestCase
 Write unittests using the previous dataProvider
 
 ```php
-class ExampleTest extends LogicalTestCase
+class ExampleTest extends FunctionalTestCase
 {
     // Data provider ommited, see previous section
     

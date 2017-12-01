@@ -1,22 +1,33 @@
 <?php
 
 namespace Chaplean\Bundle\UnitBundle\Model;
-use Chaplean\Bundle\UnitBundle\Utility\Output;
-use Chaplean\Bundle\UnitBundle\Utility\Time;
+
+use Chaplean\Bundle\UnitBundle\TextUI\Output;
+use Chaplean\Bundle\UnitBundle\Utility\Timer;
 
 /**
  * Class TimerTest
- * @package Chaplean\Bundle\UnitBundle\Model
+ *
+ * @package   Chaplean\Bundle\UnitBundle\Model
  * @author    Valentin - Chaplean <valentin@chaplean.com>
  * @copyright 2014 - 2017 Chaplean (http://www.chaplean.com)
- * @since     6.0.0
+ * @since     7.0.0
  */
 class TimerTest
 {
+    /** @var string */
     private $test;
+
+    /** @var float */
     private $time;
 
-    public function __construct($test, $time)
+    /**
+     * TimerTest constructor.
+     *
+     * @param string $test
+     * @param float  $time
+     */
+    public function __construct(string $test, float $time)
     {
         $this->test = $test;
         $this->time = $time;
@@ -27,13 +38,13 @@ class TimerTest
         $time = $this->time * 1000;
 
         if ($time < 450) {
-            $time = Output::success(Time::toString($this->time));
+            $time = Output::success(Timer::toString($this->time));
         } elseif ($time >= 1000) {
-            $time = Output::danger(Time::toString($this->time));
+            $time = Output::danger(Timer::toString($this->time));
         } else {
-            $time = Output::warning(Time::toString($this->time));
+            $time = Output::warning(Timer::toString($this->time));
         }
 
-        return sprintf("\t%s: %s", $this->test, $time);
+        return sprintf("\t[%s] %s", str_pad($time, 16, ' ', STR_PAD_LEFT), $this->test);
     }
 }

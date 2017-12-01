@@ -106,15 +106,15 @@ class TestListener implements \PHPUnit\Framework\TestListener
     {
         $this->testSuite--;
 
-//        if ($this->testSuite == 0) {
-//            echo "\n";
-//            foreach ($this->timeTests as $class => $timeTest) {
-//                echo "\n\e[4m" . $class . "\e[0m:";
-//                foreach ($timeTest as $item) {
-//                    echo "\n" . $item;
-//                }
-//            }
-//        }
+        if ($this->testSuite == 0) {
+            echo "\n";
+            foreach ($this->timeTests as $class => $timeTest) {
+                echo "\n\e[4m" . $class . "\e[0m:";
+                foreach ($timeTest as $item) {
+                    echo "\n" . $item;
+                }
+            }
+        }
     }
 
     /**

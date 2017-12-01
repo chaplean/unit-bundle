@@ -17,6 +17,9 @@ use Mockery\Adapter\Phpunit\MockeryTestCase;
 class GeneratorDataUtilityTest extends MockeryTestCase
 {
     /**
+     * @covers \Chaplean\Bundle\UnitBundle\Utility\GeneratorDataUtility::__construct
+     * @covers \Chaplean\Bundle\UnitBundle\Utility\GeneratorDataUtility::getReference()
+     *
      * @return void
      * @expectedException \Exception
      * @expectedExceptionMessage Reference 'ClassNotExist:Foo' not exist
@@ -29,6 +32,10 @@ class GeneratorDataUtilityTest extends MockeryTestCase
     }
 
     /**
+     * @covers \Chaplean\Bundle\UnitBundle\Utility\GeneratorDataUtility::__construct
+     * @covers \Chaplean\Bundle\UnitBundle\Utility\GeneratorDataUtility::hasReference()
+     * @covers \Chaplean\Bundle\UnitBundle\Utility\GeneratorDataUtility::getReference()
+     *
      * @return void
      */
     public function testGetReferenceExist()
@@ -47,8 +54,7 @@ class GeneratorDataUtilityTest extends MockeryTestCase
      */
     public function testClassDefinitionExistWithEmptyDefinition()
     {
-        $mock = \Mockery::mock(GeneratorDataUtility::class)
-            ->makePartial();
+        $mock = \Mockery::mock(GeneratorDataUtility::class)->makePartial();
 
         /** @noinspection PhpUndefinedMethodInspection */
         $mock->classDefinitionExist('', '');

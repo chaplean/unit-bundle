@@ -15,10 +15,17 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
  */
 class FormWithoutCrsfTokenType extends AbstractType
 {
+    /**
+     * @param OptionsResolver $resolver
+     *
+     * @return void
+     */
     public function configureOptions(OptionsResolver $resolver)
     {
-        $resolver->setDefaults(array(
-            'csrf_protection' => false,
-        ));
+        $resolver->setDefaults(
+            [
+                'csrf_protection' => false,
+            ]
+        );
     }
 }

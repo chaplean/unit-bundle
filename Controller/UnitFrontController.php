@@ -12,6 +12,8 @@ use Symfony\Component\HttpFoundation\Response;
  * @author    Valentin - Chaplean <valentin@chaplean.coop>
  * @copyright 2014 - 2016 Chaplean (http://www.chaplean.coop)
  * @since     2.2.0
+ *
+ * @codeCoverageIgnore
  */
 class UnitFrontController extends Controller
 {

@@ -2,6 +2,7 @@ imports:
     - { resource: parameters.yml }
     - { resource: security.yml }
     - { resource: '@ChapleanMailerBundle/Resources/config/config.yml' }
+    - { resource: '@ChapleanUnitBundle/Resources/config/config.yml' }
 
 framework:
     test: ~

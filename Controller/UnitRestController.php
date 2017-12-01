@@ -15,6 +15,8 @@ use Symfony\Component\HttpFoundation\Response;
  * @since     2.2.0
  *
  * @Annotations\RouteResource("Unit")
+ *
+ * @codeCoverageIgnore
  */
 class UnitRestController extends FOSRestController
 {

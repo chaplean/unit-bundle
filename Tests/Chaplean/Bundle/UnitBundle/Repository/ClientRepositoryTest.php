@@ -1,9 +1,9 @@
 <?php
+
 namespace Tests\Chaplean\Bundle\UnitBundle\Test;
 
 use Chaplean\Bundle\UnitBundle\Repository\ClientRepository;
 use Chaplean\Bundle\UnitBundle\Test\FunctionalTestCase;
-use Chaplean\Bundle\UnitBundle\Test\LogicalTestCase;
 use Doctrine\ORM\EntityManager;
 
 /**

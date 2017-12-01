@@ -1,6 +1,6 @@
 <?php
 
-namespace Chaplean\Bundle\UnitBundle\Utility;
+namespace Chaplean\Bundle\UnitBundle\TextUI;
 
 /**
  * Class Output
@@ -37,19 +37,21 @@ class Output
      *
      * @return string
      */
-    private static function print($color, $message)
+    public static function print($color, $message)
     {
         return $color . $message . self::COLOR_NC;
     }
 
     /**
+     *
+     *
      * @param string $message
      *
      * @return string
      */
     public static function success($message)
     {
-        return self::print(self::COLOR_GREEN, $message);
+        return self::print(self::COLOR_LIGHT_GREEN, $message);
     }
 
     /**
@@ -59,7 +61,7 @@ class Output
      */
     public static function danger($message)
     {
-        return self::print(self::COLOR_RED, $message);
+        return self::print(self::COLOR_LIGHT_RED, $message);
     }
 
     /**

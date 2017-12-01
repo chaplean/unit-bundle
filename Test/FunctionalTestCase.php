@@ -2,6 +2,7 @@
 
 namespace Chaplean\Bundle\UnitBundle\Test;
 
+use Chaplean\Bundle\UnitBundle\TextUI\Output;
 use Chaplean\Bundle\UnitBundle\Utility\FixtureLiteUtility;
 use Chaplean\Bundle\UnitBundle\Utility\NamespaceUtility;
 use Chaplean\Bundle\UnitBundle\Utility\RestClient;
@@ -201,7 +202,13 @@ class FunctionalTestCase extends WebTestCase
     public static function getDefaultFixturesNamespace()
     {
         try {
-            return self::$container->getParameter('data_fixtures_namespace');
+            $dataFixtureNamespace = self::$container->getParameter('data_fixtures_namespace');
+
+            if ($dataFixtureNamespace === false) {
+                return null;
+            }
+
+            return $dataFixtureNamespace;
         } catch (\InvalidArgumentException $e) {
             return 'App\Bundle\RestBundle\\';
         }
@@ -393,15 +400,17 @@ class FunctionalTestCase extends WebTestCase
     {
         parent::setUpBeforeClass();
 
-        if (!self::$databaseLoaded) {
+        $defaultNamespace = self::getDefaultFixturesNamespace();
+
+        if (!self::$databaseLoaded && $defaultNamespace !== null) {
             self::mockServices(self::$container);
 
             echo 'Initialization database....';
             $t = microtime(true);
 
-            self::$fixtures = self::$fixtureUtility->loadFixtures(NamespaceUtility::getClassNamesByContext(self::getDefaultFixturesNamespace()))->getReferenceRepository();
+            self::$fixtures = self::$fixtureUtility->loadFixtures(NamespaceUtility::getClassNamesByContext($defaultNamespace))->getReferenceRepository();
 
-            echo sprintf(" Done (%.2fs)\n\n", microtime(true) - $t);
+            echo sprintf(" Done %s (%.2fs)\n\n", Output::success(Output::CHAR_CHECK), microtime(true) - $t);
 
             self::clearContainer();
             self::$databaseLoaded = true;
