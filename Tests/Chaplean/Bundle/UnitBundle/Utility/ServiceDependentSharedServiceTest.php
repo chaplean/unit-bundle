@@ -16,6 +16,9 @@ use Liip\FunctionalTestBundle\Test\WebTestCase;
 class ServiceDependentSharedServiceTest extends WebTestCase
 {
     /**
+     * @covers \Chaplean\Bundle\UnitBundle\Utility\ServiceDependentSharedService::__construct()
+     * @covers \Chaplean\Bundle\UnitBundle\Utility\ServiceDependentSharedService::callMockMe()
+     *
      * @return void
      */
     public function testMockMockMe()
@@ -29,6 +32,9 @@ class ServiceDependentSharedServiceTest extends WebTestCase
     }
 
     /**
+     * @covers \Chaplean\Bundle\UnitBundle\Utility\ServiceDependentSharedService::__construct()
+     * @covers \Chaplean\Bundle\UnitBundle\Utility\ServiceDependentSharedService::callMockMe()
+     *
      * @return void
      */
     public function testMockMockMeASecondTime()
@@ -40,6 +46,9 @@ class ServiceDependentSharedServiceTest extends WebTestCase
     }
 
     /**
+     * @covers \Chaplean\Bundle\UnitBundle\Utility\ServiceDependentSharedService::__construct()
+     * @covers \Chaplean\Bundle\UnitBundle\Utility\ServiceDependentSharedService::dontCallMockMe()
+     *
      * @return void
      * @expectedException \Mockery\Exception\InvalidCountException
      * @throws
@@ -55,6 +64,9 @@ class ServiceDependentSharedServiceTest extends WebTestCase
     }
 
     /**
+     * @covers \Chaplean\Bundle\UnitBundle\Utility\ServiceDependentSharedService::__construct()
+     * @covers \Chaplean\Bundle\UnitBundle\Utility\ServiceDependentSharedService::dontCallMockMe()
+     *
      * @return void
      */
     public function testNotCallMockMe()

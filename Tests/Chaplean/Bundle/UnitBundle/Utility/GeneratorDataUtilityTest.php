@@ -4,8 +4,10 @@ namespace Tests\Chaplean\Bundle\UnitBundle\Utility;
 
 use Chaplean\Bundle\UnitBundle\Entity\Client;
 use Chaplean\Bundle\UnitBundle\Entity\Product;
+use Chaplean\Bundle\UnitBundle\Entity\Status;
 use Chaplean\Bundle\UnitBundle\Utility\GeneratorDataUtility;
 use Mockery\Adapter\Phpunit\MockeryTestCase;
+use Mockery\MockInterface;
 
 /**
  * GeneratorDataUtilityTest.php.
@@ -43,41 +45,118 @@ class GeneratorDataUtilityTest extends MockeryTestCase
         $generator = new GeneratorDataUtility(__DIR__ . '/../../../../../Resources/config/datafixtures.yml');
 
         $generator->hasReference('Chaplean\Bundle\UnitBundle\Entity\Client', 'name');
+
         $this->assertEquals(null, $generator->getReference('Chaplean\Bundle\UnitBundle\Entity\Client', 'name'));
     }
 
     /**
+     * @covers \Chaplean\Bundle\UnitBundle\Utility\GeneratorDataUtility::classDefinitionExist()
+     *
      * @return void
      *
      * @expectedException \Exception
-     * @expectedExceptionMessage No definition load !
+     * @expectedExceptionMessage No datafixtures definition loaded !
      */
     public function testClassDefinitionExistWithEmptyDefinition()
     {
+        /** @var GeneratorDataUtility $mock */
         $mock = \Mockery::mock(GeneratorDataUtility::class)->makePartial();
 
-        /** @noinspection PhpUndefinedMethodInspection */
         $mock->classDefinitionExist('', '');
     }
 
     /**
+     * @covers \Chaplean\Bundle\UnitBundle\Utility\GeneratorDataUtility::classDefinitionExist()
+     *
+     * @return void
+     *
+     * @expectedException \Exception
+     * @expectedExceptionMessage Missing entity definition 'Chaplean\Bundle\UnitBundle\Entity\Product'
+     */
+    public function testClassDefinitionExistMissingEntityDefinition()
+    {
+        $generator = new GeneratorDataUtility(__DIR__ . '/../Resources/config/datafixtures_test.yml');
+
+        $generator->classDefinitionExist(Product::class, 'name');
+    }
+
+    /**
+     * @covers \Chaplean\Bundle\UnitBundle\Utility\GeneratorDataUtility::classDefinitionExist()
+     *
+     * @return void
+     *
+     * @expectedException \Exception
+     * @expectedExceptionMessage Missing field defintion 'email' in 'Chaplean\Bundle\UnitBundle\Entity\Client'
+     */
+    public function testClassDefinitionExistMissingFieldDefinition()
+    {
+        $generator = new GeneratorDataUtility(__DIR__ . '/../Resources/config/datafixtures_test.yml');
+
+        $generator->classDefinitionExist(Client::class, 'email');
+    }
+
+    /**
+     * @covers \Chaplean\Bundle\UnitBundle\Utility\GeneratorDataUtility::classDefinitionExist()
+     *
+     * @return void
+     *
+     * @expectedException \Exception
+     * @expectedExceptionMessage Invalid format for 'Chaplean\Bundle\UnitBundle\Entity\Client', 'properties' node is missing
+     */
+    public function testClassDefinitionExistInvalidDefinition()
+    {
+        $generator = new GeneratorDataUtility(__DIR__ . '/../Resources/config/datafixtures_invalid_format.yml');
+
+        $generator->classDefinitionExist(Client::class, 'email');
+    }
+
+    /**
+     * @covers \Chaplean\Bundle\UnitBundle\Utility\GeneratorDataUtility::getFieldsDefined()
+     *
+     * @return void
+     */
+    public function testGetFieldsDefined()
+    {
+        $generator = new GeneratorDataUtility(__DIR__ . '/../../../../../Resources/config/datafixtures.yml');
+
+        $definition = $generator->getFieldsDefined(Product::class);
+
+        $this->assertContains('name', $definition);
+        $this->assertContains('client', $definition);
+    }
+
+    /**
+     * @covers \Chaplean\Bundle\UnitBundle\Utility\GeneratorDataUtility::getFieldsDefined()
+     *
+     * @return void
+     */
+    public function testGetFieldsDefinedEntityNotDefined()
+    {
+        $generator = new GeneratorDataUtility(__DIR__ . '/../../../../../Resources/config/datafixtures.yml');
+
+        $definition = $generator->getFieldsDefined(Status::class);
+
+        $this->assertEmpty($definition);
+    }
+
+    /**
+     * @covers \Chaplean\Bundle\UnitBundle\Utility\GeneratorDataUtility::hasReference()
+     *
      * @return void
      */
     public function testHasReference()
     {
-        $mock = $this->getMockBuilder('Chaplean\Bundle\UnitBundle\Utility\GeneratorDataUtility')
-            ->setConstructorArgs([__DIR__ . '/../../../../../Resources/config/datafixtures.yml'])
-            ->setMethods(['classDefinitionExist'])
-            ->getMock();
+        /** @var GeneratorDataUtility|MockInterface $mock */
+        $mock = \Mockery::mock(GeneratorDataUtility::class, [__DIR__ . '/../../../../../Resources/config/datafixtures.yml'])->makePartial();
 
-        $mock->expects($this->any())
-            ->method('classDefinitionExist')
-            ->willThrowException(new \Exception());
+        $mock->shouldReceive('classDefinitionExist')->once()->andThrow(new \Exception());
 
         $this->assertFalse($mock->hasReference('Chaplean\Bundle\UnitBundle\Entity\Client', 'name'));
     }
 
     /**
+     * @covers \Chaplean\Bundle\UnitBundle\Utility\GeneratorDataUtility::__construct
+     *
      * @return void
      */
     public function testNewGenerator()
@@ -88,6 +167,10 @@ class GeneratorDataUtilityTest extends MockeryTestCase
     }
 
     /**
+     * @covers \Chaplean\Bundle\UnitBundle\Utility\GeneratorDataUtility::getData()
+     * @covers \Chaplean\Bundle\UnitBundle\Utility\GeneratorDataUtility::parseProperty()
+     * @covers \Chaplean\Bundle\UnitBundle\Utility\GeneratorDataUtility::classDefinitionExist()
+     *
      * @return void
      */
     public function testGetDataWithDefaultDefinition()
@@ -100,6 +183,9 @@ class GeneratorDataUtilityTest extends MockeryTestCase
     }
 
     /**
+     * @covers \Chaplean\Bundle\UnitBundle\Utility\GeneratorDataUtility::getData()
+     * @covers \Chaplean\Bundle\UnitBundle\Utility\GeneratorDataUtility::parseProperty()
+     *
      * @return void
      */
     public function testGetDataWithCustomDefinition()
@@ -113,45 +199,9 @@ class GeneratorDataUtilityTest extends MockeryTestCase
     }
 
     /**
-     * @return void
+     * @covers \Chaplean\Bundle\UnitBundle\Utility\GeneratorDataUtility::getData()
+     * @covers \Chaplean\Bundle\UnitBundle\Utility\GeneratorDataUtility::parseProperty()
      *
-     * @expectedException \Exception
-     * @expectedExceptionMessage Missing definition for entity ('Chaplean\Bundle\UnitBundle\Entity\Product')
-     */
-    public function testGetDataMissingClassDefinition()
-    {
-        $generator = new GeneratorDataUtility(__DIR__ . '/../Resources/config/datafixtures_test.yml');
-
-        $generator->getData(Product::class, 'name');
-    }
-
-    /**
-     * @return void
-     *
-     * @expectedException \Exception
-     * @expectedExceptionMessage Missing definition for required field ('email')
-     */
-    public function testGetDataMissingFieldDefinition()
-    {
-        $generator = new GeneratorDataUtility(__DIR__ . '/../Resources/config/datafixtures_test.yml');
-
-        $generator->getData(Client::class, 'email');
-    }
-
-    /**
-     * @return void
-     *
-     * @expectedException \Exception
-     * @expectedExceptionMessage Unvalid format in definition, 'properties' not found
-     */
-    public function testGetDataInvalidFormatDefinition()
-    {
-        $generator = new GeneratorDataUtility(__DIR__ . '/../Resources/config/datafixtures_invalid_format.yml');
-
-        $generator->getData(Client::class, 'email');
-    }
-
-    /**
      * @return void
      */
     public function testGetDataWithUseCurentDefinition()

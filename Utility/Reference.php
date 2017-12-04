@@ -60,7 +60,7 @@ class Reference
      * @return void
      * @throws \Exception
      */
-    public function buildReference($property)
+    private function buildReference($property)
     {
         $matches = null;
         preg_match('/@(.[^<>\[\]]*)(<\d*,*\s*\d*>|\[.*,?\])?/', $property, $matches);
@@ -104,7 +104,7 @@ class Reference
     /**
      * @return string
      */
-    public function getReferenceArray()
+    private function getReferenceArray()
     {
         $referenceKey = $this->key . $this->values[$this->index++];
 
@@ -118,7 +118,7 @@ class Reference
     /**
      * @return string
      */
-    public function getReferenceInterval()
+    private function getReferenceInterval()
     {
         $referenceKey = $this->key . $this->index++;
 

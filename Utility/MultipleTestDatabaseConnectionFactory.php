@@ -26,13 +26,13 @@ class MultipleTestDatabaseConnectionFactory extends ConnectionFactory
      *
      * @return \Doctrine\DBAL\Connection
      */
-    public function createConnection(array $params, Configuration $config = null, EventManager $eventManager = null, array $mappingTypes = array())
+    public function createConnection(array $params, Configuration $config = null, EventManager $eventManager = null, array $mappingTypes = [])
     {
-		if (getenv('TEST_TOKEN') !== false) {
-			$testToken = getenv('TEST_TOKEN');
+        if (getenv('TEST_TOKEN') !== false) {
+            $testToken = getenv('TEST_TOKEN');
 
-			$params['path'] = $params['path'] . $testToken;
-		}
+            $params['path'] = $params['path'] . $testToken;
+        }
 
         return parent::createConnection($params, $config, $eventManager,$mappingTypes);
     }

@@ -16,6 +16,9 @@ use Symfony\Component\Process\Exception\InvalidArgumentException;
 class ReferenceTest extends TestCase
 {
     /**
+     * @covers \Chaplean\Bundle\UnitBundle\Utility\Reference::__construct
+     * @covers \Chaplean\Bundle\UnitBundle\Utility\Reference::buildReference()
+     *
      * @return void
      */
     public function testInstanciateReference()
@@ -27,6 +30,9 @@ class ReferenceTest extends TestCase
     }
 
     /**
+     * @covers \Chaplean\Bundle\UnitBundle\Utility\Reference::__construct
+     * @covers \Chaplean\Bundle\UnitBundle\Utility\Reference::getReferenceKey()
+     *
      * @return void
      */
     public function testGetReferenceKey()
@@ -37,6 +43,9 @@ class ReferenceTest extends TestCase
     }
 
     /**
+     * @covers \Chaplean\Bundle\UnitBundle\Utility\Reference::__construct
+     * @covers \Chaplean\Bundle\UnitBundle\Utility\Reference::buildReference()
+     *
      * @return void
      */
     public function testInstanciateReferenceWithInterval()
@@ -50,6 +59,10 @@ class ReferenceTest extends TestCase
     }
 
     /**
+     * @covers \Chaplean\Bundle\UnitBundle\Utility\Reference::__construct
+     * @covers \Chaplean\Bundle\UnitBundle\Utility\Reference::getReferenceKey()
+     * @covers \Chaplean\Bundle\UnitBundle\Utility\Reference::getReferenceInterval()
+     *
      * @return void
      */
     public function testGetReferenceInterval()
@@ -63,6 +76,9 @@ class ReferenceTest extends TestCase
     }
 
     /**
+     * @covers \Chaplean\Bundle\UnitBundle\Utility\Reference::__construct
+     * @covers \Chaplean\Bundle\UnitBundle\Utility\Reference::buildReference()
+     *
      * @return void
      */
     public function testInstanciateReferenceWithArray()
@@ -71,10 +87,14 @@ class ReferenceTest extends TestCase
 
         $this->assertEquals('array', $reference->getType());
         $this->assertEquals('user-', $reference->getKey());
-        $this->assertEquals(array('1', '3', '5'), $reference->getValues());
+        $this->assertEquals(['1', '3', '5'], $reference->getValues());
     }
 
     /**
+     * @covers \Chaplean\Bundle\UnitBundle\Utility\Reference::__construct
+     * @covers \Chaplean\Bundle\UnitBundle\Utility\Reference::getReferenceKey()
+     * @covers \Chaplean\Bundle\UnitBundle\Utility\Reference::getReferenceArray()
+     *
      * @return void
      */
     public function testGetReferenceArray()
@@ -88,6 +108,22 @@ class ReferenceTest extends TestCase
     }
 
     /**
+     * @covers \Chaplean\Bundle\UnitBundle\Utility\Reference::__construct
+     * @covers \Chaplean\Bundle\UnitBundle\Utility\Reference::buildReference
+     *
+     * @return void
+     */
+    public function testGetReferenceNew()
+    {
+        $reference = new DummyReference('@new()');
+
+        $this->assertNull($reference->getReferenceKey());
+    }
+
+    /**
+     * @covers \Chaplean\Bundle\UnitBundle\Utility\Reference::__construct
+     * @covers \Chaplean\Bundle\UnitBundle\Utility\Reference::buildReference
+     *
      * @return void
      * @expectedException InvalidArgumentException
      * @expectedExceptionMessage Invalid definition reference '@user-[]'
@@ -98,6 +134,9 @@ class ReferenceTest extends TestCase
     }
 
     /**
+     * @covers \Chaplean\Bundle\UnitBundle\Utility\Reference::__construct
+     * @covers \Chaplean\Bundle\UnitBundle\Utility\Reference::buildReference
+     *
      * @return void
      * @expectedException InvalidArgumentException
      * @expectedExceptionMessage Invalid definition reference '@user-<>'

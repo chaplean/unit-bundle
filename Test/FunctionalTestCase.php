@@ -6,11 +6,15 @@ use Chaplean\Bundle\UnitBundle\TextUI\Output;
 use Chaplean\Bundle\UnitBundle\Utility\FixtureLiteUtility;
 use Chaplean\Bundle\UnitBundle\Utility\NamespaceUtility;
 use Chaplean\Bundle\UnitBundle\Utility\RestClient;
+use Chaplean\Bundle\UnitBundle\Utility\Timer;
 use Doctrine\Common\DataFixtures\ReferenceRepository;
 use Doctrine\ORM\EntityManager;
 use Liip\FunctionalTestBundle\Test\WebTestCase;
 use Symfony\Bundle\FrameworkBundle\Client;
+use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
 use Symfony\Component\BrowserKit\Cookie;
+use Symfony\Component\Console\Application;
+use Symfony\Component\Console\Tester\CommandTester;
 use Symfony\Component\DependencyInjection\Container;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Exception\ServiceNotFoundException;
@@ -113,11 +117,13 @@ class FunctionalTestCase extends WebTestCase
     /**
      * Reset all non-important services (Important service: kernel, doctrine (+ related service) and orm (+ related service))
      *
+     * @param Container|ContainerInterface $container
+     *
      * @return void
      */
-    private static function clearContainer()
+    private static function clearContainer(ContainerInterface $container)
     {
-        foreach (self::$container->getServiceIds() as $service) {
+        foreach ($container->getServiceIds() as $service) {
             if (!preg_match_all('/(kernel|doctrine|[^f]orm|service_container)/', $service)) {
                 self::$container->set($service, null);
             }
@@ -154,6 +160,25 @@ class FunctionalTestCase extends WebTestCase
         }
 
         return $client;
+    }
+
+    /**
+     * @param string $commandClass
+     *
+     * @return CommandTester
+     */
+    public function createCommandTester($commandClass)
+    {
+        $command = new $commandClass();
+
+        $application = new Application();
+        $application->add($command);
+
+        /** @var ContainerAwareCommand $command */
+        $command = $application->find($command->getName());
+        $command->setContainer($this->getContainer());
+
+        return new CommandTester($command);
     }
 
     /**
@@ -243,7 +268,6 @@ class FunctionalTestCase extends WebTestCase
         return $method;
     }
 
-
     /**
      * @param string $reference
      *
@@ -265,7 +289,7 @@ class FunctionalTestCase extends WebTestCase
      */
     private static function getOtherMockedServices(ContainerInterface $container)
     {
-        /** @var \Chaplean\Bundle\UnitBundle\Mock\MockedServiceOnSetUp $mockedServices */
+        /** @var \Chaplean\Bundle\UnitBundle\Mock\MockedServiceOnSetUpInterface $mockedServices */
         $mockedServices = $container->getParameter('chaplean_unit.mocked_services');
 
         if ($mockedServices === null) {
@@ -283,7 +307,7 @@ class FunctionalTestCase extends WebTestCase
      */
     public function __get($name)
     {
-        if ($name == 'em') {
+        if ($name === 'em') {
             return $this->getContainer()->get('doctrine')->getManager();
         }
 
@@ -306,13 +330,13 @@ class FunctionalTestCase extends WebTestCase
             $knpPdf->shouldReceive('getOutputFromHtml')->andReturn($pdf);
             $knpPdf->shouldReceive('getOutput')->andReturn($pdf);
 
-            $servicesToOverride[] = ['knp_snappy.pdf', $knpPdf];
+            $servicesToOverride['knp_snappy.pdf'] = $knpPdf;
         }
 
         $servicesToOverride = array_merge($servicesToOverride, self::getOtherMockedServices($container));
 
-        foreach ($servicesToOverride as $serviceToOverride) {
-            $container->set(...$serviceToOverride);
+        foreach ($servicesToOverride as $service => $mock) {
+            $container->set($service, $mock);
         }
 
         return $container;
@@ -327,7 +351,7 @@ class FunctionalTestCase extends WebTestCase
     public function rolesProvider(array $expectations, array $extraRoles = [])
     {
         if (count($this->userRoles) === 0) {
-            throw new \LogicException("You must define test_roles in your parameters_test.yml to use this function.");
+            throw new \LogicException('You must define test_roles in your parameters_test.yml to use this function.');
         }
 
         $countExpectations = count($expectations);
@@ -337,7 +361,7 @@ class FunctionalTestCase extends WebTestCase
         if ($countExpectations !== $countRoles) {
             throw new \LogicException(
                 sprintf(
-                    "The number of expecations (%d) must match the number of roles (%d)",
+                    'The number of expecations (%d) must match the number of roles (%d)',
                     $countExpectations,
                     $countRoles
                 )
@@ -349,24 +373,25 @@ class FunctionalTestCase extends WebTestCase
         }
 
         $mapUserExpectation = array_map(
-            function($userReference, $expectation) {
+            function ($userReference, $expectation) {
                 if (is_array($expectation)) {
                     array_unshift($expectation, $userReference);
+
                     return $expectation;
                 }
 
                 return [$userReference, $expectation];
-            }, array_values($this->userRoles), array_values($expectations)
+            },
+            array_values($this->userRoles),
+            array_values($expectations)
         );
 
-        return array_merge(
-            array_combine($rolesNames, $mapUserExpectation),
-            $extraRoles
-        );
+        return array_merge(array_combine($rolesNames, $mapUserExpectation), $extraRoles);
     }
 
     /**
      * @inheritdoc
+     * @deprecated
      */
     protected function runCommand($name, array $params = [], $reuseKernel = true)
     {
@@ -406,13 +431,15 @@ class FunctionalTestCase extends WebTestCase
             self::mockServices(self::$container);
 
             echo 'Initialization database....';
-            $t = microtime(true);
+            Timer::start();
 
-            self::$fixtures = self::$fixtureUtility->loadFixtures(NamespaceUtility::getClassNamesByContext($defaultNamespace))->getReferenceRepository();
+            self::$fixtures = self::$fixtureUtility
+                ->loadFixtures(NamespaceUtility::getClassNamesByContext($defaultNamespace))
+                ->getReferenceRepository();
 
-            echo sprintf(" Done %s (%.2fs)\n\n", Output::success(Output::CHAR_CHECK), microtime(true) - $t);
+            echo sprintf(" Done %s (%s)\n\n", Output::success(Output::CHAR_CHECK), Timer::toString(Timer::stop()));
 
-            self::clearContainer();
+            self::clearContainer(self::$container);
             self::$databaseLoaded = true;
         }
     }
@@ -443,6 +470,6 @@ class FunctionalTestCase extends WebTestCase
             }
         }
 
-        self::clearContainer();
+        self::clearContainer($this->getContainer());
     }
 }

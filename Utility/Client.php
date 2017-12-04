@@ -62,9 +62,11 @@ class Client
      */
     public function __construct(ContainerInterface $container)
     {
+        // @codeCoverageIgnoreStart
         if (!class_exists('FOS\RestBundle\FOSRestBundle')) {
             throw new ClassNotFoundException('You must have \'FOS\RestBundle\FOSRestBundle\' for use \'RestClient\'!', new \ErrorException());
         }
+        // @codeCoverageIgnoreEnd
 
         $this->router = $container->get('router');
         $this->container = $container;

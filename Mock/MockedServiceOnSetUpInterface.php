@@ -10,10 +10,10 @@ namespace Chaplean\Bundle\UnitBundle\Mock;
  * @copyright 2014 - 2017 Chaplean (http://www.chaplean.coop)
  * @since     7.0.0
  */
-interface MockedServiceOnSetUp
+interface MockedServiceOnSetUpInterface
 {
     /**
-     * Return an array
+     * Return an associative array
      *
      * example:
      * ```
@@ -21,7 +21,7 @@ interface MockedServiceOnSetUp
      *      $knpPdf->shouldReceive('getOutputFromHtml')->andReturn('example');
      *      $knpPdf->shouldReceive('getOutput')->andReturn('example');
      *
-     *      return [['knp_snappy.pdf', $knpPdf]]
+     *      return ['knp_snappy.pdf' => $knpPdf]
      * ```
      *
      * @return array

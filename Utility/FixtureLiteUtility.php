@@ -221,7 +221,7 @@ class FixtureLiteUtility
             $metadatas = self::$cachedMetadatas['default'];
 
             if ($container->getParameter('liip_functional_test.cache_sqlite_db')) {
-                $backup = $container->getParameter('kernel.cache_dir') . '/test_' . md5(serialize($metadatas) . serialize($classNames)) . '.db';
+                $backup = $container->getParameter('kernel.cache_dir') . '/test_' . md5(serialize($metadatas) . serialize($classNames) . date('YMDH')) . '.db';
 
                 if (file_exists($backup) && file_exists($backup . '.ser') && $this->isBackupUpToDate($classNames, $backup)) {
                     /** @var Connection $connection */

@@ -50,6 +50,6 @@ class TimerTest extends TestCase
     {
         Timer::start();
 
-        $this->assertGreaterThan(0,  Timer::stop());
+        $this->assertGreaterThan(0, Timer::stop());
     }
 }
