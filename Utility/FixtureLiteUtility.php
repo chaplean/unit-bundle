@@ -256,7 +256,7 @@ class FixtureLiteUtility
             $executor = new ORMExecutor($om, new ORMPurger());
             $executor->setReferenceRepository($referenceRepository);
         } else {
-            throw new \Exception(sprintf('%s not supported !'), get_class($connection->getDriver()));
+            throw new \Exception(sprintf('%s not supported !', get_class($connection->getDriver())));
         }
 
         $loader = $this->getFixtureLoader($container, $classNames);

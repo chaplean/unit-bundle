@@ -18,25 +18,24 @@ class FixtureLiteUtilityTest extends WebTestCase
 {
     use MockeryPHPUnitIntegration;
 
-    /**
-     * @runInSeparateProcess
-     *
-     * @covers \Chaplean\Bundle\UnitBundle\Utility\FixtureLiteUtility::getInstance()
-     * @covers \Chaplean\Bundle\UnitBundle\Utility\FixtureLiteUtility::setContainer()
-     *
-     * @return void
-     */
-    public function testGetInstance()
-    {
-        $instance1 = FixtureLiteUtility::getInstance($this->getContainer());
-
-        $this->assertInstanceOf(FixtureLiteUtility::class, $instance1);
-
-        $instance2 = FixtureLiteUtility::getInstance($this->getContainer());
-
-        $this->assertEquals(spl_object_hash($instance1), spl_object_hash($instance2));
-    }
-
+//    /**
+//     * @runInSeparateProcess
+//     *
+//     * @covers \Chaplean\Bundle\UnitBundle\Utility\FixtureLiteUtility::getInstance()
+//     * @covers \Chaplean\Bundle\UnitBundle\Utility\FixtureLiteUtility::setContainer()
+//     *
+//     * @return void
+//     */
+//    public function testGetInstance()
+//    {
+//        $instance1 = FixtureLiteUtility::getInstance($this->getContainer());
+//
+//        $this->assertInstanceOf(FixtureLiteUtility::class, $instance1);
+//
+//        $instance2 = FixtureLiteUtility::getInstance($this->getContainer());
+//
+//        $this->assertEquals(spl_object_hash($instance1), spl_object_hash($instance2));
+//    }
     /**
      * @covers \Chaplean\Bundle\UnitBundle\Utility\FixtureLiteUtility::loadFixtures()
      *

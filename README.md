@@ -31,7 +31,41 @@ imports:
     - { resource: '@ChapleanUnitBundle/Resources/config/config.yml' }
 ```
 
-##### 3.2. Add parameter (optional)
+
+##### 3.2. Configure mock (optional)
+
+In `config_test.yml`
+```yaml
+chaplean_unit:
+    mocked_service: <YourClassImplementingMockedServiceOnSetUpInterface>
+```
+
+Example class:
+```php
+class MockService implements MockedServiceOnSetUpInterface
+{
+    /**
+     * @return void
+     */
+    public static function getMockedServices()
+    {
+        $knpPdf = \Mockery::mock('Knp\Bundle\SnappyBundle\Snappy\LoggableGenerator');
+        $knpPdf->shouldReceive('getOutputFromHtml')->andReturn('example');
+        $knpPdf->shouldReceive('getOutput')->andReturn('example');
+       
+        $mocks['knp_snappy.pdf'] = $knpPdf;
+        
+        $client = \Mockery::mock(Client::class);
+        $client->shouldReceive('request')->andReturn(new Response());
+
+        $mocks['guzzle.client.sor_api'] = $client;
+        
+        return $mocks;
+    }
+}
+```
+
+##### 3.3. Add parameter (optional)
 
 Open `app/config/parameters*` files
 
@@ -60,7 +94,6 @@ Add in your ```parameters_test.yml``` a ```test_roles``` dict as following:
 
 ```yaml
 parameters:
-
     # Dictionnary where the key is the name of the role (displayed when a
     # failure happens), and the value is the reference to an entity used
     # to do the login (the entity is given to LogicalTestCase::authenticate()).
@@ -175,3 +208,15 @@ class ExampleTest extends FunctionalTestCase
     }
 }
 ```
+
+# Custom printer
+
+If you want use a custom printer add `printerClass` attribute with `Chaplean\Bundle\UnitBundle\TextUI\ResultPrinter` value in `phpunit.xml`
+```xml
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        <!-- ... -->
+         printerClass="Chaplean\Bundle\UnitBundle\TextUI\ResultPrinter"
+>
+```
+
+[See an overview](https://asciinema.org/a/u4d6NsZAifpGRlMYhPjq5La6N)

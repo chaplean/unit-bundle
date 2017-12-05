@@ -7,10 +7,18 @@ namespace Chaplean\Bundle\UnitBundle\TextUI;
  * @package Chaplean\Bundle\UnitBundle\Utility
  * @author    Valentin - Chaplean <valentin@chaplean.com>
  * @copyright 2014 - 2017 Chaplean (http://www.chaplean.com)
- * @since     X.Y.Z
+ * @since     7.0.0
  */
 class Output
 {
+    /**
+     * Ansi escape
+     */
+    const ESC = "\x1b[";
+    /**
+     * Ansi Normal
+     */
+    const NND = "\x1b[0m";
     const COLOR_NC = "\e[0m"; # No Color
     const COLOR_WHITE = "\e[1;37m";
     const COLOR_BLACK = "\e[0;30m";
