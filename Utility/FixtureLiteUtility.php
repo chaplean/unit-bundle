@@ -202,10 +202,10 @@ class FixtureLiteUtility
                 $params = $params['master'];
             }
 
-            $name = isset($params['path']) ? $params['path'] : (isset($params['dbname']) ? $params['dbname'] : false);
+            $name = isset($params['path']) ? $params['path'] : false;
             if (!$name) {
                 throw new \InvalidArgumentException(
-                    "Connection does not contain a 'path' or 'dbname' parameter and cannot be dropped."
+                    "Connection does not contain a 'path' parameter"
                 );
             }
 
