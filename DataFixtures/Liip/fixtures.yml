@@ -1,9 +1,0 @@
-Chaplean\Bundle\UnitBundle\Entity\Client:
-    client-{1..10}:
-        name: '<fr_FR:address()>'
-        code: <current()>ABC
-        email: <email()>
-        isActive: true
-        isPrivateMember: false
-        hasCode: false
-        dateAdd: <(new \DateTime('-2 hours'))>

@@ -185,7 +185,7 @@ abstract class AbstractFixture extends BaseAbstractFixture
             $getter = 'get' . $fieldName;
         }
         $setter = 'set' . $fieldName;
-        return array($getter, $setter);
+        return [$getter, $setter];
     }
 
     /**

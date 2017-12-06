@@ -47,7 +47,7 @@ class GeneratorDataUtility
         }
 
         $this->index = 0;
-        $this->references = array();
+        $this->references = [];
     }
 
     /**
@@ -60,13 +60,13 @@ class GeneratorDataUtility
     public function classDefinitionExist($class, $fieldName)
     {
         if (empty($this->entityDefinition)) {
-            throw new \Exception('No definition load !');
+            throw new \Exception('No datafixtures definition loaded !');
         } elseif (!isset($this->entityDefinition[$class])) {
-            throw new \Exception('Missing definition for entity (\'' . $class . '\')');
+            throw new \Exception('Missing entity definition \'' . $class . '\'');
         } elseif (!isset($this->entityDefinition[$class]['properties'])) {
-            throw new \Exception('Unvalid format in definition, \'properties\' not found');
+            throw new \Exception('Invalid format for \'' . $class . '\', \'properties\' node is missing');
         } elseif (!isset($this->entityDefinition[$class]['properties'][$fieldName])) {
-            throw new \Exception('Missing definition for required field (\'' . $fieldName . '\')');
+            throw new \Exception('Missing field defintion \'' . $fieldName . '\' in \'' . $class . '\'');
         }
     }
 
@@ -80,7 +80,7 @@ class GeneratorDataUtility
         if (isset($this->entityDefinition[$class])) {
             return array_keys($this->entityDefinition[$class]['properties']);
         } else {
-            return array();
+            return [];
         }
     }
 
@@ -97,7 +97,7 @@ class GeneratorDataUtility
         $property = $this->entityDefinition[$class]['properties'][$fieldName];
         $property = $this->parseProperty($property);
 
-        return $this->loader->getValue(array($class => array('properties' => array($fieldName => $property))), $fieldName);
+        return $this->loader->getValue([$class => ['properties' => [$fieldName => $property]]], $fieldName);
     }
 
     /**

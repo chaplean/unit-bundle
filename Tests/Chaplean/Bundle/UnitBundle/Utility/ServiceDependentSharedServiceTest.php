@@ -2,8 +2,8 @@
 
 namespace Tests\Chaplean\Bundle\UnitBundle\Utility;
 
-use Chaplean\Bundle\UnitBundle\Test\LogicalTestCase;
 use Chaplean\Bundle\UnitBundle\Utility\SharedService;
+use Liip\FunctionalTestBundle\Test\WebTestCase;
 
 /**
  * Class ServiceDependentSharedServiceTest.
@@ -11,11 +11,14 @@ use Chaplean\Bundle\UnitBundle\Utility\SharedService;
  * @package   Tests\Chaplean\Bundle\UnitBundle\Utility
  * @author    Valentin - Chaplean <valentin@chaplean.coop>
  * @copyright 2014 - 2016 Chaplean (http://www.chaplean.coop)
- * @since     X.Y.Z
+ * @since     5.0.0
  */
-class ServiceDependentSharedServiceTest extends LogicalTestCase
+class ServiceDependentSharedServiceTest extends WebTestCase
 {
     /**
+     * @covers \Chaplean\Bundle\UnitBundle\Utility\ServiceDependentSharedService::__construct()
+     * @covers \Chaplean\Bundle\UnitBundle\Utility\ServiceDependentSharedService::callMockMe()
+     *
      * @return void
      */
     public function testMockMockMe()
@@ -29,6 +32,9 @@ class ServiceDependentSharedServiceTest extends LogicalTestCase
     }
 
     /**
+     * @covers \Chaplean\Bundle\UnitBundle\Utility\ServiceDependentSharedService::__construct()
+     * @covers \Chaplean\Bundle\UnitBundle\Utility\ServiceDependentSharedService::callMockMe()
+     *
      * @return void
      */
     public function testMockMockMeASecondTime()
@@ -40,8 +46,11 @@ class ServiceDependentSharedServiceTest extends LogicalTestCase
     }
 
     /**
+     * @covers \Chaplean\Bundle\UnitBundle\Utility\ServiceDependentSharedService::__construct()
+     * @covers \Chaplean\Bundle\UnitBundle\Utility\ServiceDependentSharedService::dontCallMockMe()
+     *
      * @return void
-     * @expectedException Mockery\Exception\InvalidCountException
+     * @expectedException \Mockery\Exception\InvalidCountException
      * @throws
      */
     public function testMockMockMeWithoutCallHim()
@@ -50,10 +59,14 @@ class ServiceDependentSharedServiceTest extends LogicalTestCase
         $this->getContainer()->set('chaplean_unit.shared_service', $serviceSharedMock);
 
         $this->assertEquals('eenie meenie miney mo', $this->getContainer()->get('chaplean_unit.service_dependent_on_shared_service')->dontCallMockMe());
-        $this->throwMockerysException();
+
+        \Mockery::close();
     }
 
     /**
+     * @covers \Chaplean\Bundle\UnitBundle\Utility\ServiceDependentSharedService::__construct()
+     * @covers \Chaplean\Bundle\UnitBundle\Utility\ServiceDependentSharedService::dontCallMockMe()
+     *
      * @return void
      */
     public function testNotCallMockMe()
@@ -62,6 +75,7 @@ class ServiceDependentSharedServiceTest extends LogicalTestCase
         $this->getContainer()->set('chaplean_unit.shared_service', $serviceSharedMock);
 
         $this->assertEquals('eenie meenie miney mo', $this->getContainer()->get('chaplean_unit.service_dependent_on_shared_service')->dontCallMockMe());
-        $this->throwMockerysException();
+
+        \Mockery::close();
     }
 }

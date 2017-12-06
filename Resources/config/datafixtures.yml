@@ -25,7 +25,6 @@ Chaplean\Bundle\UnitBundle\Entity\User:
         email: <email()>
         status: '@status-[active, inactive, deleted]'
 
-
 Chaplean\Bundle\UnitBundle\Entity\Invoice:
     properties:
         client: '@client-1'

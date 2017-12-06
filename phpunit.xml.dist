@@ -27,6 +27,8 @@
             <exclude>
                 <directory>app</directory>
                 <directory>bin</directory>
+                <directory>Controller</directory>
+                <directory>Entity</directory>
                 <directory>DataFixtures</directory>
                 <directory>DependencyInjection</directory>
                 <directory>Resources</directory>

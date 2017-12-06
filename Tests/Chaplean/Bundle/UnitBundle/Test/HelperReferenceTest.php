@@ -5,8 +5,7 @@ namespace Tests\Chaplean\Bundle\UnitBundle\Test;
 use Chaplean\Bundle\UnitBundle\Entity\Client;
 use Chaplean\Bundle\UnitBundle\Entity\Product;
 use Chaplean\Bundle\UnitBundle\Entity\Provider;
-use Chaplean\Bundle\UnitBundle\Test\LogicalTestCase;
-use Doctrine\ORM\Query;
+use Chaplean\Bundle\UnitBundle\Test\FunctionalTestCase;
 
 /**
  * HelperReferenceTest.php.
@@ -15,22 +14,8 @@ use Doctrine\ORM\Query;
  * @copyright 2014 - 2015 Chaplean (http://www.chaplean.coop)
  * @since     2.0.0
  */
-class HelperReferenceTest extends LogicalTestCase
+class HelperReferenceTest extends FunctionalTestCase
 {
-    /**
-     * @return void
-     */
-    public static function setUpBeforeClass()
-    {
-        self::loadStaticFixtures(
-            array(
-                'Chaplean\Bundle\UnitBundle\DataFixtures\Liip\LoadProviderData'
-            )
-        );
-
-        parent::setUpBeforeClass();
-    }
-
     /**
      * @return void
      */

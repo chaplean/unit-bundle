@@ -15,6 +15,8 @@ use Symfony\Component\HttpFoundation\Response;
  * @since     2.2.0
  *
  * @Annotations\RouteResource("Unit")
+ *
+ * @codeCoverageIgnore
  */
 class UnitRestController extends FOSRestController
 {
@@ -24,7 +26,7 @@ class UnitRestController extends FOSRestController
      */
     public function get200Action()
     {
-        return $this->handleView($this->view(array()));
+        return $this->handleView($this->view([]));
     }
 
     /**
@@ -33,7 +35,7 @@ class UnitRestController extends FOSRestController
      */
     public function get404Action()
     {
-        return $this->handleView($this->view(array(), 404));
+        return $this->handleView($this->view([], 404));
     }
 
     /**
@@ -42,10 +44,12 @@ class UnitRestController extends FOSRestController
      */
     public function getObjectAction()
     {
-        return $this->handleView($this->view(array(
+        return $this->handleView($this->view(
+            [
             'id' => 1,
             'name' => 'foo'
-        )));
+            ]
+        ));
     }
 
     /**
@@ -54,7 +58,7 @@ class UnitRestController extends FOSRestController
      */
     public function postAction()
     {
-        return $this->handleView($this->view(array()));
+        return $this->handleView($this->view([]));
     }
 
     /**
@@ -65,7 +69,7 @@ class UnitRestController extends FOSRestController
      */
     public function getWithRequestAction(Request $request)
     {
-        return $this->handleView($this->view(array($request->getUri())));
+        return $this->handleView($this->view([$request->getUri()]));
     }
 
     /**
@@ -76,7 +80,7 @@ class UnitRestController extends FOSRestController
      */
     public function getWithoutRequestAction($id)
     {
-        return $this->handleView($this->view(array($id)));
+        return $this->handleView($this->view([$id]));
     }
 
     /**
@@ -88,7 +92,7 @@ class UnitRestController extends FOSRestController
      */
     public function getWithRequestAndParameterAction(Request $request, $id)
     {
-        return $this->handleView($this->view(array($request->getUri(), $id)));
+        return $this->handleView($this->view([$request->getUri(), $id]));
     }
 
     /**
@@ -99,7 +103,7 @@ class UnitRestController extends FOSRestController
      */
     public function getWithQueryAction(Request $request)
     {
-        return $this->handleView($this->view(array($request->query->get('limit'))));
+        return $this->handleView($this->view([$request->query->get('limit')]));
     }
 
     /**
@@ -110,7 +114,7 @@ class UnitRestController extends FOSRestController
      */
     public function postWithResquestAction(Request $request)
     {
-        return $this->handleView($this->view(array($request->request->get('name'))));
+        return $this->handleView($this->view([$request->request->get('name')]));
     }
 
     /**
@@ -119,7 +123,7 @@ class UnitRestController extends FOSRestController
      */
     public function deleteAction()
     {
-        return $this->handleView($this->view(array()));
+        return $this->handleView($this->view([]));
     }
 
     /**
@@ -128,6 +132,6 @@ class UnitRestController extends FOSRestController
      */
     public function putAction()
     {
-        return $this->handleView($this->view(array()));
+        return $this->handleView($this->view([]));
     }
 }

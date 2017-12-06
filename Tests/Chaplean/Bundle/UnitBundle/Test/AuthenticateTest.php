@@ -1,7 +1,8 @@
 <?php
+
 namespace Tests\Chaplean\Bundle\UnitBundle\Test;
 
-use Chaplean\Bundle\UnitBundle\Test\LogicalTestCase;
+use Chaplean\Bundle\UnitBundle\Test\FunctionalTestCase;
 use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
 use Symfony\Component\Security\Core\User\User;
 
@@ -12,7 +13,7 @@ use Symfony\Component\Security\Core\User\User;
  * @copyright 2014 - 2016 Chaplean (http://www.chaplean.coop)
  * @since     2.1.0
  */
-class AuthenticateTest extends LogicalTestCase
+class AuthenticateTest extends FunctionalTestCase
 {
     /**
      * @return void
@@ -24,21 +25,13 @@ class AuthenticateTest extends LogicalTestCase
         $this->authenticate($user);
 
         /** @var UsernamePasswordToken $token */
-        $token = $this->getContainer()
-            ->get('security.token_storage')
-            ->getToken();
+        $token = $this->getContainer()->get('security.token_storage')->getToken();
 
         $this->assertInstanceOf(User::class, $token->getUser());
-        $this->assertEquals(
-            'user',
-            $token->getUser()
-                ->getUsername()
-        );
+        $this->assertEquals('user', $token->getUser()->getUsername());
     }
 
     /**
-     * @runInSeparateProcess
-     *
      * @return void
      */
     public function testAuthenticateInClient()
@@ -49,23 +42,15 @@ class AuthenticateTest extends LogicalTestCase
         $this->authenticate($user, $client);
 
         /** @var UsernamePasswordToken $token */
-        $token = $client->getContainer()
-            ->get('security.token_storage')
-            ->getToken();
+        $token = $client->getContainer()->get('security.token_storage')->getToken();
 
         $this->assertInstanceOf(User::class, $token->getUser());
-        $this->assertEquals(
-            'user',
-            $token->getUser()
-                ->getUsername()
-        );
-        
+        $this->assertEquals('user', $token->getUser()->getUsername());
+
         $this->assertInstanceOf(
             UsernamePasswordToken::class,
             unserialize(
-                $client->getContainer()
-                    ->get('session')
-                    ->get('_security_main')
+                $client->getContainer()->get('session')->get('_security_main')
             )
         );
     }
@@ -81,9 +66,7 @@ class AuthenticateTest extends LogicalTestCase
         $this->tearDown();
 
         /** @var UsernamePasswordToken $token */
-        $token = $this->getContainer()
-            ->get('security.token_storage')
-            ->getToken();
+        $token = $this->getContainer()->get('security.token_storage')->getToken();
 
         $this->assertNull($token);
     }
