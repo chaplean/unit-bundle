@@ -112,6 +112,11 @@ class FixtureLiteUtility
         return $loader;
     }
 
+    public function getHash(array $classNames)
+    {
+        return md5(serialize(self::$cachedMetadatas['default']) . serialize($classNames) . date('YMDH'));
+    }
+
     /**
      * Get Singleton Instance
      *
@@ -221,7 +226,7 @@ class FixtureLiteUtility
             $metadatas = self::$cachedMetadatas['default'];
 
             if ($container->getParameter('liip_functional_test.cache_sqlite_db')) {
-                $backup = $container->getParameter('kernel.cache_dir') . '/test_' . md5(serialize($metadatas) . serialize($classNames) . date('YMDH')) . '.db';
+                $backup = $container->getParameter('kernel.cache_dir') . '/test_' . $this->getHash($classNames) . '.db';
 
                 if (file_exists($backup) && file_exists($backup . '.ser') && $this->isBackupUpToDate($classNames, $backup)) {
                     /** @var Connection $connection */

@@ -10,6 +10,7 @@ use PHPUnit\Framework\TestResult;
 use PHPUnit\Framework\Warning;
 use PHPUnit\Util\Filter;
 use PHPUnit\Util\Test as TestUtil;
+use SebastianBergmann\Environment\Console;
 
 /**
  * Class ResultPrinter.
@@ -32,6 +33,8 @@ class ResultPrinter extends \PHPUnit\TextUI\ResultPrinter
     ];
     /** @var integer  */
     protected $height = 4;
+    /** @var integer */
+    protected $numberColumns;
     /** @var string  */
     protected $messages = '';
     /** @var integer  */
@@ -50,6 +53,9 @@ class ResultPrinter extends \PHPUnit\TextUI\ResultPrinter
     public function __construct($out = null, $verbose = false, $colors = \PHPUnit\TextUI\ResultPrinter::COLOR_DEFAULT, $debug = false, $numberOfColumns = 80, $reverse = false)
     {
         parent::__construct($out, $verbose, $colors, $debug, $numberOfColumns, $reverse);
+
+        $console = new Console();
+        $this->numberColumns = $console->getNumberOfColumns();
     }
 
     /**
@@ -80,8 +86,8 @@ class ResultPrinter extends \PHPUnit\TextUI\ResultPrinter
         $testName = $test instanceof TestCase ? $test->getName() : TestUtil::describe($test);
         $this->write(sprintf(
             "\n\n%s\n%s\n",
-            str_pad(get_class($test), $this->maxColumn, ' '),
-            str_pad('  ' . $testName, $this->maxColumn, ' ')
+            str_pad(get_class($test), $this->numberColumns, ' '),
+            str_pad('  ' . $testName, $this->numberColumns, ' ')
         ));
 
         $this->write($this->messages);
@@ -216,12 +222,13 @@ class ResultPrinter extends \PHPUnit\TextUI\ResultPrinter
         $index = Output::info(array_sum($this->counter)) . ') ';
         $testName = TestUtil::describe($test);
         $trace = Filter::getFilteredStacktrace($e);
+        $message = $e->getMessage();
 
-        $message = sprintf("\n%s%s\n%s\n\n%s", $index, $testName, Output::print($color, $e->getMessage()), $trace);
+        $message = sprintf("\n%s%s\n%s\n\n%s", $index, $testName, Output::print($color, $message), $trace);
 
         $traces = explode("\n", $trace);
 
-        $this->height += (4 + (count($traces) - 1));
+        $this->height += (3 + (ceil(strlen($message)/$this->numberColumns)) + (count($traces) - 1));
 
         $this->messages .= $message;
 

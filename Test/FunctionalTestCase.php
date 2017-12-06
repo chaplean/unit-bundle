@@ -391,7 +391,9 @@ class FunctionalTestCase extends WebTestCase
 
     /**
      * @inheritdoc
-     * @deprecated
+     * @deprecated Use 'createCommandTester' instead (Removed in next version)
+     *
+     * @codeCoverageIgnore
      */
     protected function runCommand($name, array $params = [], $reuseKernel = true)
     {
