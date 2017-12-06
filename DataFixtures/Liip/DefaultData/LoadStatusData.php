@@ -24,11 +24,11 @@ class LoadStatusData extends AbstractFixture
      */
     public function load(ObjectManager $manager)
     {
-        $datas = array(
-            'active'   => array('active'),
-            'inactive' => array('inactive'),
-            'deleted'  => array('deleted'),
-        );
+        $datas = [
+            'active'   => ['active'],
+            'inactive' => ['inactive'],
+            'deleted'  => ['deleted'],
+        ];
 
         foreach ($datas as $key => $data) {
             $status = new Status();
