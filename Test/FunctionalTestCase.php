@@ -2,7 +2,7 @@
 
 namespace Chaplean\Bundle\UnitBundle\Test;
 
-use Chaplean\Bundle\UnitBundle\TextUI\Output;
+use Chaplean\Bundle\UnitBundle\TextUI\Style;
 use Chaplean\Bundle\UnitBundle\Utility\FixtureLiteUtility;
 use Chaplean\Bundle\UnitBundle\Utility\NamespaceUtility;
 use Chaplean\Bundle\UnitBundle\Utility\RestClient;
@@ -10,6 +10,7 @@ use Chaplean\Bundle\UnitBundle\Utility\Timer;
 use Doctrine\Common\DataFixtures\ReferenceRepository;
 use Doctrine\ORM\EntityManager;
 use Liip\FunctionalTestBundle\Test\WebTestCase;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use Symfony\Bundle\FrameworkBundle\Client;
 use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
 use Symfony\Component\BrowserKit\Cookie;
@@ -34,6 +35,8 @@ use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
  */
 class FunctionalTestCase extends WebTestCase
 {
+    use MockeryPHPUnitIntegration;
+
     /**
      * @var ContainerInterface|Container
      */
@@ -327,8 +330,8 @@ class FunctionalTestCase extends WebTestCase
             $pdf = file_get_contents(__DIR__ . '/../Resources/pdf.pdf');
 
             $knpPdf = \Mockery::mock('Knp\Bundle\SnappyBundle\Snappy\LoggableGenerator');
-            $knpPdf->shouldReceive('getOutputFromHtml')->andReturn($pdf);
-            $knpPdf->shouldReceive('getOutput')->andReturn($pdf);
+            $knpPdf->shouldReceive('getStyleFromHtml')->andReturn($pdf);
+            $knpPdf->shouldReceive('getStyle')->andReturn($pdf);
 
             $servicesToOverride['knp_snappy.pdf'] = $knpPdf;
         }
@@ -439,7 +442,7 @@ class FunctionalTestCase extends WebTestCase
                 ->loadFixtures(NamespaceUtility::getClassNamesByContext($defaultNamespace))
                 ->getReferenceRepository();
 
-            echo sprintf(" Done %s (%s)\n\n", Output::success(Output::CHAR_CHECK), Timer::toString(Timer::stop()));
+            echo sprintf(" Done %s (%s)\n\n", Style::success(Style::CHAR_CHECK), Timer::toString(Timer::stop()));
 
             self::clearContainer(self::$container);
             self::$databaseLoaded = true;

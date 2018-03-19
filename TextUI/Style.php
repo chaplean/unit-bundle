@@ -9,33 +9,33 @@ namespace Chaplean\Bundle\UnitBundle\TextUI;
  * @copyright 2014 - 2017 Chaplean (http://www.chaplean.com)
  * @since     7.0.0
  */
-class Output
+class Style
 {
     /**
      * Ansi escape
      */
-    const ESC = "\x1b[";
+    const ESC = "\033[";
     /**
      * Ansi Normal
      */
-    const NND = "\x1b[0m";
-    const COLOR_NC = "\e[0m"; # No Color
-    const COLOR_WHITE = "\e[1;37m";
-    const COLOR_BLACK = "\e[0;30m";
-    const COLOR_BLUE = "\e[0;34m";
-    const COLOR_LIGHT_BLUE = "\e[1;34m";
-    const COLOR_GREEN = "\e[0;32m";
-    const COLOR_LIGHT_GREEN = "\e[1;32m";
-    const COLOR_CYAN = "\e[0;36m";
-    const COLOR_LIGHT_CYAN = "\e[1;36m";
-    const COLOR_RED = "\e[0;31m";
-    const COLOR_LIGHT_RED = "\e[1;31m";
-    const COLOR_PURPLE = "\e[0;35m";
-    const COLOR_LIGHT_PURPLE = "\e[1;35m";
-    const COLOR_BROWN = "\e[0;33m";
-    const COLOR_YELLOW = "\e[1;33m";
-    const COLOR_GRAY = "\e[0;30m";
-    const COLOR_LIGHT_GRAY = "\e[0;37m";
+    const NND = "\033[0m";
+    const COLOR_NC = "\033[0m"; # No Color
+    const COLOR_WHITE = "\033[1;37m";
+    const COLOR_BLACK = "\033[0;30m";
+    const COLOR_BLUE = "\033[0;34m";
+    const COLOR_LIGHT_BLUE = "\033[1;34m";
+    const COLOR_GREEN = "\033[0;32m";
+    const COLOR_LIGHT_GREEN = "\033[1;32m";
+    const COLOR_CYAN = "\033[0;36m";
+    const COLOR_LIGHT_CYAN = "\033[1;36m";
+    const COLOR_RED = "\033[0;31m";
+    const COLOR_LIGHT_RED = "\033[1;31m";
+    const COLOR_PURPLE = "\033[0;35m";
+    const COLOR_LIGHT_PURPLE = "\033[1;35m";
+    const COLOR_BROWN = "\033[0;33m";
+    const COLOR_YELLOW = "\033[1;33m";
+    const COLOR_GRAY = "\033[0;30m";
+    const COLOR_LIGHT_GRAY = "\033[0;37m";
 
     const CHAR_CHECK = '✓';
 
