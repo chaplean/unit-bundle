@@ -3,7 +3,7 @@
 namespace Chaplean\Bundle\UnitBundle\EventListener;
 
 use Symfony\Component\HttpKernel\Event\GetResponseEvent;
-use Symfony\Bundle\FrameworkBundle\EventListener\TestSessionListener as BaseTestSessionListener;
+use Symfony\Component\HttpKernel\EventListener\TestSessionListener as BaseTestSessionListener;
 
 /**
  * Class TestSessionListener.
@@ -29,7 +29,7 @@ class TestSessionListener extends BaseTestSessionListener
         $cookies = $event->getRequest()->cookies;
 
         if ($cookies->has($session->getName())) {
-            if ($session->getId() != $cookies->get($session->getName())) {
+            if ($session->getId() !== $cookies->get($session->getName())) {
                 $session->setId($cookies->get($session->getName()));
             }
         }

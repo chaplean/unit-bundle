@@ -1,8 +1,14 @@
 parameters:
-    test.session.listener.class: Chaplean\Bundle\UnitBundle\EventListener\TestSessionListener
     doctrine.dbal.connection_factory.class: Chaplean\Bundle\UnitBundle\Utility\MultipleTestDatabaseConnectionFactory
 
 services:
+    _defaults:
+        autowire: true
+
+    test.session.listener:
+        class: Chaplean\Bundle\UnitBundle\EventListener\TestSessionListener
+        tags: ['kernel.event_subscriber']
+
     chaplean_unit.shared_service:
         class: Chaplean\Bundle\UnitBundle\Utility\SharedService
 
