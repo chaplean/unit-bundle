@@ -265,8 +265,11 @@ class FixtureLiteUtility
         }
 
         $loader = $this->getFixtureLoader($container, $classNames);
+        $fixtures = $loader->getFixtures();
 
-        $executor->execute($loader->getFixtures(), true);
+        if (!empty($fixtures)) {
+            $executor->execute($loader->getFixtures(), true);
+        }
 
         if (isset($name) && isset($backup)) {
             /** @noinspection PhpUndefinedMethodInspection */
