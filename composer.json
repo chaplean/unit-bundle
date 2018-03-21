@@ -12,7 +12,11 @@
     "autoload": {
         "psr-4": {
             "Chaplean\\Bundle\\UnitBundle\\": "",
-            "Foo\\Bundle\\FooBundle\\": "",
+            "Foo\\Bundle\\FooBundle\\": ""
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
             "Tests\\": "Tests"
         },
         "classmap": [
