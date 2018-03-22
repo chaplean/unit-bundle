@@ -4,6 +4,7 @@ parameters:
 services:
     _defaults:
         autowire: true
+        public: true
 
     test.session.listener:
         class: Chaplean\Bundle\UnitBundle\EventListener\TestSessionListener
