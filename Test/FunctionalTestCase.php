@@ -45,6 +45,11 @@ class FunctionalTestCase extends WebTestCase
     private static $databaseLoaded = false;
 
     /**
+     * @var boolean
+     */
+    private static $reloadDatabase = false;
+
+    /**
      * @var FixtureLiteUtility
      */
     private static $fixtureUtility;
@@ -429,21 +434,42 @@ class FunctionalTestCase extends WebTestCase
 
         $defaultNamespace = self::getDefaultFixturesNamespace();
 
-        if (!self::$databaseLoaded && $defaultNamespace !== null) {
+        if ((!self::$databaseLoaded || self::$reloadDatabase) && $defaultNamespace !== null) {
             self::mockServices(self::$container);
 
-            echo 'Initialization database....';
-            Timer::start();
+            if (!self::$reloadDatabase) {
+                echo 'Initialization database....';
+                Timer::start();
+            }
 
             self::$fixtures = self::$fixtureUtility
                 ->loadFixtures(NamespaceUtility::getClassNamesByContext($defaultNamespace))
                 ->getReferenceRepository();
 
-            echo sprintf(" Done %s (%s)\n\n", Output::success(Output::CHAR_CHECK), Timer::toString(Timer::stop()));
+            if (!self::$reloadDatabase) {
+                echo sprintf(" Done %s (%s)\n\n", Output::success(Output::CHAR_CHECK), Timer::toString(Timer::stop()));
+            }
 
             self::clearContainer(self::$container);
             self::$databaseLoaded = true;
+            self::$reloadDatabase = false;
         }
+    }
+
+    /**
+     * Reload database with classNames only for current test file
+     *
+     * @param array $classNames
+     *
+     * @return void
+     * @throws \Exception
+     */
+    public static function reloadFixtures(array $classNames)
+    {
+        self::$reloadDatabase = true;
+        self::$fixtures = self::$fixtureUtility
+            ->loadFixtures($classNames, false)
+            ->getReferenceRepository();
     }
 
     /**

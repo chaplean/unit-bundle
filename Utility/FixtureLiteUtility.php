@@ -179,12 +179,13 @@ class FixtureLiteUtility
      * Depends on the doctrine data-fixtures library being available in the
      * class path.
      *
-     * @param array $classNames List of fully qualified class names of fixtures to load
+     * @param array   $classNames List of fully qualified class names of fixtures to load
+     * @param boolean $append     Append or not $classNames in database
      *
      * @return ORMExecutor
      * @throws \Exception
      */
-    public function loadFixtures(array $classNames)
+    public function loadFixtures(array $classNames, bool $append = true)
     {
         $container = $this->container;
         /** @var ManagerRegistry $registry */
@@ -266,7 +267,7 @@ class FixtureLiteUtility
 
         $loader = $this->getFixtureLoader($container, $classNames);
 
-        $executor->execute($loader->getFixtures(), true);
+        $executor->execute($loader->getFixtures(), $append);
 
         if (isset($name) && isset($backup)) {
             /** @noinspection PhpUndefinedMethodInspection */

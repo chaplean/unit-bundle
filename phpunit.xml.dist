@@ -13,7 +13,7 @@
         <server name="KERNEL_CLASS" value="\AppKernel" />
         <server name="KERNEL_DIR" value="app/" />
         <server name="CONFIG_TYPE" value="default" />
-        <env name="SYMFONY_DEPRECATIONS_HELPER" value="weak_vendors"/>
+        <env name="SYMFONY_DEPRECATIONS_HELPER" value="weak"/>
     </php>
 
     <testsuites>

@@ -1199,7 +1199,7 @@
                 "test double",
                 "testing"
             ],
-            "time": "2018-03-07T06:00:02+00:00"
+            "time": "2018-03-07 06:00:02"
         },
         {
             "name": "myclabs/deep-copy",
@@ -4376,7 +4376,11 @@
                 "php": ">=5.5.9"
             },
             "type": "ruleset",
-            "notification-url": "https://packagist.org/downloads/",
+            "scripts": {
+                "post-install-cmd": [
+                    "bash setup.sh"
+                ]
+            },
             "license": [
                 "MIT"
             ],
@@ -4387,15 +4391,19 @@
                 }
             ],
             "description": "Contains ruleset for coding standard",
+            "support": {
+                "source": "https://github.com/chaplean/coding-standard/tree/v1.1.5",
+                "issues": "https://github.com/chaplean/coding-standard/issues"
+            },
             "time": "2017-07-16T09:44:51+00:00"
         },
         {
             "name": "chaplean/mailer-bundle",
-            "version": "v4.2.0",
+            "version": "v4.2.1",
             "source": {
                 "type": "git",
                 "url": "git@git.chaplean.coop:private/bundle/mailer-bundle.git",
-                "reference": "25606201ec23b1676aaf02c05859c1b67567602f"
+                "reference": "8a9180a27d1e84fa4b1c9404ebfb3e353e62805d"
             },
             "require": {
                 "php": ">=7.0.8",
@@ -4430,7 +4438,7 @@
                 }
             ],
             "description": "Contains utilities for mailer",
-            "time": "2018-03-22T09:20:19+00:00"
+            "time": "2018-03-22T12:26:50+00:00"
         },
         {
             "name": "composer/ca-bundle",
