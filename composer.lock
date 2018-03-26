@@ -4376,11 +4376,7 @@
                 "php": ">=5.5.9"
             },
             "type": "ruleset",
-            "scripts": {
-                "post-install-cmd": [
-                    "bash setup.sh"
-                ]
-            },
+            "notification-url": "https://packagist.org/downloads/",
             "license": [
                 "MIT"
             ],
@@ -4391,19 +4387,15 @@
                 }
             ],
             "description": "Contains ruleset for coding standard",
-            "support": {
-                "source": "https://github.com/chaplean/coding-standard/tree/v1.1.5",
-                "issues": "https://github.com/chaplean/coding-standard/issues"
-            },
             "time": "2017-07-16T09:44:51+00:00"
         },
         {
             "name": "chaplean/mailer-bundle",
-            "version": "v4.2.1",
+            "version": "v4.1.1",
             "source": {
                 "type": "git",
                 "url": "git@git.chaplean.coop:private/bundle/mailer-bundle.git",
-                "reference": "8a9180a27d1e84fa4b1c9404ebfb3e353e62805d"
+                "reference": "3c6f60180795fc36e3d316bf0940b272e4ca757b"
             },
             "require": {
                 "php": ">=7.0.8",
@@ -4418,7 +4410,8 @@
                 "chaplean/codeship-scripts": "^1.0",
                 "chaplean/coding-standard": "^1.1",
                 "mockery/mockery": "dev-master",
-                "phpunit/phpunit": "^7.0",
+                "phpunit/phpunit": "^6.3",
+                "satooshi/php-coveralls": "dev-master",
                 "symfony/http-kernel": "^2.8 || ^3.0 || ^4.0",
                 "symfony/var-dumper": "^2.8 || ^3.0 || ^4.0"
             },
@@ -4438,7 +4431,7 @@
                 }
             ],
             "description": "Contains utilities for mailer",
-            "time": "2018-03-22T12:26:50+00:00"
+            "time": "2017-10-19T07:39:56+00:00"
         },
         {
             "name": "composer/ca-bundle",
