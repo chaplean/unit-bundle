@@ -41,7 +41,7 @@
     "require-dev": {
         "chaplean/codeship-scripts": "^1.0",
         "chaplean/coding-standard": "^1.1",
-        "chaplean/mailer-bundle": "^3.0",
+        "chaplean/mailer-bundle": "^4.0",
         "friendsofsymfony/rest-bundle": "^2.0",
         "jms/serializer-bundle": "^1.1 || ^2.0",
         "satooshi/php-coveralls": "dev-master",
