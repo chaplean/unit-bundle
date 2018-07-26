@@ -35,7 +35,7 @@ use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
 class FunctionalTestCase extends WebTestCase
 {
     /**
-     * @var ContainerInterface|Container
+     * @var Container
      */
     protected static $container;
 
@@ -438,7 +438,7 @@ class FunctionalTestCase extends WebTestCase
             self::mockServices(self::$container);
 
             if (!self::$reloadDatabase) {
-                echo 'Initialization database....';
+                echo Output::info("Initialization database...");
                 Timer::start();
             }
 

@@ -2,6 +2,7 @@
 
 namespace Chaplean\Bundle\UnitBundle\Utility;
 
+use Composer\Autoload\ClassLoader;
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\Finder\SplFileInfo;
 
@@ -30,11 +31,13 @@ class NamespaceUtility
         try {
             list($namespaceContext, $pathDatafixtures) = self::getNamespacePathDataFixtures($namespace, $context);
         } catch (\ReflectionException $e) {
-            throw new \Exception(sprintf('\'%s\' namespace is not available. Check \'data_fixtures_namespace\' parameter !', $namespace));
+            throw new \Exception($e->getMessage());
         }
 
         if (is_dir($pathDatafixtures)) {
-            $files = Finder::create()->files()->in($pathDatafixtures);
+            $files = Finder::create()
+                ->files()
+                ->in($pathDatafixtures);
 
             /** @var SplFileInfo $file */
             foreach ($files as $file) {
@@ -50,15 +53,60 @@ class NamespaceUtility
      * @param string $subfolder
      *
      * @return array
+     * @throws \ReflectionException
      */
     private static function getNamespacePathDataFixtures($namespace, $subfolder = '')
     {
-        $classBundleName = str_replace(['\\Bundle', '\\'], '', $namespace);
-        $classBundle = new \ReflectionClass($namespace . $classBundleName);
-        $path = str_replace($classBundleName . '.php', '', $classBundle->getFileName());
-        $pathDatafixtures = $path . 'DataFixtures/Liip/' . ($subfolder ? ($subfolder . '/') : $subfolder);
+        $pathDatafixtures = self::getBundlePath($namespace) . 'DataFixtures/Liip/' . ($subfolder ? ($subfolder . '/') : $subfolder);
         $namespaceDefaultContext = $namespace . 'DataFixtures\\Liip\\' . ($subfolder ? ($subfolder . '\\') : $subfolder);
 
         return [$namespaceDefaultContext, $pathDatafixtures];
+    }
+
+    /**
+     * Returns bundle class name if we're in bundle.
+     *
+     * @param string $namespace
+     *
+     * @return mixed
+     */
+    public static function getBundleClassName(string $namespace)
+    {
+        if (strpos($namespace, 'Bundle') !== false) {
+            return str_replace(['\\Bundle', '\\'], '', $namespace);
+        }
+
+        return '';
+    }
+
+    /**
+     * Returns bundle folder path.
+     *
+     * @param string $namespace
+     *
+     * @return string
+     * @throws \ReflectionException
+     */
+    public static function getBundlePath(string $namespace): string
+    {
+        $psr4Prefixes = self::getAutoload()
+            ->getPrefixesPsr4();
+
+        if (!array_key_exists($namespace, $psr4Prefixes) || empty($psr4Prefixes[$namespace])) {
+            throw new \ReflectionException(sprintf('\'%s\' namespace is not available. Check \'data_fixtures_namespace\' parameter !', $namespace));
+        }
+
+        return $psr4Prefixes[$namespace][0];
+    }
+
+    /**
+     * Returns composer autoload
+     */
+    public static function getAutoload(): ClassLoader
+    {
+        /** @var ClassLoader $loader */
+        $loader = require __DIR__ . '/../vendor/autoload.php';
+
+        return $loader;
     }
 }

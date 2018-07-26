@@ -7,7 +7,6 @@ Chaplean\Bundle\UnitBundle\Entity\Client:
         isActive: true
         isPrivateMember: false
         hasCode: false
-        details: <paragraph()>
         dateAdd: <(new \DateTime('-2 hours'))>
 
 Chaplean\Bundle\UnitBundle\Entity\Product:
