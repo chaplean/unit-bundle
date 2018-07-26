@@ -442,12 +442,22 @@ class FunctionalTestCase extends WebTestCase
                 Timer::start();
             }
 
-            self::$fixtures = self::$fixtureUtility
-                ->loadFixtures(NamespaceUtility::getClassNamesByContext($defaultNamespace))
-                ->getReferenceRepository();
+            try {
+                $namespaceUtility = new NamespaceUtility(self::$container->get('kernel'));
+
+                self::$fixtures = self::$fixtureUtility
+                    ->loadFixtures($namespaceUtility->getClassNamesByContext($defaultNamespace))
+                    ->getReferenceRepository();
+            } catch (\Exception $e) {
+                echo Output::danger($e->getMessage() . "\n\n");
+            }
 
             if (!self::$reloadDatabase) {
-                echo sprintf(" Done %s (%s)\n\n", Output::success(Output::CHAR_CHECK), Timer::toString(Timer::stop()));
+                try {
+                    echo sprintf(" Done %s (%s)\n\n", Output::success(Output::CHAR_CHECK), Timer::toString(Timer::stop()));
+                } catch (\Exception $e) {
+                    // Timer not started : not a big issue
+                }
             }
 
             self::clearContainer(self::$container);

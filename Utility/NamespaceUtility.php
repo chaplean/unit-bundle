@@ -5,6 +5,7 @@ namespace Chaplean\Bundle\UnitBundle\Utility;
 use Composer\Autoload\ClassLoader;
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\Finder\SplFileInfo;
+use Symfony\Component\HttpKernel\KernelInterface;
 
 /**
  * NamespaceUtility.php.
@@ -17,6 +18,18 @@ class NamespaceUtility
 {
     const DIR_DEFAULT_DATA = 'DefaultData';
 
+    private $kernel;
+
+    /**
+     * NamespaceUtility constructor.
+     *
+     * @param KernelInterface $kernel
+     */
+    public function __construct(KernelInterface $kernel)
+    {
+        $this->kernel = $kernel;
+    }
+
     /**
      * @param string $namespace
      * @param string $context
@@ -24,12 +37,12 @@ class NamespaceUtility
      * @return array
      * @throws \Exception
      */
-    public static function getClassNamesByContext($namespace, $context = self::DIR_DEFAULT_DATA)
+    public function getClassNamesByContext($namespace, $context = self::DIR_DEFAULT_DATA)
     {
         $defaultFixtures = [];
 
         try {
-            list($namespaceContext, $pathDatafixtures) = self::getNamespacePathDataFixtures($namespace, $context);
+            list($namespaceContext, $pathDatafixtures) = $this->getNamespacePathDataFixtures($namespace, $context);
         } catch (\ReflectionException $e) {
             throw new \Exception($e->getMessage());
         }
@@ -55,9 +68,9 @@ class NamespaceUtility
      * @return array
      * @throws \ReflectionException
      */
-    private static function getNamespacePathDataFixtures($namespace, $subfolder = '')
+    private function getNamespacePathDataFixtures($namespace, $subfolder = '')
     {
-        $pathDatafixtures = self::getBundlePath($namespace) . 'DataFixtures/Liip/' . ($subfolder ? ($subfolder . '/') : $subfolder);
+        $pathDatafixtures = $this->getBundlePath($namespace) . 'DataFixtures/Liip/' . ($subfolder ? ($subfolder . '/') : $subfolder);
         $namespaceDefaultContext = $namespace . 'DataFixtures\\Liip\\' . ($subfolder ? ($subfolder . '\\') : $subfolder);
 
         return [$namespaceDefaultContext, $pathDatafixtures];
@@ -70,7 +83,7 @@ class NamespaceUtility
      *
      * @return mixed
      */
-    public static function getBundleClassName(string $namespace)
+    public function getBundleClassName(string $namespace)
     {
         if (strpos($namespace, 'Bundle') !== false) {
             return str_replace(['\\Bundle', '\\'], '', $namespace);
@@ -87,9 +100,9 @@ class NamespaceUtility
      * @return string
      * @throws \ReflectionException
      */
-    public static function getBundlePath(string $namespace): string
+    public function getBundlePath(string $namespace): string
     {
-        $psr4Prefixes = self::getAutoload()
+        $psr4Prefixes = $this->getAutoload()
             ->getPrefixesPsr4();
 
         if (!array_key_exists($namespace, $psr4Prefixes) || empty($psr4Prefixes[$namespace])) {
@@ -102,10 +115,10 @@ class NamespaceUtility
     /**
      * Returns composer autoload
      */
-    public static function getAutoload(): ClassLoader
+    public function getAutoload(): ClassLoader
     {
         /** @var ClassLoader $loader */
-        $loader = require __DIR__ . '/../vendor/autoload.php';
+        $loader = require $this->kernel->getRootDir() . '/../vendor/autoload.php';
 
         return $loader;
     }

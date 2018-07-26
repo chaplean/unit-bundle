@@ -2,9 +2,9 @@
 
 namespace Tests\Chaplean\Bundle\UnitBundle\Utility;
 
+use Chaplean\Bundle\UnitBundle\Test\FunctionalTestCase;
 use Chaplean\Bundle\UnitBundle\Utility\NamespaceUtility;
 use Composer\Autoload\ClassLoader;
-use PHPUnit\Framework\TestCase;
 
 /**
  * Class NamespaceUtilityTest.
@@ -14,8 +14,22 @@ use PHPUnit\Framework\TestCase;
  * @copyright 2014 - 2016 Chaplean (http://www.chaplean.coop)
  * @since     4.1.0
  */
-class NamespaceUtilityTest extends TestCase
+class NamespaceUtilityTest extends FunctionalTestCase
 {
+    /**
+     * @var NamespaceUtility
+     */
+    private $namespaceUtility;
+
+    /**
+     * @return void
+     * @throws \Exception
+     */
+    public function setUp()
+    {
+        $this->namespaceUtility = new NamespaceUtility($this->getContainer()->get('kernel'));
+    }
+    
     /**
      * @covers \Chaplean\Bundle\UnitBundle\Utility\NamespaceUtility::getClassNamesByContext()
      *
@@ -25,7 +39,7 @@ class NamespaceUtilityTest extends TestCase
      */
     public function testGetClassNamesByContextFail()
     {
-        NamespaceUtility::getClassNamesByContext('Foo\Bar');
+        $this->namespaceUtility->getClassNamesByContext('Foo\Bar');
     }
 
     /**
@@ -37,7 +51,7 @@ class NamespaceUtilityTest extends TestCase
      */
     public function testGetClassNamesByContext()
     {
-        $classNames = NamespaceUtility::getClassNamesByContext('Chaplean\Bundle\UnitBundle\\');
+        $classNames = $this->namespaceUtility->getClassNamesByContext('Chaplean\Bundle\UnitBundle\\');
 
         $this->assertCount(4, $classNames);
     }
@@ -47,7 +61,7 @@ class NamespaceUtilityTest extends TestCase
      */
     public function testGetBundleClassNameWithBundle()
     {
-        $name = NamespaceUtility::getBundleClassName('Chaplean\Bundle\UnitBundle\\');
+        $name = $this->namespaceUtility->getBundleClassName('Chaplean\Bundle\UnitBundle\\');
 
         $this->assertEquals('ChapleanUnitBundle', $name);
     }
@@ -57,7 +71,7 @@ class NamespaceUtilityTest extends TestCase
      */
     public function testGetBundleClassNameEmpty()
     {
-        $name = NamespaceUtility::getBundleClassName('');
+        $name = $this->namespaceUtility->getBundleClassName('');
 
         $this->assertEquals('', $name);
     }
@@ -67,7 +81,7 @@ class NamespaceUtilityTest extends TestCase
      */
     public function testGetBundleClassNameApp()
     {
-        $name = NamespaceUtility::getBundleClassName('App');
+        $name = $this->namespaceUtility->getBundleClassName('App');
 
         $this->assertEquals('', $name);
     }
@@ -78,7 +92,7 @@ class NamespaceUtilityTest extends TestCase
      */
     public function testGetBundlePathNameWithBundle()
     {
-        $path = NamespaceUtility::getBundlePath('Chaplean\Bundle\UnitBundle\\');
+        $path = $this->namespaceUtility->getBundlePath('Chaplean\Bundle\UnitBundle\\');
 
         $this->assertStringEndsWith('/vendor/composer/../../', $path);
     }
@@ -89,7 +103,7 @@ class NamespaceUtilityTest extends TestCase
      */
     public function testGetBundlePathNameEmpty()
     {
-        $path = NamespaceUtility::getBundlePath('');
+        $path = $this->namespaceUtility->getBundlePath('');
 
         $this->assertEquals('', $path);
     }
@@ -100,7 +114,7 @@ class NamespaceUtilityTest extends TestCase
      */
     public function testGetBundlePathNameApp()
     {
-        $path = NamespaceUtility::getBundlePath('App\\');
+        $path = $this->namespaceUtility->getBundlePath('App\\');
 
         $this->assertStringEndsWith('/vendor/composer/../../', $path);
     }
@@ -109,7 +123,7 @@ class NamespaceUtilityTest extends TestCase
      * @return void
      */
     public function testGetAutoloadInstance() {
-        $autoload = NamespaceUtility::getAutoload();
+        $autoload = $this->namespaceUtility->getAutoload();
 
         $this->assertInstanceOf(ClassLoader::class, $autoload);
     }
@@ -118,7 +132,7 @@ class NamespaceUtilityTest extends TestCase
      * @return void
      */
     public function testGetAutoloadInstanceClassMap() {
-        $autoload = NamespaceUtility::getAutoload();
+        $autoload = $this->namespaceUtility->getAutoload();
 
         $this->assertNotEmpty($autoload->getClassMap());
     }
