@@ -80,7 +80,7 @@ class NamespaceUtilityTest extends TestCase
     {
         $path = NamespaceUtility::getBundlePath('Chaplean\Bundle\UnitBundle\\');
 
-        $this->assertEquals('/var/www/symfony/vendor/composer/../../', $path);
+        $this->assertStringEndsWith('/vendor/composer/../../', $path);
     }
 
     /**
@@ -102,7 +102,7 @@ class NamespaceUtilityTest extends TestCase
     {
         $path = NamespaceUtility::getBundlePath('App\\');
 
-        $this->assertEquals('/var/www/symfony/vendor/composer/../../', $path);
+        $this->assertStringEndsWith('/vendor/composer/../../', $path);
     }
 
     /**
