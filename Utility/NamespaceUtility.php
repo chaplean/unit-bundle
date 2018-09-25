@@ -70,7 +70,7 @@ class NamespaceUtility
      */
     private function getNamespacePathDataFixtures($namespace, $subfolder = '')
     {
-        $pathDatafixtures = $this->getBundlePath($namespace) . 'DataFixtures/Liip/' . ($subfolder ? ($subfolder . '/') : $subfolder);
+        $pathDatafixtures = $this->getBundlePath($namespace) . '/DataFixtures/Liip/' . ($subfolder ? ($subfolder . '/') : $subfolder);
         $namespaceDefaultContext = $namespace . 'DataFixtures\\Liip\\' . ($subfolder ? ($subfolder . '\\') : $subfolder);
 
         return [$namespaceDefaultContext, $pathDatafixtures];
