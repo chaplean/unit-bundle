@@ -234,7 +234,13 @@ abstract class AbstractFixture extends BaseAbstractFixture
             $path = $reflectionClass->getFileName();
             $path = str_replace($reflectionClass->getShortName() . '.php', '', $path);
 
-            $this->generator = new GeneratorDataUtility($path . '../Resources/config/datafixtures.yml');
+            $datafixturesPath = $path . '../Resources/config/datafixtures.yml';
+
+            if (!file_exists($datafixturesPath)) {
+                throw  new \Exception();
+            }
+
+            $this->generator = new GeneratorDataUtility($datafixturesPath);
         }
     }
 }
