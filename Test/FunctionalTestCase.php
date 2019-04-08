@@ -318,7 +318,7 @@ class FunctionalTestCase extends WebTestCase
      *
      * @return object
      */
-    public function getReference($reference)
+    public function getReference(string $reference)
     {
         if (self::$fixtures === null) {
             return null;
@@ -330,7 +330,7 @@ class FunctionalTestCase extends WebTestCase
             $manager = self::$client->getContainer()->get('doctrine')->getManager();
         }
 
-        return self::$fixtures->getReferenceByManger($reference, $manager);
+        return self::$fixtures->getReferenceWithManager($reference, $manager);
     }
 
     /**

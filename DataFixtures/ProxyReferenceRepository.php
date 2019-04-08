@@ -23,7 +23,7 @@ class ProxyReferenceRepository extends BaseProxyReferenceRepository
      * @return object
      * @throws \Doctrine\ORM\ORMException
      */
-    public function getReferenceByManger(string $name, ?EntityManagerInterface $manager = null)
+    public function getReferenceWithManager(string $name, ?EntityManagerInterface $manager = null)
     {
         /** @var EntityManagerInterface $manager */
         $manager = ($manager !== null) ? $manager : $this->getManager();
