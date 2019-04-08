@@ -66,6 +66,11 @@ class FunctionalTestCase extends WebTestCase
     private static $fixtures;
 
     /**
+     * @var boolean
+     */
+    private static $hasReferenceLoaded = false;
+
+    /**
      * @var Client
      */
     private static $client;
@@ -177,6 +182,15 @@ class FunctionalTestCase extends WebTestCase
      */
     public static function createClient(array $options = [], array $server = [])
     {
+        // Prevent double client creation in same test case
+        if (self::$client !== null) {
+            return self::$client;
+        }
+
+        if (self::$hasReferenceLoaded) {
+            throw new \Exception('You must create client before the first getReference in your test');
+        }
+
         self::$client = parent::createClient($options, $server);
         $em = self::$client->getContainer()->get('doctrine')->getManager();
 
@@ -330,6 +344,7 @@ class FunctionalTestCase extends WebTestCase
             $manager = self::$client->getContainer()->get('doctrine')->getManager();
         }
 
+        self::$hasReferenceLoaded = true;
         return self::$fixtures->getReferenceWithManager($reference, $manager);
     }
 
@@ -501,6 +516,8 @@ class FunctionalTestCase extends WebTestCase
      */
     protected function tearDown()
     {
+        self::$hasReferenceLoaded = false;
+
         if (self::$client !== null) {
             $em = self::$client->getContainer()->get('doctrine')->getManager();
             self::rollbackTransactions($em);
