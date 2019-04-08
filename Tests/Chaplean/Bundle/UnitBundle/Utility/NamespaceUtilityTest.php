@@ -11,7 +11,7 @@ use Composer\Autoload\ClassLoader;
  *
  * @package   Tests\Chaplean\Bundle\UnitBundle\Utility
  * @author    Valentin - Chaplean <valentin@chaplean.coop>
- * @copyright 2014 - 2016 Chaplean (http://www.chaplean.coop)
+ * @copyright 2014 - 2016 Chaplean (https://www.chaplean.coop)
  * @since     4.1.0
  */
 class NamespaceUtilityTest extends FunctionalTestCase
@@ -31,6 +31,7 @@ class NamespaceUtilityTest extends FunctionalTestCase
     }
     
     /**
+     * @covers \Chaplean\Bundle\UnitBundle\Utility\NamespaceUtility::__construct
      * @covers \Chaplean\Bundle\UnitBundle\Utility\NamespaceUtility::getClassNamesByContext()
      *
      * @return void
@@ -57,6 +58,8 @@ class NamespaceUtilityTest extends FunctionalTestCase
     }
 
     /**
+     * @covers \Chaplean\Bundle\UnitBundle\Utility\NamespaceUtility::getBundleClassName()
+     *
      * @return void
      */
     public function testGetBundleClassNameWithBundle()
@@ -67,6 +70,8 @@ class NamespaceUtilityTest extends FunctionalTestCase
     }
 
     /**
+     * @covers \Chaplean\Bundle\UnitBundle\Utility\NamespaceUtility::getBundleClassName()
+     *
      * @return void
      */
     public function testGetBundleClassNameEmpty()
@@ -77,6 +82,8 @@ class NamespaceUtilityTest extends FunctionalTestCase
     }
 
     /**
+     * @covers \Chaplean\Bundle\UnitBundle\Utility\NamespaceUtility::getBundleClassName()
+     *
      * @return void
      */
     public function testGetBundleClassNameApp()
@@ -87,6 +94,8 @@ class NamespaceUtilityTest extends FunctionalTestCase
     }
 
     /**
+     * @covers \Chaplean\Bundle\UnitBundle\Utility\NamespaceUtility::getBundlePath()
+     *
      * @return void
      * @throws \ReflectionException
      */
@@ -98,6 +107,8 @@ class NamespaceUtilityTest extends FunctionalTestCase
     }
 
     /**
+     * @covers \Chaplean\Bundle\UnitBundle\Utility\NamespaceUtility::getBundlePath()
+     *
      * @return void
      * @expectedException \ReflectionException
      */
@@ -109,6 +120,8 @@ class NamespaceUtilityTest extends FunctionalTestCase
     }
 
     /**
+     * @covers \Chaplean\Bundle\UnitBundle\Utility\NamespaceUtility::getBundlePath()
+     *
      * @return void
      * @throws \ReflectionException
      */
@@ -120,6 +133,8 @@ class NamespaceUtilityTest extends FunctionalTestCase
     }
 
     /**
+     * @covers \Chaplean\Bundle\UnitBundle\Utility\NamespaceUtility::getAutoload()
+     *
      * @return void
      */
     public function testGetAutoloadInstance() {
@@ -129,6 +144,8 @@ class NamespaceUtilityTest extends FunctionalTestCase
     }
 
     /**
+     * @covers \Chaplean\Bundle\UnitBundle\Utility\NamespaceUtility::getAutoload()
+     *
      * @return void
      */
     public function testGetAutoloadInstanceClassMap() {

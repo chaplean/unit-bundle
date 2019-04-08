@@ -11,7 +11,7 @@ use Doctrine\DBAL\Configuration;
  *
  * @package   Chaplean\Bundle\UnitBundle\Utility
  * @author    Matthias - Chaplean <matthias@chaplean.coop>
- * @copyright 2014 - 2017 Chaplean (http://www.chaplean.coop)
+ * @copyright 2014 - 2017 Chaplean (https://www.chaplean.coop)
  * @since     7.0.0
  */
 class MultipleTestDatabaseConnectionFactory extends ConnectionFactory

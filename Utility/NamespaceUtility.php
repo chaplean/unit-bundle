@@ -11,7 +11,7 @@ use Symfony\Component\HttpKernel\KernelInterface;
  * NamespaceUtility.php.
  *
  * @author    Valentin - Chaplean <valentin@chaplean.coop>
- * @copyright 2014 - 2015 Chaplean (http://www.chaplean.coop)
+ * @copyright 2014 - 2015 Chaplean (https://www.chaplean.coop)
  * @since     2.0.0
  */
 class NamespaceUtility
@@ -42,7 +42,7 @@ class NamespaceUtility
         $defaultFixtures = [];
 
         try {
-            list($namespaceContext, $pathDatafixtures) = $this->getNamespacePathDataFixtures($namespace, $context);
+            [$namespaceContext, $pathDatafixtures] = $this->getNamespacePathDataFixtures($namespace, $context);
         } catch (\ReflectionException $e) {
             throw new \Exception($e->getMessage());
         }
@@ -102,8 +102,7 @@ class NamespaceUtility
      */
     public function getBundlePath(string $namespace): string
     {
-        $psr4Prefixes = $this->getAutoload()
-            ->getPrefixesPsr4();
+        $psr4Prefixes = $this->getAutoload()->getPrefixesPsr4();
 
         if (!array_key_exists($namespace, $psr4Prefixes) || empty($psr4Prefixes[$namespace])) {
             throw new \ReflectionException(sprintf('\'%s\' namespace is not available. Check \'data_fixtures_namespace\' parameter !', $namespace));

@@ -2,8 +2,8 @@
 
 namespace Tests\Chaplean\Bundle\UnitBundle\Utility;
 
+use Chaplean\Bundle\UnitBundle\Test\FunctionalTestCase;
 use Chaplean\Bundle\UnitBundle\Utility\Client;
-use Liip\FunctionalTestBundle\Test\WebTestCase;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
@@ -11,10 +11,10 @@ use Symfony\Component\HttpFoundation\Request;
  *
  * @package   Tests\Chaplean\Bundle\UnitBundle\Utility
  * @author    Tom - Chaplean <tom@chaplean.coop>
- * @copyright 2014 - 2016 Chaplean (http://www.chaplean.coop)
+ * @copyright 2014 - 2016 Chaplean (https://www.chaplean.coop)
  * @since     4.0.0
  */
-class ClientTest extends WebTestCase
+class ClientTest extends FunctionalTestCase
 {
     /**
      * @covers \Chaplean\Bundle\UnitBundle\Utility\Client::__construct

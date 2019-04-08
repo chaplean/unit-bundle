@@ -11,12 +11,14 @@ use Chaplean\Bundle\UnitBundle\Test\FunctionalTestCase;
  * HelperReferenceTest.php.
  *
  * @author    Valentin - Chaplean <valentin@chaplean.coop>
- * @copyright 2014 - 2015 Chaplean (http://www.chaplean.coop)
+ * @copyright 2014 - 2015 Chaplean (https://www.chaplean.coop)
  * @since     2.0.0
  */
 class HelperReferenceTest extends FunctionalTestCase
 {
     /**
+     * @covers \Chaplean\Bundle\UnitBundle\Test\FunctionalTestCase::getReference
+     *
      * @return void
      */
     public function testFindClient()
@@ -28,6 +30,8 @@ class HelperReferenceTest extends FunctionalTestCase
     }
 
     /**
+     * @covers \Chaplean\Bundle\UnitBundle\Test\FunctionalTestCase::getReference
+     *
      * @return void
      */
     public function testFindProduct()
@@ -38,10 +42,26 @@ class HelperReferenceTest extends FunctionalTestCase
     }
 
     /**
+     * @covers \Chaplean\Bundle\UnitBundle\Test\FunctionalTestCase::getReference
+     *
      * @return void
      */
     public function testFindProvider()
     {
+        $provider = $this->getReference('provider-1');
+
+        $this->assertInstanceOf(Provider::class, $provider);
+    }
+
+    /**
+     * @covers \Chaplean\Bundle\UnitBundle\Test\FunctionalTestCase::getReference
+     *
+     * @return void
+     */
+    public function testFindReferenceInClient()
+    {
+        self::createClient();
+
         $provider = $this->getReference('provider-1');
 
         $this->assertInstanceOf(Provider::class, $provider);

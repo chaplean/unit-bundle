@@ -10,7 +10,7 @@ use PHPUnit\Framework\TestCase;
  *
  * @package   Tests\Chaplean\Bundle\UnitBundle\TextUI
  * @author    Valentin - Chaplean <valentin@chaplean.coop>
- * @copyright 2014 - 2017 Chaplean (http://www.chaplean.coop)
+ * @copyright 2014 - 2017 Chaplean (https://www.chaplean.coop)
  * @since     7.0.0
  */
 class OutputTest extends TestCase

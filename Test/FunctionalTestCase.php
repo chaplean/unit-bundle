@@ -2,13 +2,14 @@
 
 namespace Chaplean\Bundle\UnitBundle\Test;
 
+use Chaplean\Bundle\UnitBundle\DataFixtures\ProxyReferenceRepository;
 use Chaplean\Bundle\UnitBundle\TextUI\Output;
 use Chaplean\Bundle\UnitBundle\Utility\FixtureLiteUtility;
 use Chaplean\Bundle\UnitBundle\Utility\NamespaceUtility;
 use Chaplean\Bundle\UnitBundle\Utility\RestClient;
 use Chaplean\Bundle\UnitBundle\Utility\Timer;
-use Doctrine\Common\DataFixtures\ReferenceRepository;
 use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\EntityManagerInterface;
 use Liip\FunctionalTestBundle\Test\WebTestCase;
 use Symfony\Bundle\FrameworkBundle\Client;
 use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
@@ -27,13 +28,18 @@ use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
  *
  * @package   Chaplean\Bundle\UnitBundle\Test
  * @author    Valentin - Chaplean <valentin@chaplean.coop>
- * @copyright 2014 - 2017 Chaplean (http://www.chaplean.coop)
+ * @copyright 2014 - 2017 Chaplean (https://www.chaplean.coop)
  * @since     7.0.0
  *
  * @property EntityManager em Entity Manager
  */
 class FunctionalTestCase extends WebTestCase
 {
+    /**
+     * @var array
+     */
+    protected $containers = [];
+
     /**
      * @var Container
      */
@@ -55,9 +61,14 @@ class FunctionalTestCase extends WebTestCase
     private static $fixtureUtility;
 
     /**
-     * @var ReferenceRepository
+     * @var ProxyReferenceRepository
      */
     private static $fixtures;
+
+    /**
+     * @var Client
+     */
+    private static $client;
 
     /**
      * @var array
@@ -76,7 +87,7 @@ class FunctionalTestCase extends WebTestCase
         parent::__construct($name, $data, $dataName);
 
         if (self::$container === null) {
-            self::$container = parent::getContainer();
+            self::$container = $this->initializeContainer();
         }
 
         if (self::$fixtureUtility === null) {
@@ -88,6 +99,29 @@ class FunctionalTestCase extends WebTestCase
         } catch (\InvalidArgumentException $e) {
             $this->userRoles = [];
         }
+    }
+
+    /**
+     * @return ContainerInterface
+     */
+    public function initializeContainer(): ContainerInterface
+    {
+        $cacheKey = '|test';
+        if (empty($this->containers[$cacheKey])) {
+            $options = [
+                'environment' => 'test',
+            ];
+            $kernel = $this->createKernel($options);
+            $kernel->boot();
+
+            $this->containers[$cacheKey] = $kernel->getContainer();
+        }
+
+        if (isset($tmpKernelDir)) {
+            $_SERVER['KERNEL_DIR'] = $tmpKernelDir;
+        }
+
+        return $this->containers[$cacheKey];
     }
 
     /**
@@ -143,12 +177,13 @@ class FunctionalTestCase extends WebTestCase
      */
     public static function createClient(array $options = [], array $server = [])
     {
-        $client = parent::createClient($options, $server);
-        $client->getContainer()->set('doctrine', self::$container->get('doctrine'));
+        self::$client = parent::createClient($options, $server);
+        $em = self::$client->getContainer()->get('doctrine')->getManager();
 
-        self::mockServices($client->getContainer());
+        self::enableTransactions($em);
+        self::mockServices(self::$client->getContainer());
 
-        return $client;
+        return self::$client;
     }
 
     /**
@@ -188,6 +223,7 @@ class FunctionalTestCase extends WebTestCase
 
     /**
      * @return RestClient
+     * @deprecated Will be remove in next version
      */
     public function createRestClient()
     {
@@ -195,10 +231,14 @@ class FunctionalTestCase extends WebTestCase
     }
 
     /**
-     * @return Container
+     * @return ContainerInterface
      */
-    protected function getContainer()
+    protected function getContainer(): ContainerInterface
     {
+        if (self::$client !== null) {
+            return self::$client->getContainer();
+        }
+
         return self::$container;
     }
 
@@ -284,7 +324,13 @@ class FunctionalTestCase extends WebTestCase
             return null;
         }
 
-        return self::$fixtures->getReference($reference);
+        $manager = null;
+
+        if (self::$client !== null) {
+            $manager = self::$client->getContainer()->get('doctrine')->getManager();
+        }
+
+        return self::$fixtures->getReferenceByManger($reference, $manager);
     }
 
     /**
@@ -313,7 +359,11 @@ class FunctionalTestCase extends WebTestCase
     public function __get($name)
     {
         if ($name === 'em') {
-            return $this->getContainer()->get('doctrine')->getManager();
+            if (self::$client !== null) {
+                return self::$client->getContainer()->get('doctrine')->getManager();
+            } else {
+                return $this->getContainer()->get('doctrine')->getManager();
+            }
         }
 
         throw new \Exception('Undefined property ' . $name);
@@ -395,33 +445,13 @@ class FunctionalTestCase extends WebTestCase
     }
 
     /**
-     * @inheritdoc
-     * @deprecated Use 'createCommandTester' instead (Removed in next version)
-     *
-     * @codeCoverageIgnore
-     */
-    protected function runCommand($name, array $params = [], $reuseKernel = true)
-    {
-        return parent::runCommand($name, $params, $reuseKernel);
-    }
-
-    /**
      * @return void
      */
     protected function setUp()
     {
         parent::setUp();
 
-        $this->em->getUnitOfWork()->clear();
-        $nbTransactions = $this->em->getConnection()->getTransactionNestingLevel();
-
-        $this->em->getConnection()->query('PRAGMA foreign_keys = ON;');
-
-        if (self::$databaseLoaded && $nbTransactions < 1) {
-            $this->em->getConnection()->setNestTransactionsWithSavepoints(true);
-            $this->em->beginTransaction();
-        }
-
+        self::enableTransactions($this->em);
         self::mockServices($this->getContainer());
     }
 
@@ -467,37 +497,20 @@ class FunctionalTestCase extends WebTestCase
     }
 
     /**
-     * Reload database with classNames only for current test file
-     *
-     * @param array $classNames
-     *
-     * @return void
-     * @throws \Exception
-     */
-    public static function reloadFixtures(array $classNames)
-    {
-        self::$reloadDatabase = true;
-        self::$fixtures = self::$fixtureUtility
-            ->loadFixtures($classNames, false)
-            ->getReferenceRepository();
-    }
-
-    /**
      * @return void
      */
     protected function tearDown()
     {
+        if (self::$client !== null) {
+            $em = self::$client->getContainer()->get('doctrine')->getManager();
+            self::rollbackTransactions($em);
+
+            self::$client = null;
+        }
+
         parent::tearDown();
 
-        if ($this->em !== null) {
-            $connection = $this->em->getConnection();
-
-            if ($connection->getTransactionNestingLevel() == 1 && self::$databaseLoaded) {
-                $this->em->rollback();
-            }
-
-            $connection->close();
-        }
+        self::rollbackTransactions($this->em);
 
         // Unauthenticate user between each test
         if ($this->getContainer() !== null) {
@@ -509,5 +522,52 @@ class FunctionalTestCase extends WebTestCase
         }
 
         self::clearContainer($this->getContainer());
+    }
+
+    /**
+     * @param EntityManagerInterface $em
+     *
+     * @return void
+     * @throws \Doctrine\DBAL\ConnectionException
+     * @throws \Doctrine\DBAL\DBALException
+     */
+    private static function enableTransactions(EntityManagerInterface $em): void
+    {
+        $em->getUnitOfWork()->clear();
+        $nbTransactions = $em->getConnection()->getTransactionNestingLevel();
+
+        $em->getConnection()->query('PRAGMA foreign_keys = ON;');
+
+        if (self::$databaseLoaded && $nbTransactions < 1) {
+            $em->getConnection()->setNestTransactionsWithSavepoints(true);
+            $em->beginTransaction();
+        }
+    }
+
+    /**
+     * @param EntityManagerInterface $em
+     *
+     * @return void
+     */
+    private static function rollbackTransactions(EntityManagerInterface $em): void
+    {
+        $connection = $em->getConnection();
+
+        if ($connection->getTransactionNestingLevel() == 1 && self::$databaseLoaded) {
+            $em->rollback();
+        }
+
+        $connection->close();
+    }
+
+    /**
+     * @inheritdoc
+     * @deprecated Use 'createCommandTester' instead (Will be removed in next version)
+     *
+     * @codeCoverageIgnore
+     */
+    protected function runCommand($name, array $params = [], $reuseKernel = true)
+    {
+        return parent::runCommand($name, $params, $reuseKernel);
     }
 }

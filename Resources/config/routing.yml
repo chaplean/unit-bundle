@@ -1,3 +1,0 @@
-chaplean_tests_homepage:
-    path:     /hello/{name}
-    defaults: { _controller: ChapleanUnitBundle:Default:index }

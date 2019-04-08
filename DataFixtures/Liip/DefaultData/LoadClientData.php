@@ -10,7 +10,7 @@ use Doctrine\Common\Persistence\ObjectManager;
  * LoadClientData.php.
  *
  * @author    Valentin - Chaplean <valentin@chaplean.coop>
- * @copyright 2014 - 2015 Chaplean (http://www.chaplean.coop)
+ * @copyright 2014 - 2015 Chaplean (https://www.chaplean.coop)
  * @since     2.0.0
  */
 class LoadClientData extends AbstractFixture

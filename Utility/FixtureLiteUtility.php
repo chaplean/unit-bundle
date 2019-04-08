@@ -2,11 +2,11 @@
 
 namespace Chaplean\Bundle\UnitBundle\Utility;
 
+use Chaplean\Bundle\UnitBundle\DataFixtures\ProxyReferenceRepository;
 use Doctrine\Common\Cache\CacheProvider;
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 use Doctrine\Common\DataFixtures\Executor\ORMExecutor;
 use Doctrine\Common\DataFixtures\Loader;
-use Doctrine\Common\DataFixtures\ProxyReferenceRepository;
 use Doctrine\Common\DataFixtures\Purger\ORMPurger;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Driver\PDOSqlite\Driver as SqliteDriver;
@@ -19,7 +19,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  * self.php.
  *
  * @author    Valentin - Chaplean <valentin@chaplean.coop>
- * @copyright 2014 - 2015 Chaplean (http://www.chaplean.coop)
+ * @copyright 2014 - 2015 Chaplean (https://www.chaplean.coop)
  * @since     1.2.0
  */
 class FixtureLiteUtility
@@ -65,12 +65,14 @@ class FixtureLiteUtility
      * file were being written to, that is, the time when the content of the
      * file was changed.
      *
-     * @param string $class The fully qualified class name of the fixture class to
+     * @param mixed $class The fully qualified class name of the fixture class to
      *                      check modification date on
      *
      * @return \DateTime|null
+     * @throws \ReflectionException
+     * @throws \Exception
      */
-    protected function getFixtureLastModified($class)
+    protected function getFixtureLastModified($class): ?\DateTime
     {
         $lastModifiedDateTime = null;
 
@@ -93,7 +95,7 @@ class FixtureLiteUtility
      *
      * @return Loader
      */
-    protected function getFixtureLoader(ContainerInterface $container, array $classNames)
+    protected function getFixtureLoader(ContainerInterface $container, array $classNames): Loader
     {
         $loaderClass = 'Symfony\Bundle\DoctrineFixturesBundle\Common\DataFixtures\Loader';
 
@@ -112,7 +114,12 @@ class FixtureLiteUtility
         return $loader;
     }
 
-    public function getHash(array $classNames)
+    /**
+     * @param array $classNames
+     *
+     * @return string
+     */
+    public function getHash(array $classNames): string
     {
         return md5(serialize(self::$cachedMetadatas['default']) . serialize($classNames) . date('YMDH'));
     }
@@ -124,7 +131,7 @@ class FixtureLiteUtility
      *
      * @return self
      */
-    public static function getInstance(ContainerInterface $container)
+    public static function getInstance(ContainerInterface $container): self
     {
         if (self::$instance === null) {
             self::$instance = new self();
@@ -141,10 +148,11 @@ class FixtureLiteUtility
      * @param array  $classNames The fixture classnames to check
      * @param string $backup     The fixture backup SQLite database file path
      *
-     * @return bool TRUE if the backup was made since the modifications to the
+     * @return boolean TRUE if the backup was made since the modifications to the
      *              fixtures; FALSE otherwise
+     * @throws \Exception
      */
-    protected function isBackupUpToDate(array $classNames, $backup)
+    protected function isBackupUpToDate(array $classNames, string $backup): bool
     {
         $backupLastModifiedDateTime = new \DateTime();
         $backupLastModifiedDateTime->setTimestamp(filemtime($backup));
@@ -185,7 +193,7 @@ class FixtureLiteUtility
      * @return ORMExecutor
      * @throws \Exception
      */
-    public function loadFixtures(array $classNames, bool $append = true)
+    public function loadFixtures(array $classNames, bool $append = true): ORMExecutor
     {
         $container = $this->container;
         /** @var ManagerRegistry $registry */
@@ -226,29 +234,26 @@ class FixtureLiteUtility
             }
             $metadatas = self::$cachedMetadatas['default'];
 
-            if ($container->getParameter('liip_functional_test.cache_sqlite_db')) {
-                $backup = $container->getParameter('kernel.cache_dir') . '/test_' . $this->getHash($classNames) . '.db';
+            $backup = $container->getParameter('kernel.cache_dir') . '/test_' . $this->getHash($classNames) . '.db';
+            if (file_exists($backup) && file_exists($backup . '.ser') && $this->isBackupUpToDate($classNames, $backup)) {
+                /** @var Connection $connection */
+                $connection = $container->get('doctrine.orm.entity_manager')->getConnection();
 
-                if (file_exists($backup) && file_exists($backup . '.ser') && $this->isBackupUpToDate($classNames, $backup)) {
-                    /** @var Connection $connection */
-                    $connection = $container->get('doctrine.orm.entity_manager')->getConnection();
-
-                    if (null !== $connection) {
-                        $connection->close();
-                    }
-
-                    $om->flush();
-                    $om->clear();
-
-                    copy($backup, $name);
-
-                    $executor = new ORMExecutor($om, new ORMPurger());
-                    $executor->setReferenceRepository($referenceRepository);
-                    /** @noinspection PhpUndefinedMethodInspection */
-                    $executor->getReferenceRepository()->load($backup);
-
-                    return $executor;
+                if (null !== $connection) {
+                    $connection->close();
                 }
+
+                $om->flush();
+                $om->clear();
+
+                copy($backup, $name);
+
+                $executor = new ORMExecutor($om, new ORMPurger());
+                $executor->setReferenceRepository($referenceRepository);
+                /** @noinspection PhpUndefinedMethodInspection */
+                $executor->getReferenceRepository()->load($backup);
+
+                return $executor;
             }
 
             // TODO: handle case when using persistent connections. Fail loudly?
@@ -287,7 +292,7 @@ class FixtureLiteUtility
      *
      * @return void
      */
-    private function loadFixtureClass(Loader $loader, $className)
+    private function loadFixtureClass(Loader $loader, string $className): void
     {
         $fixture = new $className();
 
@@ -311,7 +316,7 @@ class FixtureLiteUtility
      *
      * @return self
      */
-    public function setContainer(ContainerInterface $container)
+    public function setContainer(ContainerInterface $container): self
     {
         $this->container = $container;
 

@@ -19,8 +19,9 @@ class ChapleanUnitExtension extends Extension
      * @param \Symfony\Component\DependencyInjection\ContainerBuilder $container
      *
      * @return void
+     * @throws \Exception
      */
-    public function load(array $configs, ContainerBuilder $container)
+    public function load(array $configs, ContainerBuilder $container): void
     {
         $configuration = new Configuration();
         $config = $this->processConfiguration($configuration, $configs);
@@ -39,7 +40,7 @@ class ChapleanUnitExtension extends Extension
      *
      * @return void
      */
-    public function setParameters(ContainerBuilder $container, $name, array $config)
+    public function setParameters(ContainerBuilder $container, $name, array $config): void
     {
         foreach ($config as $key => $parameter) {
             $container->setParameter($name . '.' . $key, $parameter);

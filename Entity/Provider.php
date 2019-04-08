@@ -10,7 +10,7 @@ use Doctrine\ORM\Mapping as ORM;
  *
  * @package   Chaplean\Bundle\UnitBundle\Entity
  * @author    Valentin - Chaplean <valentin@chaplean.coop>
- * @copyright 2014 - 2015 Chaplean (http://www.chaplean.coop)
+ * @copyright 2014 - 2015 Chaplean (https://www.chaplean.coop)
  * @since     2.0.0
  *
  * @ORM\Table(name="cl_provider")

@@ -9,11 +9,16 @@ use Symfony\Component\HttpKernel\EventListener\TestSessionListener as BaseTestSe
  * Class TestSessionListener.
  *
  * @author    Matthias - Chaplean <matthias@chaplean.coop>
- * @copyright 2014 - 2017 Chaplean (http://www.chaplean.coop)
+ * @copyright 2014 - 2017 Chaplean (https://www.chaplean.coop)
  * @since     5.2.5
  */
 class TestSessionListener extends BaseTestSessionListener
 {
+    /**
+     * @param GetResponseEvent $event
+     *
+     * @return void
+     */
     public function onKernelRequest(GetResponseEvent $event)
     {
         if (!$event->isMasterRequest()) {

@@ -10,7 +10,7 @@ use Chaplean\Bundle\UnitBundle\Test\FunctionalTestCase;
  *
  * @package   Tests\Chaplean\Bundle\UnitBundle\Test
  * @author    Valentin - Chaplean <valentin@chaplean.coop>
- * @copyright 2014 - 2016 Chaplean (http://www.chaplean.coop)
+ * @copyright 2014 - 2016 Chaplean (https://www.chaplean.coop)
  * @since     4.0.0
  */
 class TransactionWithUpdateTest extends FunctionalTestCase

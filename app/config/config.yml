@@ -1,8 +1,7 @@
 imports:
     - { resource: parameters.yml }
     - { resource: security.yml }
-    - { resource: '@ChapleanMailerBundle/Resources/config/config.yml' }
-    - { resource: '@ChapleanUnitBundle/Resources/config/config.yml' }
+    - { resource: services.yml }
 
 framework:
     test: ~
@@ -13,7 +12,6 @@ framework:
         strict_requirements: ~
     form:            ~
     csrf_protection: ~
-    validation:      { enable_annotations: true }
     default_locale:  '%locale%'
     trusted_hosts:   ~
     session:
@@ -48,19 +46,6 @@ doctrine:
     orm:
         auto_generate_proxy_classes: '%kernel.debug%'
         auto_mapping: true
-
-# Swiftmailer Configuration
-swiftmailer:
-    spool:
-        type: file
-
-# Chapleanmailer Configuration
-chaplean_mailer:
-    sender_address: 'staff@chaplean.coop'
-    sender_name: 'Chaplean'
-    subject:
-        prefix: '[TEST]'
-    test: true
 
 fos_rest:
     routing_loader:

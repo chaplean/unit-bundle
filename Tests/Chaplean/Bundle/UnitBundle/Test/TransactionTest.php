@@ -9,12 +9,17 @@ use Chaplean\Bundle\UnitBundle\Test\FunctionalTestCase;
  * TransactionTest.php.
  *
  * @author    Matthias - Chaplean <matthias@chaplean.coop>
- * @copyright 2014 - 2015 Chaplean (http://www.chaplean.coop)
+ * @copyright 2014 - 2015 Chaplean (https://www.chaplean.coop)
  * @since     2.0.0
  */
 class TransactionTest extends FunctionalTestCase
 {
     /**
+     * @covers \Chaplean\Bundle\UnitBundle\Test\FunctionalTestCase::setUpBeforeClass
+     * @covers \Chaplean\Bundle\UnitBundle\Test\FunctionalTestCase::setUp
+     * @covers \Chaplean\Bundle\UnitBundle\Test\FunctionalTestCase::enableTransactions
+     * @covers \Chaplean\Bundle\UnitBundle\Test\FunctionalTestCase::__get
+     *
      * @return void
      */
     public function testBeforeAnnotationEmptyFixtureLoaded()
@@ -24,7 +29,14 @@ class TransactionTest extends FunctionalTestCase
     }
 
     /**
+     * @covers \Chaplean\Bundle\UnitBundle\Test\FunctionalTestCase::setUpBeforeClass
+     * @covers \Chaplean\Bundle\UnitBundle\Test\FunctionalTestCase::setUp
+     * @covers \Chaplean\Bundle\UnitBundle\Test\FunctionalTestCase::enableTransactions
+     * @covers \Chaplean\Bundle\UnitBundle\Test\FunctionalTestCase::__get
+     *
      * @return void
+     * @throws \Doctrine\ORM\ORMException
+     * @throws \Doctrine\ORM\OptimisticLockException
      */
     public function testDuringTransaction()
     {
@@ -45,6 +57,10 @@ class TransactionTest extends FunctionalTestCase
     }
 
     /**
+     * @covers \Chaplean\Bundle\UnitBundle\Test\FunctionalTestCase::tearDown
+     * @covers \Chaplean\Bundle\UnitBundle\Test\FunctionalTestCase::rollbackTransactions
+     * @covers \Chaplean\Bundle\UnitBundle\Test\FunctionalTestCase::__get
+     *
      * @return void
      */
     public function testAfterAnnotationWithoutFixture()

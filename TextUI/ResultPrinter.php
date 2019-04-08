@@ -11,6 +11,7 @@ use PHPUnit\Framework\Warning;
 use PHPUnit\Util\Filter;
 use PHPUnit\Util\Test as TestUtil;
 use SebastianBergmann\Environment\Console;
+use Throwable;
 
 /**
  * Class ResultPrinter.
@@ -63,7 +64,7 @@ class ResultPrinter extends \PHPUnit\TextUI\ResultPrinter
      *
      * @return void
      */
-    public function startTest(Test $test)
+    public function startTest(Test $test): void
     {
         if ($this->debug) {
             parent::startTest($test);
@@ -100,7 +101,7 @@ class ResultPrinter extends \PHPUnit\TextUI\ResultPrinter
      *
      * @return void
      */
-    protected function writeProgress($progress)
+    protected function writeProgress(string $progress): void
     {
         if ($this->debug) {
             parent::writeProgress($progress);
@@ -111,12 +112,12 @@ class ResultPrinter extends \PHPUnit\TextUI\ResultPrinter
 
     /**
      * @param \PHPUnit\Framework\Test $test
-     * @param \Exception              $e
+     * @param \Throwable              $e
      * @param float                   $time
      *
      * @return void
      */
-    public function addError(Test $test, \Exception $e, $time)
+    public function addError(Test $test, \Throwable $e, float $time): void
     {
         if ($this->debug) {
             parent::addError($test, $e, $time);
@@ -137,7 +138,7 @@ class ResultPrinter extends \PHPUnit\TextUI\ResultPrinter
      *
      * @return void
      */
-    public function addFailure(Test $test, AssertionFailedError $e, $time)
+    public function addFailure(Test $test, AssertionFailedError $e, float $time): void
     {
         if ($this->debug) {
             parent::addFailure($test, $e, $time);
@@ -153,12 +154,12 @@ class ResultPrinter extends \PHPUnit\TextUI\ResultPrinter
 
     /**
      * @param \PHPUnit\Framework\Test $test
-     * @param \Exception              $e
+     * @param \Throwable              $e
      * @param float                   $time
      *
      * @return void
      */
-    public function addRiskyTest(Test $test, \Exception $e, $time)
+    public function addRiskyTest(Test $test, \Throwable $e, float $time): void
     {
         if ($this->debug) {
             parent::addRiskyTest($test, $e, $time);
@@ -174,12 +175,12 @@ class ResultPrinter extends \PHPUnit\TextUI\ResultPrinter
 
     /**
      * @param \PHPUnit\Framework\Test $test
-     * @param \Exception              $e
+     * @param \Throwable              $e
      * @param float                   $time
      *
      * @return void
      */
-    public function addSkippedTest(Test $test, \Exception $e, $time)
+    public function addSkippedTest(Test $test, \Throwable $e, float $time): void
     {
         if ($this->debug) {
             parent::addSkippedTest($test, $e, $time);
@@ -196,7 +197,7 @@ class ResultPrinter extends \PHPUnit\TextUI\ResultPrinter
      *
      * @return void
      */
-    public function addWarning(Test $test, Warning $e, $time)
+    public function addWarning(Test $test, Warning $e, float $time): void
     {
         if ($this->debug) {
             parent::addWarning($test, $e, $time);
@@ -212,15 +213,15 @@ class ResultPrinter extends \PHPUnit\TextUI\ResultPrinter
 
     /**
      * @param Test                 $test
-     * @param \Exception|Exception $e
+     * @param \Throwable|Exception $e
      * @param string               $color
      *
      * @return string
      */
-    private function buildMessage(Test $test, Exception $e, $color = Output::COLOR_LIGHT_RED)
+    private function buildMessage(Test $test, Throwable $e, $color = Output::COLOR_LIGHT_RED)
     {
         $index = Output::info(array_sum($this->counter)) . ') ';
-        $testName = TestUtil::describe($test);
+        $testName = TestUtil::describeAsString($test);
         $trace = Filter::getFilteredStacktrace($e);
         $message = $e->getMessage();
 
@@ -228,7 +229,7 @@ class ResultPrinter extends \PHPUnit\TextUI\ResultPrinter
 
         $traces = explode("\n", $trace);
 
-        $this->height += (3 + (ceil(strlen($message)/$this->numberColumns)) + (count($traces) - 1));
+        $this->height += (2 + (ceil(strlen($message)/$this->numberColumns)) + (count($traces) - 1));
 
         $this->messages .= $message;
 
@@ -240,7 +241,7 @@ class ResultPrinter extends \PHPUnit\TextUI\ResultPrinter
      *
      * @return void
      */
-    protected function printErrors(TestResult $result)
+    protected function printErrors(TestResult $result): void
     {
         if ($this->debug) {
             parent::printErrors($result);
@@ -252,7 +253,7 @@ class ResultPrinter extends \PHPUnit\TextUI\ResultPrinter
      *
      * @return void
      */
-    protected function printFailures(TestResult $result)
+    protected function printFailures(TestResult $result): void
     {
         if ($this->debug) {
             parent::printFailures($result);
@@ -264,7 +265,7 @@ class ResultPrinter extends \PHPUnit\TextUI\ResultPrinter
      *
      * @return void
      */
-    protected function printRisky(TestResult $result)
+    protected function printRisky(TestResult $result): void
     {
         if ($this->debug) {
             parent::printRisky($result);
@@ -276,7 +277,7 @@ class ResultPrinter extends \PHPUnit\TextUI\ResultPrinter
      *
      * @return void
      */
-    protected function printWarnings(TestResult $result)
+    protected function printWarnings(TestResult $result): void
     {
         if ($this->debug) {
             parent::printWarnings($result);

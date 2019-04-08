@@ -1,4 +1,4 @@
-image: chaplean/php:7.1-no-xdebug
+image: chaplean/php:7.1
 
 services:
     - name: chaplean/mysql:mariadb10.1
@@ -17,16 +17,18 @@ cache:
 
 before_script:
     - mkdir -p /root/.ssh
-    - cp ./private/ssh/* /root/.ssh/
-    - chmod 600 /root/.ssh/*
-    - cp app/config/parameters.yml.dist app/config/parameters.yml
-    - composer install --prefer-dist --no-interaction
-    - chmod -R +x ./bin/
+    - echo -e "Host *\n\tForwardAgent yes\n\n" > /root/.ssh/config
+    - echo "$CHAPLEAN_DEPLOY_KEY" >> /root/.ssh/id_rsa && chmod 0600 /root/.ssh/id_rsa
+    - echo "$CHAPLEAN_KNOWN_HOSTS" >> /root/.ssh/known_hosts && chmod 0600 /root/.ssh/known_hosts
+    - eval `ssh-agent -s`
+    - ssh-add
 
 test:
     stage: test
     script:
-        - phpdbg -qrr ./bin/phpunit --configuration phpunit.xml.dist --colors=never --coverage-html coverage/ --coverage-text
+        - composer install --prefer-dist --no-interaction
+        - php ./bin/phpunit --configuration phpunit.xml.dist --dump-xdebug-filter phpunit-filter.php
+        - php -d zend_extension=/usr/local/lib/php/extensions/no-debug-non-zts-20160303/xdebug.so ./bin/phpunit --prepend phpunit-filter.php --configuration phpunit.xml.dist --colors=never --coverage-text --coverage-html coverage
     artifacts:
         paths:
             - coverage/

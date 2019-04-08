@@ -3,18 +3,19 @@
 namespace Chaplean\Bundle\UnitBundle\Fixtures;
 
 use Nelmio\Alice\Fixtures\Fixture;
+use Nelmio\Alice\Fixtures\Loader as BaseLoader;
 
 /**
  * Loader.php.
  *
  * @author    Valentin - Chaplean <valentin@chaplean.coop>
- * @copyright 2014 - 2015 Chaplean (http://www.chaplean.coop)
+ * @copyright 2014 - 2015 Chaplean (https://www.chaplean.coop)
  * @since     2.0.0
  */
-class Loader extends \Nelmio\Alice\Fixtures\Loader
+class Loader extends BaseLoader
 {
     /**
-     * parses a file at the given filename
+     * parent is protected
      *
      * @param string $filename
      *

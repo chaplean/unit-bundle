@@ -13,7 +13,7 @@ use Mockery\MockInterface;
  * GeneratorDataUtilityTest.php.
  *
  * @author    Valentin - Chaplean <valentin@chaplean.coop>
- * @copyright 2014 - 2016 Chaplean (http://www.chaplean.coop)
+ * @copyright 2014 - 2016 Chaplean (https://www.chaplean.coop)
  * @since     3.0.0
  */
 class GeneratorDataUtilityTest extends MockeryTestCase
@@ -34,11 +34,13 @@ class GeneratorDataUtilityTest extends MockeryTestCase
     }
 
     /**
+     * @covers \Chaplean\Bundle\UnitBundle\Fixtures\Loader::parseFile
      * @covers \Chaplean\Bundle\UnitBundle\Utility\GeneratorDataUtility::__construct
      * @covers \Chaplean\Bundle\UnitBundle\Utility\GeneratorDataUtility::hasReference()
      * @covers \Chaplean\Bundle\UnitBundle\Utility\GeneratorDataUtility::getReference()
      *
      * @return void
+     * @throws \Exception
      */
     public function testGetReferenceExist()
     {
@@ -183,6 +185,8 @@ class GeneratorDataUtilityTest extends MockeryTestCase
     }
 
     /**
+     * @covers \Chaplean\Bundle\UnitBundle\Fixtures\Loader::parseFile
+     * @covers \Chaplean\Bundle\UnitBundle\Fixtures\Loader::getValue
      * @covers \Chaplean\Bundle\UnitBundle\Utility\GeneratorDataUtility::getData()
      * @covers \Chaplean\Bundle\UnitBundle\Utility\GeneratorDataUtility::parseProperty()
      *

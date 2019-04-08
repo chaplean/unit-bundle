@@ -3,9 +3,9 @@
 namespace Tests\Chaplean\Bundle\UnitBundle\Utility;
 
 use Chaplean\Bundle\UnitBundle\Utility\FixtureLiteUtility;
-use Liip\FunctionalTestBundle\Test\WebTestCase;
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use Mockery\MockInterface;
+use PHPUnit\Framework\TestCase;
 use Symfony\Component\DependencyInjection\Container;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
@@ -14,10 +14,10 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  *
  * @package   Tests\Chaplean\Bundle\UnitBundle\Utility
  * @author    Valentin - Chaplean <valentin@chaplean.coop>
- * @copyright 2014 - 2017 Chaplean (http://www.chaplean.coop)
+ * @copyright 2014 - 2017 Chaplean (https://www.chaplean.coop)
  * @since     7.0.0
  */
-class FixtureLiteUtilityTest extends WebTestCase
+class FixtureLiteUtilityTest extends TestCase
 {
     use MockeryPHPUnitIntegration;
 
@@ -44,7 +44,7 @@ class FixtureLiteUtilityTest extends WebTestCase
     }
 
     /**
-     * @covers \Chaplean\Bundle\UnitBundle\Utility\FixtureLiteUtility::loadFixtures()
+     * @covers \Chaplean\Bundle\UnitBundle\Utility\FixtureLiteUtility
      *
      * @return void
      */

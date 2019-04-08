@@ -10,12 +10,15 @@ use Symfony\Component\Security\Core\User\User;
  * AuthenticateTest.php.
  *
  * @author    Valentin - Chaplean <valentin@chaplean.coop>
- * @copyright 2014 - 2016 Chaplean (http://www.chaplean.coop)
+ * @copyright 2014 - 2016 Chaplean (https://www.chaplean.coop)
  * @since     2.1.0
  */
 class AuthenticateTest extends FunctionalTestCase
 {
     /**
+     * @covers \Chaplean\Bundle\UnitBundle\Test\FunctionalTestCase::authenticate
+     * @covers \Chaplean\Bundle\UnitBundle\Test\FunctionalTestCase::getContainer
+     *
      * @return void
      */
     public function testAuthenticate()
@@ -32,6 +35,9 @@ class AuthenticateTest extends FunctionalTestCase
     }
 
     /**
+     * @covers \Chaplean\Bundle\UnitBundle\Test\FunctionalTestCase::createClient
+     * @covers \Chaplean\Bundle\UnitBundle\Test\FunctionalTestCase::authenticate
+     *
      * @return void
      */
     public function testAuthenticateInClient()
@@ -56,6 +62,9 @@ class AuthenticateTest extends FunctionalTestCase
     }
 
     /**
+     * @covers \Chaplean\Bundle\UnitBundle\Test\FunctionalTestCase::createClient
+     * @covers \Chaplean\Bundle\UnitBundle\Test\FunctionalTestCase::tearDown
+     *
      * @return void
      */
     public function testUnauthenticateOnTeardown()

@@ -2,80 +2,56 @@
 
 namespace Tests\Chaplean\Bundle\UnitBundle\Utility;
 
-use Chaplean\Bundle\UnitBundle\Utility\SharedService;
-use Liip\FunctionalTestBundle\Test\WebTestCase;
+use Chaplean\Bundle\UnitBundle\Test\FunctionalTestCase;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
+use Symfony\Component\Translation\TranslatorInterface;
+use Tests\Chaplean\Bundle\UnitBundle\Resources\Utility\ServiceLambda;
 
 /**
  * Class ServiceDependentSharedServiceTest.
  *
  * @package   Tests\Chaplean\Bundle\UnitBundle\Utility
  * @author    Valentin - Chaplean <valentin@chaplean.coop>
- * @copyright 2014 - 2016 Chaplean (http://www.chaplean.coop)
+ * @copyright 2014 - 2016 Chaplean (https://www.chaplean.coop)
  * @since     5.0.0
  */
-class ServiceDependentSharedServiceTest extends WebTestCase
+class ServiceDependentSharedServiceTest extends FunctionalTestCase
 {
+    use MockeryPHPUnitIntegration;
+
     /**
-     * @covers \Chaplean\Bundle\UnitBundle\Utility\ServiceDependentSharedService::__construct()
-     * @covers \Chaplean\Bundle\UnitBundle\Utility\ServiceDependentSharedService::callMockMe()
-     *
      * @return void
      */
-    public function testMockMockMe()
+    protected function setUp(): void
     {
-        $serviceSharedMock = \Mockery::mock(SharedService::class);
-        $this->getContainer()->set('chaplean_unit.shared_service', $serviceSharedMock);
+        parent::setUp();
 
-        $serviceSharedMock->shouldReceive('mockMe')->andReturn('I am mock :D');
-
-        $this->assertEquals('I am mock :D', $this->getContainer()->get('chaplean_unit.service_dependent_on_shared_service')->callMockMe());
+        $this->translator = \Mockery::mock(TranslatorInterface::class);
     }
 
     /**
-     * @covers \Chaplean\Bundle\UnitBundle\Utility\ServiceDependentSharedService::__construct()
-     * @covers \Chaplean\Bundle\UnitBundle\Utility\ServiceDependentSharedService::callMockMe()
+     * @covers \Chaplean\Bundle\UnitBundle\Test\FunctionalTestCase::createClientWith
      *
      * @return void
      */
-    public function testMockMockMeASecondTime()
+    public function testNotSharedMockBetweenClient(): void
     {
-        $serviceSharedMock = \Mockery::mock(SharedService::class)->shouldReceive('mockMe')->andReturn('I am mock :D (again)')->getMock();
-        $this->getContainer()->set('chaplean_unit.shared_service', $serviceSharedMock);
+        $client = $this->createClientWith('');
 
-        $this->assertEquals('I am mock :D (again)', $this->getContainer()->get('chaplean_unit.service_dependent_on_shared_service')->callMockMe());
+        $client->getContainer()->set('translator', $this->translator);
+
+        $this->assertSame($client->getContainer()->get(ServiceLambda::class)->getTranslator(), $this->translator);
     }
 
     /**
-     * @covers \Chaplean\Bundle\UnitBundle\Utility\ServiceDependentSharedService::__construct()
-     * @covers \Chaplean\Bundle\UnitBundle\Utility\ServiceDependentSharedService::dontCallMockMe()
-     *
-     * @return void
-     * @expectedException \Mockery\Exception\InvalidCountException
-     * @throws
-     */
-    public function testMockMockMeWithoutCallHim()
-    {
-        $serviceSharedMock = \Mockery::mock(SharedService::class)->shouldReceive('mockMe')->once()->andReturn('I am mock :D (again)')->getMock();
-        $this->getContainer()->set('chaplean_unit.shared_service', $serviceSharedMock);
-
-        $this->assertEquals('eenie meenie miney mo', $this->getContainer()->get('chaplean_unit.service_dependent_on_shared_service')->dontCallMockMe());
-
-        \Mockery::close();
-    }
-
-    /**
-     * @covers \Chaplean\Bundle\UnitBundle\Utility\ServiceDependentSharedService::__construct()
-     * @covers \Chaplean\Bundle\UnitBundle\Utility\ServiceDependentSharedService::dontCallMockMe()
+     * @covers \Chaplean\Bundle\UnitBundle\Test\FunctionalTestCase::createClientWith
      *
      * @return void
      */
-    public function testNotCallMockMe()
+    public function testNotSharedMockBetweenClientSecondClient(): void
     {
-        $serviceSharedMock = \Mockery::mock(SharedService::class)->shouldNotReceive('mockMe')->getMock();
-        $this->getContainer()->set('chaplean_unit.shared_service', $serviceSharedMock);
+        $client = $this->createClientWith('');
 
-        $this->assertEquals('eenie meenie miney mo', $this->getContainer()->get('chaplean_unit.service_dependent_on_shared_service')->dontCallMockMe());
-
-        \Mockery::close();
+        $this->assertNotSame($client->getContainer()->get(ServiceLambda::class)->getTranslator(), $this->translator);
     }
 }

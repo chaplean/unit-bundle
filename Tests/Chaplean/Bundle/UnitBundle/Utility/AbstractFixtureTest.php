@@ -12,7 +12,7 @@ use Mockery\Adapter\Phpunit\MockeryTestCase;
  *
  * @package   Tests\Chaplean\Bundle\UnitBundle\Utility
  * @author    Hugo - Chaplean <tom@chaplean.coop>
- * @copyright 2014 - 2018 Chaplean (http://www.chaplean.coop)
+ * @copyright 2014 - 2018 Chaplean (https://www.chaplean.coop)
  */
 class AbstractFixtureTest extends MockeryTestCase
 {
@@ -32,6 +32,8 @@ class AbstractFixtureTest extends MockeryTestCase
     /**
      * @covers \Chaplean\Bundle\UnitBundle\Utility\AbstractFixture::initGenerator()
      *
+     * @doesNotPerformAssertions
+     *
      * @return void
      */
     public function testInitGenerator()
@@ -39,8 +41,6 @@ class AbstractFixtureTest extends MockeryTestCase
         $entity = new User();
 
         $this->utility->initGenerator($entity);
-
-        $this->assertTrue(true);
     }
 
     /**

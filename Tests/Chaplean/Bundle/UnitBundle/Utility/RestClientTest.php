@@ -2,17 +2,17 @@
 
 namespace Tests\Chaplean\Bundle\UnitBundle;
 
+use Chaplean\Bundle\UnitBundle\Test\FunctionalTestCase;
 use Chaplean\Bundle\UnitBundle\Utility\RestClient;
-use Liip\FunctionalTestBundle\Test\WebTestCase;
 
 /**
  * RestClientTest.php.
  *
  * @author    Valentin - Chaplean <valentin@chaplean.coop>
- * @copyright 2014 - 2015 Chaplean (http://www.chaplean.coop)
+ * @copyright 2014 - 2015 Chaplean (https://www.chaplean.coop)
  * @since     2.1.0
  */
-class RestClientTest extends WebTestCase
+class RestClientTest extends FunctionalTestCase
 {
     /**
      * @covers \Chaplean\Bundle\UnitBundle\Utility\RestClient::getContent()

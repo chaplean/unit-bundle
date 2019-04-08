@@ -10,7 +10,7 @@ use Doctrine\ORM\Mapping\ClassMetadata;
  * AbstractFixture.php.
  *
  * @author    Matthias - Chaplean <matthias@chaplean.coop>
- * @copyright 2014 - 2015 Chaplean (http://www.chaplean.coop)
+ * @copyright 2014 - 2015 Chaplean (https://www.chaplean.coop)
  * @since     2.0.0
  */
 abstract class AbstractFixture extends BaseAbstractFixture
@@ -23,7 +23,7 @@ abstract class AbstractFixture extends BaseAbstractFixture
     /**
      * @var GeneratorDataUtility
      */
-    private $generator;
+    private $generator = null;
 
     /**
      * @var array
@@ -34,6 +34,8 @@ abstract class AbstractFixture extends BaseAbstractFixture
      * @param object $entity
      *
      * @return mixed
+     * @throws \Doctrine\ORM\Mapping\MappingException
+     * @throws \Exception
      */
     public function generateEntity($entity)
     {
@@ -64,7 +66,7 @@ abstract class AbstractFixture extends BaseAbstractFixture
                 $fieldDefinition['fieldName'] = $field;
                 $fieldDefinition['type'] = '';
             }
-        
+
             list($getter, $setter) = $this->getAccessor($fieldDefinition, $entity);
             if (!empty($entity->$getter()) || $entity->$getter() !== null) {
                 continue;
@@ -97,22 +99,6 @@ abstract class AbstractFixture extends BaseAbstractFixture
     }
 
     /**
-     * Loads an Entity using stored reference
-     * named by $name
-     *
-     * @param string        $name
-     * @param ObjectManager $manager
-     *
-     * @return mixed
-     * @deprecated To be removed, use getReference()
-     * @see AbstractFixture::getReference()
-     */
-    public function getEntity($name, ObjectManager $manager)
-    {
-        return $this->getReference($name);
-    }
-
-    /**
      * Persist a entity with random data for
      * required field not set
      *
@@ -120,8 +106,9 @@ abstract class AbstractFixture extends BaseAbstractFixture
      * @param ObjectManager $manager
      *
      * @return void
+     * @throws \Doctrine\ORM\Mapping\MappingException
      */
-    public function persist($entity, ObjectManager $manager = null)
+    public function persist($entity, ObjectManager $manager = null): void
     {
         $this->setManager($manager);
 
@@ -136,6 +123,7 @@ abstract class AbstractFixture extends BaseAbstractFixture
      * @param mixed $class
      *
      * @return mixed
+     * @throws \Doctrine\ORM\Mapping\MappingException
      */
     public function saveDependency($class)
     {
@@ -152,7 +140,7 @@ abstract class AbstractFixture extends BaseAbstractFixture
      *
      * @return void
      */
-    public function getEmbeddedClass($entity)
+    public function getEmbeddedClass($entity): void
     {
         /** @var ClassMetadata $classMetadata */
         $classMetadata = $this->em->getClassMetadata(get_class($entity));
@@ -168,11 +156,11 @@ abstract class AbstractFixture extends BaseAbstractFixture
      * Get accessor for a attributes entity
      *
      * @param array  $field
-     * @param string $class
+     * @param object $class
      *
      * @return array
      */
-    public function getAccessor(array $field, $class)
+    public function getAccessor(array $field, $class): array
     {
         $fieldName = ucfirst(str_replace(' ', '', ucwords(str_replace('_', ' ', $field['fieldName']))));
         if ($field['type'] == 'boolean') {
@@ -185,21 +173,23 @@ abstract class AbstractFixture extends BaseAbstractFixture
             $getter = 'get' . $fieldName;
         }
         $setter = 'set' . $fieldName;
+
         return [$getter, $setter];
     }
 
     /**
+     * @see \Doctrine\Common\DataFixtures\ReferenceRepository::getReference
      * Loads an object using stored reference
      * named by $name
      *
      * @param string $name
-     * @see Doctrine\Common\DataFixtures\ReferenceRepository::getReference
+     *
      * @return object
      * @throws \Exception
      */
     public function getReference($name)
     {
-        $reference = $this->referenceRepository->getReference($name);
+        $reference = parent::getReference($name);
         
         if ($reference->getId() === null) {
             throw new \Exception(sprintf('\'%s\' is not persisted !', $name));
@@ -215,9 +205,9 @@ abstract class AbstractFixture extends BaseAbstractFixture
      *
      * @return void
      */
-    public function setManager($manager)
+    public function setManager(?ObjectManager $manager): void
     {
-        if (empty($this->em) && !empty($manager)) {
+        if (empty($this->em) && $manager !== null) {
             $this->em = $manager;
         }
     }
@@ -226,10 +216,12 @@ abstract class AbstractFixture extends BaseAbstractFixture
      * @param mixed $entity
      *
      * @return void
+     * @throws \ReflectionException
+     * @throws \Exception
      */
-    public function initGenerator($entity)
+    public function initGenerator($entity): void
     {
-        if (empty($this->generator)) {
+        if ($this->generator === null) {
             $reflectionClass = new \ReflectionClass(get_class($entity));
             $path = $reflectionClass->getFileName();
             $path = str_replace($reflectionClass->getShortName() . '.php', '', $path);
@@ -237,7 +229,7 @@ abstract class AbstractFixture extends BaseAbstractFixture
             $datafixturesPath = $path . '../Resources/config/datafixtures.yml';
 
             if (!file_exists($datafixturesPath)) {
-                throw  new \Exception();
+                throw new \Exception();
             }
 
             $this->generator = new GeneratorDataUtility($datafixturesPath);

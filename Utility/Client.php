@@ -18,8 +18,10 @@ use Symfony\Component\Routing\Route;
  *
  * @package   Chaplean\Bundle\UnitBundle\Utility
  * @author    Valentin - Chaplean <valentin@chaplean.coop>
- * @copyright 2014 - 2016 Chaplean (http://www.chaplean.coop)
+ * @copyright 2014 - 2016 Chaplean (https://www.chaplean.coop)
  * @since     2.2.0
+ *
+ * @deprecated Will be removed in next major version
  */
 class Client
 {
