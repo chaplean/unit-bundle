@@ -25,7 +25,7 @@ class NamespaceUtilityTest extends FunctionalTestCase
      * @return void
      * @throws \Exception
      */
-    public function setUp()
+    public function setUp(): void
     {
         $this->namespaceUtility = new NamespaceUtility($this->getContainer()->get('kernel'));
     }

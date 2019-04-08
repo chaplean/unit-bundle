@@ -24,7 +24,7 @@ class AbstractFixtureTest extends MockeryTestCase
     /**
      * @return void
      */
-    public function setUp()
+    public function setUp(): void
     {
         $this->utility = \Mockery::mock(AbstractFixture::class)->makePartial();
     }

@@ -18,6 +18,7 @@ class HelperReferenceTest extends FunctionalTestCase
 {
     /**
      * @covers \Chaplean\Bundle\UnitBundle\Test\FunctionalTestCase::getReference
+     * @covers \Chaplean\Bundle\UnitBundle\DataFixtures\ProxyReferenceRepository::getReferenceWithManager
      *
      * @return void
      */
@@ -31,6 +32,7 @@ class HelperReferenceTest extends FunctionalTestCase
 
     /**
      * @covers \Chaplean\Bundle\UnitBundle\Test\FunctionalTestCase::getReference
+     * @covers \Chaplean\Bundle\UnitBundle\DataFixtures\ProxyReferenceRepository::getReferenceWithManager
      *
      * @return void
      */
@@ -43,6 +45,7 @@ class HelperReferenceTest extends FunctionalTestCase
 
     /**
      * @covers \Chaplean\Bundle\UnitBundle\Test\FunctionalTestCase::getReference
+     * @covers \Chaplean\Bundle\UnitBundle\DataFixtures\ProxyReferenceRepository::getReferenceWithManager
      *
      * @return void
      */
@@ -55,6 +58,7 @@ class HelperReferenceTest extends FunctionalTestCase
 
     /**
      * @covers \Chaplean\Bundle\UnitBundle\Test\FunctionalTestCase::getReference
+     * @covers \Chaplean\Bundle\UnitBundle\DataFixtures\ProxyReferenceRepository::getReferenceWithManager
      *
      * @return void
      */

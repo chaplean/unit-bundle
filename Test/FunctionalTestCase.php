@@ -36,6 +36,11 @@ use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
 class FunctionalTestCase extends WebTestCase
 {
     /**
+     * @var Client
+     */
+    private static $client;
+
+    /**
      * @var array
      */
     protected $containers = [];
@@ -51,9 +56,9 @@ class FunctionalTestCase extends WebTestCase
     private static $databaseLoaded = false;
 
     /**
-     * @var boolean
+     * @var ProxyReferenceRepository
      */
-    private static $reloadDatabase = false;
+    private static $fixtures;
 
     /**
      * @var FixtureLiteUtility
@@ -61,19 +66,14 @@ class FunctionalTestCase extends WebTestCase
     private static $fixtureUtility;
 
     /**
-     * @var ProxyReferenceRepository
-     */
-    private static $fixtures;
-
-    /**
      * @var boolean
      */
     private static $hasReferenceLoaded = false;
 
     /**
-     * @var Client
+     * @var boolean
      */
-    private static $client;
+    private static $reloadDatabase = false;
 
     /**
      * @var array
@@ -107,26 +107,22 @@ class FunctionalTestCase extends WebTestCase
     }
 
     /**
-     * @return ContainerInterface
+     * @param string $name Property name.
+     *
+     * @return \Doctrine\ORM\EntityManager
+     * @throws \Exception
      */
-    public function initializeContainer(): ContainerInterface
+    public function __get(string $name)
     {
-        $cacheKey = '|test';
-        if (empty($this->containers[$cacheKey])) {
-            $options = [
-                'environment' => 'test',
-            ];
-            $kernel = $this->createKernel($options);
-            $kernel->boot();
-
-            $this->containers[$cacheKey] = $kernel->getContainer();
+        if ($name === 'em') {
+            if (self::$client !== null) {
+                return self::$client->getContainer()->get('doctrine')->getManager();
+            } else {
+                return $this->getContainer()->get('doctrine')->getManager();
+            }
         }
 
-        if (isset($tmpKernelDir)) {
-            $_SERVER['KERNEL_DIR'] = $tmpKernelDir;
-        }
-
-        return $this->containers[$cacheKey];
+        throw new \Exception('Undefined property ' . $name);
     }
 
     /**
@@ -180,7 +176,7 @@ class FunctionalTestCase extends WebTestCase
      *
      * @return Client
      */
-    public static function createClient(array $options = [], array $server = [])
+    public static function createClient(array $options = [], array $server = []): Client
     {
         // Prevent double client creation in same test case
         if (self::$client !== null) {
@@ -205,7 +201,7 @@ class FunctionalTestCase extends WebTestCase
      *
      * @return Client
      */
-    public function createClientWith($userReference)
+    public function createClientWith(string $userReference): Client
     {
         $client = self::createClient();
 
@@ -221,7 +217,7 @@ class FunctionalTestCase extends WebTestCase
      *
      * @return CommandTester
      */
-    public function createCommandTester($commandClass)
+    public function createCommandTester(string $commandClass): CommandTester
     {
         $command = new $commandClass();
 
@@ -245,6 +241,26 @@ class FunctionalTestCase extends WebTestCase
     }
 
     /**
+     * @param EntityManagerInterface $em
+     *
+     * @return void
+     * @throws \Doctrine\DBAL\ConnectionException
+     * @throws \Doctrine\DBAL\DBALException
+     */
+    private static function enableTransactions(EntityManagerInterface $em): void
+    {
+        $em->getUnitOfWork()->clear();
+        $nbTransactions = $em->getConnection()->getTransactionNestingLevel();
+
+        $em->getConnection()->query('PRAGMA foreign_keys = ON;');
+
+        if (self::$databaseLoaded && $nbTransactions < 1) {
+            $em->getConnection()->setNestTransactionsWithSavepoints(true);
+            $em->beginTransaction();
+        }
+    }
+
+    /**
      * @return ContainerInterface
      */
     protected function getContainer(): ContainerInterface
@@ -265,7 +281,7 @@ class FunctionalTestCase extends WebTestCase
      * @return string
      * @throws \Exception
      */
-    public function getCsrfToken($formClass, Client $client = null)
+    public function getCsrfToken(string $formClass, Client $client = null): string
     {
         $client = $client ?: $this;
 
@@ -283,7 +299,7 @@ class FunctionalTestCase extends WebTestCase
     /**
      * @return string
      */
-    public static function getDefaultFixturesNamespace()
+    public static function getDefaultFixturesNamespace(): ?string
     {
         try {
             $dataFixtureNamespace = self::$container->getParameter('data_fixtures_namespace');
@@ -318,13 +334,30 @@ class FunctionalTestCase extends WebTestCase
      *
      * @return \ReflectionMethod
      */
-    public function getNotPublicMethod($className, $methodName)
+    public function getNotPublicMethod(string $className, string $methodName): \ReflectionMethod
     {
         $class = new \ReflectionClass($className);
         $method = $class->getMethod($methodName);
         $method->setAccessible(true);
 
         return $method;
+    }
+
+    /**
+     * @param \Symfony\Component\DependencyInjection\ContainerInterface $container
+     *
+     * @return array
+     */
+    private static function getOtherMockedServices(ContainerInterface $container): array
+    {
+        /** @var \Chaplean\Bundle\UnitBundle\Mock\MockedServiceOnSetUpInterface $mockedServices */
+        $mockedServices = $container->getParameter('chaplean_unit.mocked_services');
+
+        if ($mockedServices === null) {
+            return [];
+        }
+
+        return $mockedServices::getMockedServices();
     }
 
     /**
@@ -349,39 +382,26 @@ class FunctionalTestCase extends WebTestCase
     }
 
     /**
-     * @param \Symfony\Component\DependencyInjection\ContainerInterface $container
-     *
-     * @return array
+     * @return ContainerInterface
      */
-    private static function getOtherMockedServices(ContainerInterface $container)
+    public function initializeContainer(): ContainerInterface
     {
-        /** @var \Chaplean\Bundle\UnitBundle\Mock\MockedServiceOnSetUpInterface $mockedServices */
-        $mockedServices = $container->getParameter('chaplean_unit.mocked_services');
+        $cacheKey = '|test';
+        if (empty($this->containers[$cacheKey])) {
+            $options = [
+                'environment' => 'test',
+            ];
+            $kernel = $this->createKernel($options);
+            $kernel->boot();
 
-        if ($mockedServices === null) {
-            return [];
+            $this->containers[$cacheKey] = $kernel->getContainer();
         }
 
-        return $mockedServices::getMockedServices();
-    }
-
-    /**
-     * @param string $name Property name.
-     *
-     * @return \Doctrine\ORM\EntityManager
-     * @throws \Exception
-     */
-    public function __get($name)
-    {
-        if ($name === 'em') {
-            if (self::$client !== null) {
-                return self::$client->getContainer()->get('doctrine')->getManager();
-            } else {
-                return $this->getContainer()->get('doctrine')->getManager();
-            }
+        if (isset($tmpKernelDir)) {
+            $_SERVER['KERNEL_DIR'] = $tmpKernelDir;
         }
 
-        throw new \Exception('Undefined property ' . $name);
+        return $this->containers[$cacheKey];
     }
 
     /**
@@ -418,7 +438,7 @@ class FunctionalTestCase extends WebTestCase
      *
      * @return array
      */
-    public function rolesProvider(array $expectations, array $extraRoles = [])
+    public function rolesProvider(array $expectations, array $extraRoles = []): array
     {
         if (count($this->userRoles) === 0) {
             throw new \LogicException('You must define test_roles in your parameters_test.yml to use this function.');
@@ -460,9 +480,36 @@ class FunctionalTestCase extends WebTestCase
     }
 
     /**
+     * @param EntityManagerInterface $em
+     *
      * @return void
      */
-    protected function setUp()
+    private static function rollbackTransactions(EntityManagerInterface $em): void
+    {
+        $connection = $em->getConnection();
+
+        if ($connection->getTransactionNestingLevel() == 1 && self::$databaseLoaded) {
+            $em->rollback();
+        }
+
+        $connection->close();
+    }
+
+    /**
+     * @inheritdoc
+     * @deprecated Use 'createCommandTester' instead (Will be removed in next version)
+     *
+     * @codeCoverageIgnore
+     */
+    protected function runCommand($name, array $params = [], $reuseKernel = true)
+    {
+        return parent::runCommand($name, $params, $reuseKernel);
+    }
+
+    /**
+     * @return void
+     */
+    protected function setUp(): void
     {
         parent::setUp();
 
@@ -473,7 +520,7 @@ class FunctionalTestCase extends WebTestCase
     /**
      * @return void
      */
-    public static function setUpBeforeClass()
+    public static function setUpBeforeClass(): void
     {
         parent::setUpBeforeClass();
 
@@ -514,7 +561,7 @@ class FunctionalTestCase extends WebTestCase
     /**
      * @return void
      */
-    protected function tearDown()
+    protected function tearDown(): void
     {
         self::$hasReferenceLoaded = false;
 
@@ -539,52 +586,5 @@ class FunctionalTestCase extends WebTestCase
         }
 
         self::clearContainer($this->getContainer());
-    }
-
-    /**
-     * @param EntityManagerInterface $em
-     *
-     * @return void
-     * @throws \Doctrine\DBAL\ConnectionException
-     * @throws \Doctrine\DBAL\DBALException
-     */
-    private static function enableTransactions(EntityManagerInterface $em): void
-    {
-        $em->getUnitOfWork()->clear();
-        $nbTransactions = $em->getConnection()->getTransactionNestingLevel();
-
-        $em->getConnection()->query('PRAGMA foreign_keys = ON;');
-
-        if (self::$databaseLoaded && $nbTransactions < 1) {
-            $em->getConnection()->setNestTransactionsWithSavepoints(true);
-            $em->beginTransaction();
-        }
-    }
-
-    /**
-     * @param EntityManagerInterface $em
-     *
-     * @return void
-     */
-    private static function rollbackTransactions(EntityManagerInterface $em): void
-    {
-        $connection = $em->getConnection();
-
-        if ($connection->getTransactionNestingLevel() == 1 && self::$databaseLoaded) {
-            $em->rollback();
-        }
-
-        $connection->close();
-    }
-
-    /**
-     * @inheritdoc
-     * @deprecated Use 'createCommandTester' instead (Will be removed in next version)
-     *
-     * @codeCoverageIgnore
-     */
-    protected function runCommand($name, array $params = [], $reuseKernel = true)
-    {
-        return parent::runCommand($name, $params, $reuseKernel);
     }
 }

@@ -44,7 +44,7 @@ class ClientTest extends FunctionalTestCase
      *
      * @return void
      */
-    public function testRollbackTransactionOnTearDownAndEnsureClient(): void
+    public function testRollbackTransactionOnTearDownAndEnsureShutdownClient(): void
     {
         $reflectionParent = new \ReflectionClass(FunctionalTestCase::class);
         $staticClient = $reflectionParent->getProperty('client');
@@ -71,5 +71,32 @@ class ClientTest extends FunctionalTestCase
 
         $this->assertSame($this->getContainer(), $client->getContainer());
         $this->assertNotSame($this->getContainer(), self::$container);
+    }
+
+    /**
+     * @covers \Chaplean\Bundle\UnitBundle\Test\FunctionalTestCase::createClient
+     *
+     * @return void
+     *
+     * @expectedException \Exception
+     * @expectedExceptionMessage You must create client before the first getReference in your test
+     */
+    public function testGetReferenceBeforeCreateClient(): void
+    {
+        $this->getReference('provider-1');
+
+        self::createClient();
+    }
+
+    /**
+     * @covers \Chaplean\Bundle\UnitBundle\Test\FunctionalTestCase::createClient
+     *
+     * @return void
+     */
+    public function testDoubleCreateClient(): void
+    {
+        $client = self::createClient();
+
+        $this->assertSame($client, self::createClient());
     }
 }
