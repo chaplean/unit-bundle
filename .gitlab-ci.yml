@@ -26,6 +26,7 @@ before_script:
 test:
     stage: test
     script:
+        - cp app/config/parameters.yml.dist app/config/parameters.yml
         - composer install --prefer-dist --no-interaction
         - php ./bin/phpunit --configuration phpunit.xml.dist --dump-xdebug-filter phpunit-filter.php
         - php -d zend_extension=/usr/local/lib/php/extensions/no-debug-non-zts-20160303/xdebug.so ./bin/phpunit --prepend phpunit-filter.php --configuration phpunit.xml.dist --colors=never --coverage-text --coverage-html coverage
