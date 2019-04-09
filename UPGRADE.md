@@ -3,7 +3,7 @@
 ## From 7.x to 8.x
 
 * Fix a major bug with doctrine and the symfony client
-* Depreciated functions:
+* Deprecated functions:
     * `createRestClient`: incompatibility with `AbstractFOSRestController`
     * `runCommand`: Prefer `CommandTester`
 * BC: Add compatibility with PhpUnit8
