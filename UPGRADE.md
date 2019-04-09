@@ -11,7 +11,7 @@
 
 ##### Migrate compatibility to PhpUnit8:
 Make a Find/Replace of 
-`(public|protected) (static\s)?function (setUp|setUpBeforeClass)\(\)[^:]`
+`(public|protected) (static\s)?function (setUp|setUpBeforeClass|tearDown)\(\)[^:]`
 by
 `$1 $2function $3\(\): void\n`
 
