@@ -21,6 +21,7 @@ class LoadProductData extends AbstractFixture implements DependentFixtureInterfa
      * @param ObjectManager $manager
      *
      * @return void
+     * @throws \Exception
      */
     public function load(ObjectManager $manager)
     {
@@ -31,7 +32,7 @@ class LoadProductData extends AbstractFixture implements DependentFixtureInterfa
         $product->setName('Stylo');
         $product->setClient($client1);
 
-        $this->persist($product, $manager);
+        $manager->persist($product);
         $this->setReference('product-1', $product);
 
         $manager->flush();

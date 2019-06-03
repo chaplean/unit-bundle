@@ -1,3 +1,0 @@
-Chaplean\Bundle\UnitBundle\Entity\Client:
-    properties:
-        name: A<current()>B

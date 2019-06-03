@@ -1,4 +1,4 @@
-image: chaplean/php:7.1
+image: chaplean/php:7.2
 
 services:
     - name: chaplean/mysql:mariadb10.1

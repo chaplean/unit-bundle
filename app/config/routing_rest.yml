@@ -1,6 +1,0 @@
-api_rest_test:
-    type: rest
-    resource: Chaplean\Bundle\UnitBundle\Controller\UnitRestController
-    name_prefix: unit_rest_
-    options:
-        expose: true

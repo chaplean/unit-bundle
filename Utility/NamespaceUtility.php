@@ -105,7 +105,7 @@ class NamespaceUtility
         $psr4Prefixes = $this->getAutoload()->getPrefixesPsr4();
 
         if (!array_key_exists($namespace, $psr4Prefixes) || empty($psr4Prefixes[$namespace])) {
-            throw new \ReflectionException(sprintf('\'%s\' namespace is not available. Check \'data_fixtures_namespace\' parameter !', $namespace));
+            throw new \ReflectionException(sprintf('\'%s\' namespace is not available. Check \'chaplean_unit.data_fixtures_namespace\' parameter !', $namespace));
         }
 
         return $psr4Prefixes[$namespace][0];
@@ -117,7 +117,7 @@ class NamespaceUtility
     public function getAutoload(): ClassLoader
     {
         /** @var ClassLoader $loader */
-        $loader = require $this->kernel->getRootDir() . '/../vendor/autoload.php';
+        $loader = require $this->kernel->getProjectDir() . '/vendor/autoload.php';
 
         return $loader;
     }

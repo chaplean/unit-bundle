@@ -1,12 +1,12 @@
-version: '3'
+version: '3.3'
 services:
     application:
         container_name: unit_bundle_app
         build: .
         volumes:
-            - .:/var/www/symfony
-            - ~/.composer:/root/.composer
-            - ~/.ssh:/root/.ssh
+            - .:/var/www/symfony:delegated
+            - ~/.composer:/root/.composer:delegated
+            - ~/.ssh:/root/.ssh:delegated
         links:
             - mysql:mysql
     mysql:

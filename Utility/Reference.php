@@ -2,7 +2,7 @@
 
 namespace Chaplean\Bundle\UnitBundle\Utility;
 
-use Symfony\Component\Process\Exception\InvalidArgumentException;
+use Symfony\Component\Config\Definition\Exception\InvalidDefinitionException;
 
 /**
  * Reference.php.
@@ -47,6 +47,8 @@ class Reference
      * Reference constructor.
      *
      * @param string $property
+     *
+     * @throws \Exception
      */
     public function __construct($property)
     {
@@ -92,7 +94,7 @@ class Reference
                         $array = preg_replace('/\s*,\s*/', ',', $matches[1]);
                         $this->values = explode(',', $array);
                     } else {
-                        throw new InvalidArgumentException(sprintf('Invalid definition reference \'%s\'', $property));
+                        throw new InvalidDefinitionException(sprintf('Invalid definition reference \'%s\'', $property));
                     }
                 }
             } else {

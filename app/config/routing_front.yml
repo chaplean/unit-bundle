@@ -1,4 +1,0 @@
-app_front.index:
-    path: /
-    defaults: { _controller: ChapleanUnitBundle:UnitFront:index }
-    methods: ['GET']

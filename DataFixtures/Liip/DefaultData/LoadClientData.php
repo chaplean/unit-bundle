@@ -19,6 +19,7 @@ class LoadClientData extends AbstractFixture
      * @param ObjectManager $manager
      *
      * @return void
+     * @throws \Exception
      */
     public function load(ObjectManager $manager)
     {
@@ -27,8 +28,12 @@ class LoadClientData extends AbstractFixture
         $client->setName('Chaplean');
         $client->setCode('001');
         $client->setEmail('DEFAULT DATA !!!!');
+        $client->setIsActive(true);
+        $client->setIsPrivateMember(true);
+        $client->setHasCode(false);
+        $client->setDateAdd(new \DateTime('2018-01-01'));
 
-        $this->persist($client, $manager);
+        $manager->persist($client);
         $this->setReference('client-1', $client);
 
         $manager->flush();

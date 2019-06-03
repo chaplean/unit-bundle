@@ -3,14 +3,14 @@ Getting Started With ChapleanUnitBundle
 
 # Prerequisites
 
-This version of the bundle requires Symfony 2.8+.
+This version of the bundle requires Symfony 3.0+.
 
 # Installation
 
 ## 1. Composer
 
 ```
-composer require chaplean/unit-bundle
+composer require --dev chaplean/unit-bundle
 ```
 
 ## 2. AppKernel.php
@@ -24,23 +24,15 @@ Add
 
 ## 3. Import configuration
 
-##### 3.1. Import unit file config in `config_test.yml`
+##### 3.1. Add config in `config_test.yml`
 
-```yaml
-imports:
-    - { resource: '@ChapleanUnitBundle/Resources/config/config.yml' }
-```
-
-
-##### 3.2. Configure mock (optional)
-
-In `config_test.yml`
 ```yaml
 chaplean_unit:
+    data_fixtures_namespace: App\Bundle\MyBundle\ # Default value to `App\`, you do not need to define this parameter if you are flex-ready
     mocked_service: <YourClassImplementingMockedServiceOnSetUpInterface>
 ```
 
-Example class:
+Example class for `mocked_service`:
 ```php
 class MockService implements MockedServiceOnSetUpInterface
 {
@@ -63,18 +55,6 @@ class MockService implements MockedServiceOnSetUpInterface
         return $mocks;
     }
 }
-```
-
-##### 3.3. Add parameter (optional)
-
-Open `app/config/parameters*` files
-
-Add and change the default value. The `false` value disable the loading of datafixtures.
-
-```yaml
-parameters:
-    ...
-    data_fixtures_namespace: App\Bundle\RestBundle\
 ```
 
 # Role Provider
@@ -213,7 +193,7 @@ class ExampleTest extends FunctionalTestCase
 
 If you want use a custom printer add `printerClass` attribute with `Chaplean\Bundle\UnitBundle\TextUI\ResultPrinter` value in `phpunit.xml`
 ```xml
-<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<phpunit xmlns:xsi="https://www.w3.org/2001/XMLSchema-instance"
         <!-- ... -->
          printerClass="Chaplean\Bundle\UnitBundle\TextUI\ResultPrinter"
 >

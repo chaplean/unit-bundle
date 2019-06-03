@@ -1,4 +1,4 @@
-FROM chaplean/php:7.1
+FROM chaplean/php:7.2
 MAINTAINER Tom - Chaplean <tom@chaplean.coop>
 
 ENV COMPOSER_HOME /root/.composer

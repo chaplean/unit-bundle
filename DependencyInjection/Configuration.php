@@ -6,9 +6,12 @@ use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
 
 /**
- * This is the class that validates and merges configuration from your app/config files
+ * Class Configuration.
  *
- * To learn more see {@link http://symfony.com/doc/current/cookbook/bundles/extension.html#cookbook-bundles-extension-config-class}
+ * @package   Chaplean\Bundle\UnitBundle\DependencyInjection
+ * @author    Tom - Chaplean <tom@chaplean.coop>
+ * @copyright 2014 - 2019 Chaplean (https://www.chaplean.coop)
+ * @since     1.0.0
  */
 class Configuration implements ConfigurationInterface
 {
@@ -22,12 +25,13 @@ class Configuration implements ConfigurationInterface
 
         $rootNode
             ->children()
-                ->scalarNode('mocked_services')->defaultNull()->end()
+                ->scalarNode('data_fixtures_namespace')
+                    ->defaultValue('App\\')
+                ->end()
+                ->scalarNode('mocked_services')
+                    ->defaultNull()
+                ->end()
             ->end();
-
-        // Here you should define the parameters that are allowed to
-        // configure your bundle. See the documentation linked above for
-        // more information on that topic.
 
         return $treeBuilder;
     }

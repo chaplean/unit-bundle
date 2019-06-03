@@ -3,11 +3,11 @@
 namespace Chaplean\Bundle\UnitBundle\Utility;
 
 /**
- * Class Time
+ * Class Timer
  *
  * @package Chaplean\Bundle\UnitBundle\Utility
- * @author    Valentin - Chaplean <valentin@chaplean.com>
- * @copyright 2014 - 2017 Chaplean (http://www.chaplean.com)
+ * @author    Valentin - Chaplean <valentin@chaplean.coop>
+ * @copyright 2014 - 2017 Chaplean (https://www.chaplean.coop)
  * @since     3.0.0
  */
 class Timer
@@ -32,7 +32,7 @@ class Timer
      * @return float
      * @throws \Exception
      */
-    public static function stop()
+    public static function stop(): float
     {
         if (self::$time === null) {
             throw new \Exception('The timer is not started');
@@ -50,12 +50,12 @@ class Timer
      *
      * @return string
      */
-    public static function toString(float $time)
+    public static function toString(float $time): string
     {
         if ($time >= 1) {
             return sprintf('%.2f', $time) . 's';
-        } else {
-            return sprintf('%d', $time * 1000) . 'ms';
         }
+
+        return sprintf('%d', $time * 1000) . 'ms';
     }
 }

@@ -1,0 +1,40 @@
+imports:
+    - { resource: security.yml }
+
+framework:
+    test: ~
+    translator:      { fallback: 'fr' }
+    secret:          'SECRET'
+    router:        { resource: "%kernel.project_dir%/%kernel.test_case%/routing.yml" }
+    form:            ~
+    csrf_protection: ~
+    default_locale:  'fr'
+    trusted_hosts:   ~
+    session:
+        storage_id:     session.storage.mock_file
+    fragments:       ~
+    http_method_override: true
+    php_errors:
+        log: true
+    profiler:
+        collect: false
+
+# Doctrine Configuration
+doctrine:
+    dbal:
+        default_connection: default
+        connections:
+            default:
+                driver:   'pdo_sqlite'
+                host:     'mysql'
+                port:     '3306'
+                path:     '%kernel.cache_dir%/test.db'
+                user:     'root'
+                password: 'root'
+                charset:  UTF8
+                server_version: 5.6
+            logging: null
+            profiling: null
+    orm:
+        auto_generate_proxy_classes: '%kernel.debug%'
+        auto_mapping: true

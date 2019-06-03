@@ -5,8 +5,8 @@ namespace Chaplean\Bundle\UnitBundle\TextUI;
 /**
  * Class Output
  * @package Chaplean\Bundle\UnitBundle\Utility
- * @author    Valentin - Chaplean <valentin@chaplean.com>
- * @copyright 2014 - 2017 Chaplean (http://www.chaplean.com)
+ * @author    Valentin - Chaplean <valentin@chaplean.coop>
+ * @copyright 2014 - 2017 Chaplean (https://www.chaplean.coop)
  * @since     7.0.0
  */
 class Output

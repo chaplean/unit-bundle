@@ -16,7 +16,7 @@ use Symfony\Bridge\Doctrine\ManagerRegistry;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
- * self.php.
+ * Class FixtureLiteUtility.
  *
  * @author    Valentin - Chaplean <valentin@chaplean.coop>
  * @copyright 2014 - 2015 Chaplean (https://www.chaplean.coop)
@@ -235,6 +235,7 @@ class FixtureLiteUtility
             $metadatas = self::$cachedMetadatas['default'];
 
             $backup = $container->getParameter('kernel.cache_dir') . '/test_' . $this->getHash($classNames) . '.db';
+
             if (file_exists($backup) && file_exists($backup . '.ser') && $this->isBackupUpToDate($classNames, $backup)) {
                 /** @var Connection $connection */
                 $connection = $container->get('doctrine.orm.entity_manager')->getConnection();
@@ -278,7 +279,9 @@ class FixtureLiteUtility
             /** @noinspection PhpUndefinedMethodInspection */
             $executor->getReferenceRepository()->save($backup);
 
-            copy($name, $backup);
+            if (file_exists($name)) {
+                copy($name, $backup);
+            }
         }
 
         return $executor;

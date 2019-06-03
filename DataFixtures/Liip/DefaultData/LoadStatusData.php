@@ -34,7 +34,7 @@ class LoadStatusData extends AbstractFixture
             $status = new Status();
             $status->setStatus($data[0]);
 
-            $this->persist($status, $manager);
+            $manager->persist($status);
             $this->setReference('status-' . $key, $status);
         }
 

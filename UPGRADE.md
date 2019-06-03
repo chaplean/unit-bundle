@@ -1,11 +1,31 @@
 # Upgrading Guide
 
+## From 8.x to 9.x
+
+* `nelmio/alice` is deleted. You CAN'T use datafixtures.yml now.
+* Deprecated removed:
+    * Class `Client`
+    * Class `RestClient`
+    * Function `FunctionalTestCase::createRestClient`
+    * Function `FunctionalTestCase::runCommand`: use `CommandTester`
+* New implementation:
+    * `FunctionalTestCase::createCommandTester` now needs command name instead of command class.
+* New configuration:
+    * `data_fixtures_namespace` now in `chaplean_unit` config namespace.
+* Breaking Changes:
+    * `FunctionalTestCase::initializeContainer` is now private and shouldn't be called dy test cases.
+    * You DO NOT have access anymore to container/entity manager directly when extending `FunctionalTestCase`. You have to `bootKernel` for that
+    * `Reference` now throws `InvalidDefinitionException` instead of `InvalidArgumentException`
+* Possible side effects:
+    * `self` calls for protected/public functions and properties have been replaced by `static` calls in `FunctionalTestCase` may overwrite some of your variables.
+    * `FunctionalTestCase::getDefaultFixturesNamespace` now use `App` namespace by default
+
 ## From 7.x to 8.x
 
 * Fix a major bug with doctrine and the symfony client
 * Deprecated functions:
     * `createRestClient`: incompatibility with `AbstractFOSRestController`
-    * `runCommand`: Prefer `CommandTester`
+    * `runCommand`: prefer `CommandTester`
 * BC: Add compatibility with PhpUnit8
 * BC: Restrict symfony client creation before the first `getReference` in each test case
 

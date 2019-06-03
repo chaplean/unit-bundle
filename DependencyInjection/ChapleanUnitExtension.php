@@ -8,9 +8,12 @@ use Symfony\Component\DependencyInjection\Loader;
 use Symfony\Component\HttpKernel\DependencyInjection\Extension;
 
 /**
- * This is the class that loads and manages your bundle configuration
+ * Class ChapleanUnitExtension.
  *
- * To learn more see {@link http://symfony.com/doc/current/cookbook/bundles/extension.html}
+ * @package   Chaplean\Bundle\UnitBundle\DependencyInjection
+ * @author    Tom - Chaplean <tom@chaplean.coop>
+ * @copyright 2014 - 2019 Chaplean (https://www.chaplean.coop)
+ * @since     1.0.0
  */
 class ChapleanUnitExtension extends Extension
 {
@@ -29,25 +32,7 @@ class ChapleanUnitExtension extends Extension
         $loader = new Loader\YamlFileLoader($container, new FileLocator(__DIR__ . '/../Resources/config'));
         $loader->load('services.yml');
 
-        $container->setParameter('chaplean_unit', $config);
-        $this->setParameters($container, 'chaplean_unit', $config);
-    }
-
-    /**
-     * @param ContainerBuilder $container
-     * @param string           $name
-     * @param array            $config
-     *
-     * @return void
-     */
-    public function setParameters(ContainerBuilder $container, $name, array $config): void
-    {
-        foreach ($config as $key => $parameter) {
-            $container->setParameter($name . '.' . $key, $parameter);
-
-            if (is_array($parameter)) {
-                $this->setParameters($container, $name . '.' . $key, $parameter);
-            }
-        }
+        $container->setParameter('chaplean_unit.data_fixtures_namespace', $config['data_fixtures_namespace']);
+        $container->setParameter('chaplean_unit.mocked_services', $config['mocked_services']);
     }
 }
