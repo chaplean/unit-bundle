@@ -41,7 +41,6 @@
     "require-dev": {
         "chaplean/coding-standard": "^1.1",
         "sensio/framework-extra-bundle": "^4.0 || ^5.0",
-        "symfony/console": "^3.0 || ^4.0",
         "symfony/form": "^3.0 || ^4.0",
         "symfony/http-kernel": "^3.0 || ^4.0",
         "symfony/monolog-bundle": "^3.0 || ^4.0",
@@ -52,13 +51,12 @@
         "symfony/var-dumper": "^3.0 || ^4.0"
     },
     "config": {
-        "bin-dir": "bin"
+        "bin-dir": "bin",
+        "sort-packages": true
     },
     "extra": {
-        "symfony-app-dir": "app",
-        "symfony-bin-dir": "bin",
-        "symfony-var-dir": "var",
-        "symfony-web-dir": "web",
-        "symfony-assets-install": "relative"
+        "branch-alias": {
+            "dev-master": "9.0.x-dev"
+        }
     }
 }
