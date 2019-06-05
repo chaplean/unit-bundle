@@ -21,6 +21,9 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  * @author    Valentin - Chaplean <valentin@chaplean.coop>
  * @copyright 2014 - 2017 Chaplean (https://www.chaplean.coop)
  * @since     7.0.0
+ *
+ * @runTestsInSeparateProcesses
+ * @preserveGlobalState disabled
  */
 class FixtureLiteUtilityTest extends MockeryTestCase
 {

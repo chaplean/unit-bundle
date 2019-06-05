@@ -13,9 +13,10 @@
 * New configuration:
     * `data_fixtures_namespace` now in `chaplean_unit` config namespace.
 * Breaking Changes:
-    * `FunctionalTestCase::initializeContainer` is now private and shouldn't be called dy test cases.
-    * You DO NOT have access anymore to container/entity manager directly when extending `FunctionalTestCase`. You have to `bootKernel` for that
+    * You **DO NOT** have access anymore to container/entity manager directly when extending `FunctionalTestCase`. You have to `bootKernel` or `createClient` for that
+    * `FunctionalTestCase::initializeContainer` has been deleted.
     * `Reference` now throws `InvalidDefinitionException` instead of `InvalidArgumentException`
+    * Kernel is rebooted completly after each test (as it is in Symfony by default)
 * Possible side effects:
     * `self` calls for protected/public functions and properties have been replaced by `static` calls in `FunctionalTestCase` may overwrite some of your variables.
     * `FunctionalTestCase::getDefaultFixturesNamespace` now use `App` namespace by default

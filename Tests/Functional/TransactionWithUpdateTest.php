@@ -26,8 +26,8 @@ class TransactionWithUpdateTest extends FunctionalTestCase
         $client = $this->getReference('client-1');
 
         $this->assertEquals('Chaplean', $client->getName());
-
         $client->setName('Update !');
+
         $this->em->persist($client);
         $this->em->flush();
 
@@ -36,18 +36,19 @@ class TransactionWithUpdateTest extends FunctionalTestCase
 
     /**
      * @return void
-     * @throws \Doctrine\DBAL\DBALException
-     * @throws \Doctrine\ORM\ORMException
+     * @throws \Exception
      */
     public function testGetClientPreviouslyUpdated()
     {
         self::bootKernel();
 
-        /** @var Client $clientReference */
-        $clientReference = $this->getReference('client-1');
         $clientDatabase  = $this->em->getConnection()->executeQuery('SELECT name FROM cl_client WHERE id = 1')->fetch();
 
         $this->assertEquals('Chaplean', $clientDatabase['name']);
+
+        /** @var Client $clientReference */
+        $clientReference = $this->getReference('client-1');
+
         $this->assertEquals('Chaplean', $clientReference->getName());
     }
 }

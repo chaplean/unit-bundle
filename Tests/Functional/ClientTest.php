@@ -2,8 +2,6 @@
 
 namespace Tests\Chaplean\Bundle\UnitBundle\Functional;
 
-use Chaplean\Bundle\UnitBundle\Test\FunctionalTestCase as BaseFunctionalTestCase;
-
 /**
  * Class ClientTest.
  *
@@ -50,21 +48,22 @@ class ClientTest extends FunctionalTestCase
      * @throws \Doctrine\DBAL\ConnectionException
      * @throws \Doctrine\DBAL\DBALException
      * @throws \ReflectionException
+     * @throws \Exception
      */
     public function testRollbackTransactionOnTearDownAndEnsureShutdownClient(): void
     {
-        $reflectionParent = new \ReflectionClass(BaseFunctionalTestCase::class);
+        $reflectionParent = new \ReflectionClass(FunctionalTestCase::class);
         $staticClient = $reflectionParent->getProperty('client');
         $staticClient->setAccessible(true);
 
         $client = self::createClient();
 
-        $this->assertNotNull($staticClient->getValue(BaseFunctionalTestCase::class));
+        $this->assertNotNull($staticClient->getValue(FunctionalTestCase::class));
 
         $this->tearDown();
 
         $this->assertNull($client->getContainer());
-        $this->assertNull($staticClient->getValue(BaseFunctionalTestCase::class));
+        $this->assertNull($staticClient->getValue(FunctionalTestCase::class));
     }
 
     /**

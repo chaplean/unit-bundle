@@ -7,7 +7,7 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 /**
  * Class ServiceLambda.
  *
- * @package   App\Tests\Chaplean\Bundle\UnitBundle\Resources\Utility
+ * @package   Tests\Chaplean\Bundle\UnitBundle\Utility
  * @author    Valentin - Chaplean <valentin@chaplean.coop>
  * @copyright 2014 - 2019 Chaplean (https://www.chaplean.coop)
  */

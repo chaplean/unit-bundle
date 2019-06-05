@@ -92,6 +92,8 @@ class AuthenticateTest extends FunctionalTestCase
         $this->authenticate($user);
         $this->tearDown();
 
+        self::bootKernel();
+
         /** @var UsernamePasswordToken $token */
         $token = $this->getContainer()
             ->get('security.token_storage')

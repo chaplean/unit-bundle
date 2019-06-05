@@ -1,0 +1,7 @@
+# Create services for tests
+services:
+    _defaults:
+        autowire: true
+        public: true
+
+    Tests\Chaplean\Bundle\UnitBundle\Resources\Utility\ServiceLambda: ~

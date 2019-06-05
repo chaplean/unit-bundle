@@ -1,8 +1,9 @@
 imports:
     - { resource: security.yml }
+    - { resource: services.yml }
 
 framework:
-    test: ~
+    test:            true
     translator:      { fallback: 'fr' }
     secret:          'SECRET'
     router:        { resource: "%kernel.project_dir%/%kernel.test_case%/routing.yml" }

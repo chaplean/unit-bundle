@@ -15,7 +15,6 @@ namespace Chaplean\Bundle\UnitBundle\Test {
     use Symfony\Component\BrowserKit\Cookie;
     use Symfony\Component\Console\Command\Command;
     use Symfony\Component\Console\Tester\CommandTester;
-    use Symfony\Component\DependencyInjection\Container;
     use Symfony\Component\DependencyInjection\ContainerInterface;
     use Symfony\Component\DependencyInjection\Exception\ServiceNotFoundException;
     use Symfony\Component\Form\Form;
@@ -38,11 +37,6 @@ namespace Chaplean\Bundle\UnitBundle\Test {
          * @var KernelBrowser
          */
         protected static $client;
-
-        /**
-         * @var ContainerInterface
-         */
-        protected static $container;
 
         /**
          * @var boolean
@@ -135,36 +129,21 @@ namespace Chaplean\Bundle\UnitBundle\Test {
         protected static function bootKernel(array $options = [])
         {
             $options['environment'] = 'test';
-            $kernel = parent::bootKernel($options);
+            parent::bootKernel($options);
+
+            static::mockServices(static::$container);
 
             static::loadFixtures();
             static::loadUserRoles();
 
-            /** @var EntityManagerInterface $manager */
-            $manager = static::$container
+            /** @var EntityManagerInterface $em */
+            $em = static::$container
                 ->get('doctrine')
                 ->getManager();
 
-            static::enableTransactions($manager);
-            static::mockServices(static::$container);
+            static::enableTransactions($em);
 
-            return $kernel;
-        }
-
-        /**
-         * Reset all non-important services (Important service: kernel, doctrine (+ related service) and orm (+ related service))
-         *
-         * @param Container|ContainerInterface $container
-         *
-         * @return void
-         */
-        private static function clearContainer(ContainerInterface $container)
-        {
-            foreach ($container->getServiceIds() as $service) {
-                if (!preg_match_all('/^(cache|kernel|doctrine|[^f]orm|service_container|test)/', $service)) {
-                    static::$container->set($service, null);
-                }
-            }
+            return static::$kernel;
         }
 
         /**
@@ -244,7 +223,6 @@ namespace Chaplean\Bundle\UnitBundle\Test {
          */
         private static function enableTransactions(EntityManagerInterface $em): void
         {
-            dump("enableTransactions");
             $em->getUnitOfWork()
                 ->clear();
 
@@ -255,7 +233,6 @@ namespace Chaplean\Bundle\UnitBundle\Test {
                 ->query('PRAGMA foreign_keys = ON;');
 
             if (self::$databaseLoaded && $nbTransactions < 1) {
-                dump("begin transaction");
                 $em->getConnection()
                     ->setNestTransactionsWithSavepoints(true);
 
@@ -277,9 +254,7 @@ namespace Chaplean\Bundle\UnitBundle\Test {
             }
 
             if ($container === null) {
-                self::bootKernel();
-
-                return $this->getContainer();
+                throw new \Exception('You can\'t use getContainer() if you haven\'t use bootKernel() or createKernel() before');
             }
 
             return $container;
@@ -294,13 +269,16 @@ namespace Chaplean\Bundle\UnitBundle\Test {
         private static function getDefaultEntityManager(): ?EntityManagerInterface
         {
             if (static::$client !== null) {
-                return static::$client->getContainer()
+                return static::$client
+                    ->getContainer()
                     ->get('doctrine')
                     ->getManager();
-            } else if (static::$container !== null) {
-                return static::$container
-                    ->get('doctrine')
-                    ->getManager();
+            } else {
+                if (static::$container !== null) {
+                    return static::$container
+                        ->get('doctrine')
+                        ->getManager();
+                }
             }
 
             return null;
@@ -395,6 +373,7 @@ namespace Chaplean\Bundle\UnitBundle\Test {
          *
          * @return object
          * @throws \Doctrine\ORM\ORMException
+         * @throws \Exception
          */
         public function getReference(string $reference)
         {
@@ -402,18 +381,9 @@ namespace Chaplean\Bundle\UnitBundle\Test {
                 return null;
             }
 
-            $em = null;
-
-            if (static::$client !== null) {
-                /** @var EntityManagerInterface $em */
-                $em = static::$client->getContainer()
-                    ->get('doctrine')
-                    ->getManager();
-            }
-
             self::$hasReferenceLoaded = true;
 
-            return self::$fixtures->getReferenceWithManager($reference, $em);
+            return self::$fixtures->getReferenceWithManager($reference, self::getDefaultEntityManager());
         }
 
         /**
@@ -430,8 +400,6 @@ namespace Chaplean\Bundle\UnitBundle\Test {
             if ($defaultNamespace === null) {
                 return;
             }
-
-            static::mockServices(static::$container);
 
             if (!self::$reloadDatabase) {
                 echo Output::info("Database initialization...\n\n");
@@ -459,8 +427,6 @@ namespace Chaplean\Bundle\UnitBundle\Test {
                     // Timer not started : not a big issue
                 }
             }
-
-            static::clearContainer(static::$container);
 
             self::$databaseLoaded = true;
             self::$reloadDatabase = false;
@@ -566,7 +532,6 @@ namespace Chaplean\Bundle\UnitBundle\Test {
             $connection = $em->getConnection();
 
             if ($connection->getTransactionNestingLevel() == 1 && self::$databaseLoaded) {
-                dump("rollback");
                 $em->rollback();
             }
 
@@ -588,33 +553,17 @@ namespace Chaplean\Bundle\UnitBundle\Test {
                         ->get('doctrine')
                         ->getManager();
 
-                    dump('static::rollbackTransactions($em)');
                     static::rollbackTransactions($em);
                 }
 
                 static::$client = null;
             }
 
-            parent::tearDown();
-dump($this->em);
             if ($this->em !== null) {
-                dump('static::rollbackTransactions($this->em);');
                 static::rollbackTransactions($this->em);
             }
 
-            // Unauthenticate user between each test
-            // We don't use $this->getContainer() here because we know $client is necessary null and we DO NOT want container to be reinitialized
-            if (static::$container !== null) {
-                try {
-                    static::$container
-                        ->get('security.token_storage')
-                        ->setToken(null);
-                } catch (ServiceNotFoundException $e) {
-                    // Intentionnaly empty
-                }
-
-                static::clearContainer(static::$container);
-            }
+            parent::tearDown();
         }
     }
 }

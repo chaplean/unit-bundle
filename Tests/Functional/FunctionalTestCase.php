@@ -50,6 +50,6 @@ class FunctionalTestCase extends BaseFunctionalTestCase
      */
     protected static function getVarDir()
     {
-        return 'CUB' . substr(strrchr(\get_called_class(), '\\'), 1);
+        return 'ChapleanUnitBundle';
     }
 }

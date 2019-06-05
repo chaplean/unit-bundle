@@ -53,7 +53,7 @@ class TransactionTest extends FunctionalTestCase
         $client->setHasCode(false);
         
         $this->em->persist($client);
-        $this->em->flush($client);
+        $this->em->flush();
 
         $this->assertCount(2, $this->em->getRepository(Client::class)->findAll());
         $this->assertTrue($this->em->getConnection()->isTransactionActive());
