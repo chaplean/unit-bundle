@@ -210,66 +210,67 @@ class FixtureLiteUtility
         }
 
         $connection = $om->getConnection();
-        if ($connection->getDriver() instanceof SqliteDriver) {
-            $params = $connection->getParams();
-            if (isset($params['master'])) {
-                $params = $params['master'];
-            }
+        if (!($connection->getDriver() instanceof SqliteDriver)) {
+            throw new \Exception(\sprintf('%s not supported !', \get_class($connection->getDriver())));
+        }
 
-            $name = isset($params['path']) ? $params['path'] : false;
-            if (!$name) {
-                throw new \InvalidArgumentException(
-                    "Connection does not contain a 'path' parameter"
-                );
-            }
+        $params = $connection->getParams();
+        if (isset($params['master'])) {
+            $params = $params['master'];
+        }
 
-            if (!isset(self::$cachedMetadatas['default'])) {
-                self::$cachedMetadatas['default'] = $om->getMetadataFactory()->getAllMetadata();
-                \usort(
-                    self::$cachedMetadatas['default'],
-                    function ($a, $b) {
-                        return \strcmp($a->name, $b->name);
-                    }
-                );
-            }
-            $metadatas = self::$cachedMetadatas['default'];
+        $name = isset($params['path']) ? $params['path'] : false;
+        if (!$name) {
+            throw new \InvalidArgumentException(
+                "Connection does not contain a 'path' parameter"
+            );
+        }
 
-            $backup = $container->getParameter('kernel.cache_dir') . '/test_' . $this->getHash($classNames) . '.db';
-
-            if (\file_exists($backup) && \file_exists($backup . '.ser') && $this->isBackupUpToDate($classNames, $backup)) {
-                /** @var Connection $connection */
-                $connection = $container->get('doctrine.orm.entity_manager')->getConnection();
-
-                if (null !== $connection) {
-                    $connection->close();
+        if (!isset(self::$cachedMetadatas['default'])) {
+            self::$cachedMetadatas['default'] = $om->getMetadataFactory()->getAllMetadata();
+            \usort(
+                self::$cachedMetadatas['default'],
+                function ($a, $b) {
+                    return \strcmp($a->name, $b->name);
                 }
+            );
+        }
 
-                $om->flush();
-                $om->clear();
+        $metadatas = self::$cachedMetadatas['default'];
 
-                \copy($backup, $name);
+        $backup = $container->getParameter('kernel.cache_dir') . '/test_' . $this->getHash($classNames) . '.db';
 
-                $executor = new ORMExecutor($om, new ORMPurger());
-                $executor->setReferenceRepository($referenceRepository);
-                /** @noinspection PhpUndefinedMethodInspection */
-                $executor->getReferenceRepository()->load($backup);
+        if (\file_exists($backup) && \file_exists($backup . '.ser') && $this->isBackupUpToDate($classNames, $backup)) {
+            /** @var Connection $connection */
+            $connection = $container->get('doctrine.orm.entity_manager')->getConnection();
 
-                return $executor;
+            if (null !== $connection) {
+                $connection->close();
             }
 
-            // TODO: handle case when using persistent connections. Fail loudly?
-            $schemaTool = new SchemaTool($om);
-            $schemaTool->dropDatabase();
+            $om->flush();
+            $om->clear();
 
-            if (!empty($metadatas)) {
-                $schemaTool->createSchema($metadatas);
-            }
+            \copy($backup, $name);
 
             $executor = new ORMExecutor($om, new ORMPurger());
             $executor->setReferenceRepository($referenceRepository);
-        } else {
-            throw new \Exception(\sprintf('%s not supported !', \get_class($connection->getDriver())));
+            /** @noinspection PhpUndefinedMethodInspection */
+            $executor->getReferenceRepository()->load($backup);
+
+            return $executor;
         }
+
+        // TODO: handle case when using persistent connections. Fail loudly?
+        $schemaTool = new SchemaTool($om);
+        $schemaTool->dropDatabase();
+
+        if (!empty($metadatas)) {
+            $schemaTool->createSchema($metadatas);
+        }
+
+        $executor = new ORMExecutor($om, new ORMPurger());
+        $executor->setReferenceRepository($referenceRepository);
 
         $loader = $this->getFixtureLoader($container, $classNames);
 

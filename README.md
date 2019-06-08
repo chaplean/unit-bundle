@@ -18,7 +18,6 @@ composer require --dev chaplean/unit-bundle
 Add
 ```
     $bundles[] = new Chaplean\Bundle\UnitBundle\ChapleanUnitBundle();
-    $bundles[] = new Liip\FunctionalTestBundle\LiipFunctionalTestBundle();
     $bundles[] = new Doctrine\Bundle\FixturesBundle\DoctrineFixturesBundle();
 ```
 
