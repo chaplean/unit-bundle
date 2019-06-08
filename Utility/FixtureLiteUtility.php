@@ -79,9 +79,9 @@ class FixtureLiteUtility
         $reflClass = new \ReflectionClass($class);
         $classFileName = $reflClass->getFileName();
 
-        if (file_exists($classFileName)) {
+        if (\file_exists($classFileName)) {
             $lastModifiedDateTime = new \DateTime();
-            $lastModifiedDateTime->setTimestamp(filemtime($classFileName));
+            $lastModifiedDateTime->setTimestamp(\filemtime($classFileName));
         }
 
         return $lastModifiedDateTime;
@@ -99,9 +99,9 @@ class FixtureLiteUtility
     {
         $loaderClass = 'Symfony\Bundle\DoctrineFixturesBundle\Common\DataFixtures\Loader';
 
-        if (class_exists('Symfony\Bridge\Doctrine\DataFixtures\ContainerAwareLoader')) {
+        if (\class_exists('Symfony\Bridge\Doctrine\DataFixtures\ContainerAwareLoader')) {
             $loaderClass = 'Symfony\Bridge\Doctrine\DataFixtures\ContainerAwareLoader';
-        } elseif (class_exists('Doctrine\Bundle\FixturesBundle\Common\DataFixtures\Loader')) {
+        } elseif (\class_exists('Doctrine\Bundle\FixturesBundle\Common\DataFixtures\Loader')) {
             $loaderClass = 'Doctrine\Bundle\FixturesBundle\Common\DataFixtures\Loader';
         }
 
@@ -121,7 +121,7 @@ class FixtureLiteUtility
      */
     public function getHash(array $classNames): string
     {
-        return md5(serialize(self::$cachedMetadatas['default']) . serialize($classNames) . date('YMDH'));
+        return \md5(\serialize(self::$cachedMetadatas['default']) . \serialize($classNames) . \date('YMDH'));
     }
 
     /**
@@ -155,7 +155,7 @@ class FixtureLiteUtility
     protected function isBackupUpToDate(array $classNames, string $backup): bool
     {
         $backupLastModifiedDateTime = new \DateTime();
-        $backupLastModifiedDateTime->setTimestamp(filemtime($backup));
+        $backupLastModifiedDateTime->setTimestamp(\filemtime($backup));
 
         /** @var \Symfony\Bridge\Doctrine\DataFixtures\ContainerAwareLoader $loader */
         $loader = $this->getFixtureLoader($this->container, $classNames);
@@ -225,10 +225,10 @@ class FixtureLiteUtility
 
             if (!isset(self::$cachedMetadatas['default'])) {
                 self::$cachedMetadatas['default'] = $om->getMetadataFactory()->getAllMetadata();
-                usort(
+                \usort(
                     self::$cachedMetadatas['default'],
                     function ($a, $b) {
-                        return strcmp($a->name, $b->name);
+                        return \strcmp($a->name, $b->name);
                     }
                 );
             }
@@ -236,7 +236,7 @@ class FixtureLiteUtility
 
             $backup = $container->getParameter('kernel.cache_dir') . '/test_' . $this->getHash($classNames) . '.db';
 
-            if (file_exists($backup) && file_exists($backup . '.ser') && $this->isBackupUpToDate($classNames, $backup)) {
+            if (\file_exists($backup) && \file_exists($backup . '.ser') && $this->isBackupUpToDate($classNames, $backup)) {
                 /** @var Connection $connection */
                 $connection = $container->get('doctrine.orm.entity_manager')->getConnection();
 
@@ -247,7 +247,7 @@ class FixtureLiteUtility
                 $om->flush();
                 $om->clear();
 
-                copy($backup, $name);
+                \copy($backup, $name);
 
                 $executor = new ORMExecutor($om, new ORMPurger());
                 $executor->setReferenceRepository($referenceRepository);
@@ -268,7 +268,7 @@ class FixtureLiteUtility
             $executor = new ORMExecutor($om, new ORMPurger());
             $executor->setReferenceRepository($referenceRepository);
         } else {
-            throw new \Exception(sprintf('%s not supported !', get_class($connection->getDriver())));
+            throw new \Exception(\sprintf('%s not supported !', \get_class($connection->getDriver())));
         }
 
         $loader = $this->getFixtureLoader($container, $classNames);
@@ -279,9 +279,7 @@ class FixtureLiteUtility
             /** @noinspection PhpUndefinedMethodInspection */
             $executor->getReferenceRepository()->save($backup);
 
-            if (file_exists($name)) {
-                copy($name, $backup);
-            }
+            \copy($name, $backup);
         }
 
         return $executor;

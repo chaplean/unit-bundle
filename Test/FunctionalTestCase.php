@@ -107,8 +107,8 @@ class FunctionalTestCase extends WebTestCase
      */
     public static function assertStatusCode($expectedStatusCode, Client $client)
     {
-        @trigger_error(
-            sprintf('Assertion "%s::assertStatusCode()" is deprecated since ChapleanUnitBundle v9. Use assertEquals() with getStatusCode() instead.', __CLASS__),
+        @\trigger_error(
+            \sprintf('Assertion "%s::assertStatusCode()" is deprecated since ChapleanUnitBundle v9. Use assertEquals() with getStatusCode() instead.', __CLASS__),
             E_USER_DEPRECATED
         );
 
@@ -117,7 +117,7 @@ class FunctionalTestCase extends WebTestCase
         $response = $client->getResponse();
 
         if ($expectedStatusCode !== $response->getStatusCode()) {
-            $helpfulErrorMessage = substr($response, 0, 200);
+            $helpfulErrorMessage = \substr($response, 0, 200);
         }
 
         self::assertEquals($expectedStatusCode, $response->getStatusCode(), $helpfulErrorMessage);
@@ -151,7 +151,7 @@ class FunctionalTestCase extends WebTestCase
             /** @var Session $session */
             $session = $clientContainer->get('session');
 
-            $session->set('_security_main', serialize($usernameTokenPassword));
+            $session->set('_security_main', \serialize($usernameTokenPassword));
             $session->save();
 
             $cookie = new Cookie($session->getName(), $session->getId());
@@ -191,7 +191,7 @@ class FunctionalTestCase extends WebTestCase
         try {
             static::enableTransactions($em);
         } catch (\Exception $e) {
-            dump(sprintf('Database transactions could not be enabled: %s', $e->getMessage()));
+            \dump(\sprintf('Database transactions could not be enabled: %s', $e->getMessage()));
         }
 
         return static::$kernel;
@@ -210,7 +210,7 @@ class FunctionalTestCase extends WebTestCase
         }
 
         try {
-            $reflectionClass = new \ReflectionClass(get_class(static::$container));
+            $reflectionClass = new \ReflectionClass(\get_class(static::$container));
             $aliasesProperty = $reflectionClass->getProperty('aliases');
             $servicesProperty = $reflectionClass->getProperty('services');
 
@@ -224,8 +224,8 @@ class FunctionalTestCase extends WebTestCase
 
             // We remove all services that are not in our selection to container
             foreach ($containerServices as $serviceId => $serviceName) {
-                if (!preg_match_all('/(kernel|doctrine|[^f]orm|service_container|test)/', $serviceId)) {
-                    if (array_key_exists($serviceId, $keepingAliases)) {
+                if (!\preg_match_all('/(kernel|doctrine|[^f]orm|service_container|test)/', $serviceId)) {
+                    if (\array_key_exists($serviceId, $keepingAliases)) {
                         unset($keepingAliases[$serviceId]);
                     }
 
@@ -236,7 +236,7 @@ class FunctionalTestCase extends WebTestCase
             $aliasesProperty->setValue(static::$container, $keepingAliases);
             $servicesProperty->setValue(static::$container, $keepingServices);
         } catch (\ReflectionException $e) {
-            dump(sprintf('Clear container error: %s', $e->getMessage()));
+            \dump(\sprintf('Clear container error: %s', $e->getMessage()));
         }
     }
 
@@ -279,7 +279,7 @@ class FunctionalTestCase extends WebTestCase
         try {
             static::enableTransactions($em);
         } catch (\Exception $e) {
-            dump(sprintf('Database transactions could not be enabled for client: %s', $e->getMessage()));
+            \dump(\sprintf('Database transactions could not be enabled for client: %s', $e->getMessage()));
         }
 
         static::mockServices(static::$client->getContainer());
@@ -388,7 +388,7 @@ class FunctionalTestCase extends WebTestCase
             ->create($formClass);
         $fields = $form->createView()->children;
 
-        if (!array_key_exists('_token', $fields)) {
+        if (!\array_key_exists('_token', $fields)) {
             throw new \Exception('CrsfToken disabled');
         }
 
@@ -434,9 +434,9 @@ class FunctionalTestCase extends WebTestCase
      */
     public static function getInputStream($input)
     {
-        $stream = fopen('php://memory', 'r+', false);
-        fputs($stream, $input);
-        rewind($stream);
+        $stream = \fopen('php://memory', 'r+', false);
+        \fputs($stream, $input);
+        \rewind($stream);
 
         return $stream;
     }
@@ -528,7 +528,7 @@ class FunctionalTestCase extends WebTestCase
 
         if (!self::$reloadDatabase) {
             try {
-                echo sprintf(" Done %s (%s)\n\n", Output::success(Output::CHAR_CHECK), Timer::toString(Timer::stop()));
+                echo \sprintf(" Done %s (%s)\n\n", Output::success(Output::CHAR_CHECK), Timer::toString(Timer::stop()));
             } catch (\Exception $e) {
                 // Timer not started : not a big issue
             }
@@ -560,8 +560,8 @@ class FunctionalTestCase extends WebTestCase
     {
         $servicesToOverride = [];
 
-        if (class_exists('Knp\Bundle\SnappyBundle\Snappy\LoggableGenerator')) {
-            $pdf = file_get_contents(__DIR__ . '/../Resources/pdf.pdf');
+        if (\class_exists('Knp\Bundle\SnappyBundle\Snappy\LoggableGenerator')) {
+            $pdf = \file_get_contents(__DIR__ . '/../Resources/pdf.pdf');
 
             $knpPdf = \Mockery::mock('Knp\Bundle\SnappyBundle\Snappy\LoggableGenerator');
             $knpPdf->shouldReceive('getOutputFromHtml')
@@ -572,7 +572,7 @@ class FunctionalTestCase extends WebTestCase
             $servicesToOverride['knp_snappy.pdf'] = $knpPdf;
         }
 
-        $servicesToOverride = array_merge($servicesToOverride, static::getOtherMockedServices($container));
+        $servicesToOverride = \array_merge($servicesToOverride, static::getOtherMockedServices($container));
 
         foreach ($servicesToOverride as $service => $mock) {
             $container->set($service, $mock);
@@ -593,13 +593,13 @@ class FunctionalTestCase extends WebTestCase
             throw new \LogicException('You must define test_roles in your parameters_test.yml to use this function.');
         }
 
-        $countExpectations = count($expectations);
-        $rolesNames = array_keys(self::$userRoles);
-        $countRoles = count($rolesNames);
+        $countExpectations = \count($expectations);
+        $rolesNames = \array_keys(self::$userRoles);
+        $countRoles = \count($rolesNames);
 
         if ($countExpectations !== $countRoles) {
             throw new \LogicException(
-                sprintf(
+                \sprintf(
                     'The number of expectations (%d) must match the number of roles (%d)',
                     $countExpectations,
                     $countRoles
@@ -607,25 +607,25 @@ class FunctionalTestCase extends WebTestCase
             );
         }
 
-        if ($rolesNames !== array_keys($expectations)) {
+        if ($rolesNames !== \array_keys($expectations)) {
             throw new \LogicException('The roles in the expectations given don\'t match the existing roles');
         }
 
-        $mapUserExpectation = array_map(
+        $mapUserExpectation = \array_map(
             function ($userReference, $expectation) {
-                if (is_array($expectation)) {
-                    array_unshift($expectation, $userReference);
+                if (\is_array($expectation)) {
+                    \array_unshift($expectation, $userReference);
 
                     return $expectation;
                 }
 
                 return [$userReference, $expectation];
             },
-            array_values(self::$userRoles),
-            array_values($expectations)
+            \array_values(self::$userRoles),
+            \array_values($expectations)
         );
 
-        return array_merge(array_combine($rolesNames, $mapUserExpectation), $extraRoles);
+        return \array_merge(\array_combine($rolesNames, $mapUserExpectation), $extraRoles);
     }
 
     /**

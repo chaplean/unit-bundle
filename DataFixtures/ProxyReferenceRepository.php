@@ -33,7 +33,7 @@ class ProxyReferenceRepository extends BaseProxyReferenceRepository
         }
 
         $reference = $this->getReferences()[$name];
-        $meta = $manager->getClassMetadata(get_class($reference));
+        $meta = $manager->getClassMetadata(\get_class($reference));
 
         if (!$manager->contains($reference) && isset($this->getIdentities()[$name])) {
             $reference = $manager->getReference(

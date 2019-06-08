@@ -85,8 +85,8 @@ class NamespaceUtility
      */
     public function getBundleClassName(string $namespace)
     {
-        if (strpos($namespace, 'Bundle') !== false) {
-            return str_replace(['\\Bundle', '\\'], '', $namespace);
+        if (\strpos($namespace, 'Bundle') !== false) {
+            return \str_replace(['\\Bundle', '\\'], '', $namespace);
         }
 
         return '';
@@ -104,8 +104,8 @@ class NamespaceUtility
     {
         $psr4Prefixes = $this->getAutoload()->getPrefixesPsr4();
 
-        if (!array_key_exists($namespace, $psr4Prefixes) || empty($psr4Prefixes[$namespace])) {
-            throw new \ReflectionException(sprintf('\'%s\' namespace is not available. Check \'chaplean_unit.data_fixtures_namespace\' parameter !', $namespace));
+        if (!\array_key_exists($namespace, $psr4Prefixes) || empty($psr4Prefixes[$namespace])) {
+            throw new \ReflectionException(\sprintf('\'%s\' namespace is not available. Check \'chaplean_unit.data_fixtures_namespace\' parameter !', $namespace));
         }
 
         return $psr4Prefixes[$namespace][0];

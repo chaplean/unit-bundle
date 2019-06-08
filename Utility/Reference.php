@@ -65,9 +65,9 @@ class Reference
     private function buildReference($property)
     {
         $matches = null;
-        preg_match('/@(.[^<>\[\]]*)(<\d*,*\s*\d*>|\[.*,?\])?/', $property, $matches);
+        \preg_match('/@(.[^<>\[\]]*)(<\d*,*\s*\d*>|\[.*,?\])?/', $property, $matches);
 
-        if (count($matches) >= 2) {
+        if (\count($matches) >= 2) {
             if ($matches[0] == '@new()') {
                 $this->key = null;
                 return;
@@ -76,25 +76,25 @@ class Reference
             $this->key = $matches[1];
             if (isset($matches[2])) {
                 $options = $matches[2];
-                preg_match('/<(\d*),\s*(\d*)>/', $options, $matches);
+                \preg_match('/<(\d*),\s*(\d*)>/', $options, $matches);
 
-                if (count($matches) == 3) {
+                if (\count($matches) == 3) {
                     // interval values
                     $this->type = 'interval';
                     $this->min = (int) $matches[1];
                     $this->index = $this->min;
                     $this->max = (int) $matches[2];
                 } else {
-                    preg_match('/\[(.+,?)\]/', $options, $matches);
+                    \preg_match('/\[(.+,?)\]/', $options, $matches);
 
-                    if (count($matches) > 1) {
+                    if (\count($matches) > 1) {
                         // array values
                         $this->type = 'array';
 
-                        $array = preg_replace('/\s*,\s*/', ',', $matches[1]);
-                        $this->values = explode(',', $array);
+                        $array = \preg_replace('/\s*,\s*/', ',', $matches[1]);
+                        $this->values = \explode(',', $array);
                     } else {
-                        throw new InvalidDefinitionException(sprintf('Invalid definition reference \'%s\'', $property));
+                        throw new InvalidDefinitionException(\sprintf('Invalid definition reference \'%s\'', $property));
                     }
                 }
             } else {
@@ -110,7 +110,7 @@ class Reference
     {
         $referenceKey = $this->key . $this->values[$this->index++];
 
-        if ($this->index >= count($this->values)) {
+        if ($this->index >= \count($this->values)) {
             $this->index = 0;
         }
 

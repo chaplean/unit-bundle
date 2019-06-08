@@ -28,7 +28,7 @@ abstract class AbstractFixture extends BaseAbstractFixture
         $reference = parent::getReference($name);
 
         if ($reference->getId() === null) {
-            throw new \Exception(sprintf('\'%s\' is not persisted !', $name));
+            throw new \Exception(\sprintf('\'%s\' is not persisted !', $name));
         }
 
         return $reference;

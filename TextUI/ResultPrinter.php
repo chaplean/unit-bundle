@@ -77,7 +77,7 @@ class ResultPrinter extends \PHPUnit\TextUI\ResultPrinter
             $this->write(Output::ESC . $this->height . 'A');
         }
 
-        $this->write(sprintf('Tests: %d/%d (%d%%)', $this->numTestsRun, $this->numTests, ($this->numTestsRun * 100) / $this->numTests));
+        $this->write(\sprintf('Tests: %d/%d (%d%%)', $this->numTestsRun, $this->numTests, ($this->numTestsRun * 100) / $this->numTests));
         $this->write(' Errors: ' . Output::danger($this->counter['error']));
         $this->write(", Failures: \033[41m" . $this->counter['fail'] . "\033[0m");
         $this->write(', Skipped: ' . Output::print(Output::COLOR_LIGHT_CYAN, $this->skipped));
@@ -85,10 +85,10 @@ class ResultPrinter extends \PHPUnit\TextUI\ResultPrinter
         $this->write(', Risky: ' . Output::warning($this->counter['risky']));
 
         $testName = $test instanceof TestCase ? $test->getName() : TestUtil::describe($test);
-        $this->write(sprintf(
+        $this->write(\sprintf(
             "\n\n%s\n%s\n",
-            str_pad(get_class($test), $this->numberColumns, ' '),
-            str_pad('  ' . $testName, $this->numberColumns, ' ')
+            \str_pad(\get_class($test), $this->numberColumns, ' '),
+            \str_pad('  ' . $testName, $this->numberColumns, ' ')
         ));
 
         $this->write($this->messages);
@@ -220,16 +220,16 @@ class ResultPrinter extends \PHPUnit\TextUI\ResultPrinter
      */
     private function buildMessage(Test $test, Throwable $e, $color = Output::COLOR_LIGHT_RED)
     {
-        $index = Output::info(array_sum($this->counter)) . ') ';
+        $index = Output::info(\array_sum($this->counter)) . ') ';
         $testName = TestUtil::describeAsString($test);
         $trace = Filter::getFilteredStacktrace($e);
         $message = $e->getMessage();
 
-        $message = sprintf("\n%s%s\n%s\n\n%s", $index, $testName, Output::print($color, $message), $trace);
+        $message = \sprintf("\n%s%s\n%s\n\n%s", $index, $testName, Output::print($color, $message), $trace);
 
-        $traces = explode("\n", $trace);
+        $traces = \explode("\n", $trace);
 
-        $this->height += (2 + (ceil(strlen($message)/$this->numberColumns)) + (count($traces) - 1));
+        $this->height += (2 + (\ceil(\strlen($message)/$this->numberColumns)) + (\count($traces) - 1));
 
         $this->messages .= $message;
 

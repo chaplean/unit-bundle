@@ -30,15 +30,15 @@ class AppKernel extends Kernel
 
     public function __construct($varDir, $testCase, $rootConfig, $environment, $debug)
     {
-        if (!is_dir(__DIR__.'/'.$testCase)) {
-            throw new \InvalidArgumentException(sprintf('The test case "%s" does not exist.', $testCase));
+        if (!\is_dir(__DIR__.'/'.$testCase)) {
+            throw new \InvalidArgumentException(\sprintf('The test case "%s" does not exist.', $testCase));
         }
         $this->varDir = $varDir;
         $this->testCase = $testCase;
 
         $fs = new Filesystem();
-        if (!$fs->isAbsolutePath($rootConfig) && !file_exists($rootConfig = __DIR__.'/'.$testCase.'/'.$rootConfig)) {
-            throw new \InvalidArgumentException(sprintf('The root config "%s" does not exist.', $rootConfig));
+        if (!$fs->isAbsolutePath($rootConfig) && !\file_exists($rootConfig = __DIR__.'/'.$testCase.'/'.$rootConfig)) {
+            throw new \InvalidArgumentException(\sprintf('The root config "%s" does not exist.', $rootConfig));
         }
         $this->rootConfig = $rootConfig;
 
@@ -61,12 +61,12 @@ class AppKernel extends Kernel
 
     public function getCacheDir()
     {
-        return sys_get_temp_dir().'/'.$this->varDir.'/'.$this->testCase.'/cache/'.$this->environment;
+        return \sys_get_temp_dir().'/'.$this->varDir.'/'.$this->testCase.'/cache/'.$this->environment;
     }
 
     public function getLogDir()
     {
-        return sys_get_temp_dir().'/'.$this->varDir.'/'.$this->testCase.'/logs';
+        return \sys_get_temp_dir().'/'.$this->varDir.'/'.$this->testCase.'/logs';
     }
 
     public function registerContainerConfiguration(LoaderInterface $loader)
@@ -81,12 +81,12 @@ class AppKernel extends Kernel
 
     public function serialize()
     {
-        return serialize([$this->varDir, $this->testCase, $this->rootConfig, $this->getEnvironment(), $this->isDebug()]);
+        return \serialize([$this->varDir, $this->testCase, $this->rootConfig, $this->getEnvironment(), $this->isDebug()]);
     }
 
     public function unserialize($str)
     {
-        $a = unserialize($str);
+        $a = \unserialize($str);
         $this->__construct($a[0], $a[1], $a[2], $a[3], $a[4]);
     }
 

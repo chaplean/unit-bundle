@@ -21,7 +21,7 @@ class Timer
      */
     public static function start()
     {
-        self::$time = microtime(true);
+        self::$time = \microtime(true);
 
         return self::$time;
     }
@@ -53,9 +53,9 @@ class Timer
     public static function toString(float $time): string
     {
         if ($time >= 1) {
-            return sprintf('%.2f', $time) . 's';
+            return \sprintf('%.2f', $time) . 's';
         }
 
-        return sprintf('%d', $time * 1000) . 'ms';
+        return \sprintf('%d', $time * 1000) . 'ms';
     }
 }
