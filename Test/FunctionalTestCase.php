@@ -634,7 +634,7 @@ class FunctionalTestCase extends WebTestCase
     {
         $connection = $em->getConnection();
 
-        if ($connection->getTransactionNestingLevel() == 1 && self::$databaseLoaded) {
+        if (self::$databaseLoaded && $connection->getTransactionNestingLevel() == 1) {
             $em->rollback();
         }
 
