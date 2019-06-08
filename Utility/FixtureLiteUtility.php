@@ -8,8 +8,6 @@ use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 use Doctrine\Common\DataFixtures\Executor\ORMExecutor;
 use Doctrine\Common\DataFixtures\Loader;
 use Doctrine\Common\DataFixtures\Purger\ORMPurger;
-use Doctrine\DBAL\Connection;
-use Doctrine\DBAL\Driver\PDOSqlite\Driver as SqliteDriver;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Tools\SchemaTool;
 use Symfony\Bridge\Doctrine\ManagerRegistry;
@@ -58,33 +56,6 @@ class FixtureLiteUtility
      */
     private function __construct()
     {
-    }
-
-    /**
-     * This function finds the time when the data blocks of a class definition
-     * file were being written to, that is, the time when the content of the
-     * file was changed.
-     *
-     * @param mixed $class The fully qualified class name of the fixture class to
-     *                      check modification date on
-     *
-     * @return \DateTime|null
-     * @throws \ReflectionException
-     * @throws \Exception
-     */
-    protected function getFixtureLastModified($class): ?\DateTime
-    {
-        $lastModifiedDateTime = null;
-
-        $reflClass = new \ReflectionClass($class);
-        $classFileName = $reflClass->getFileName();
-
-        if (\file_exists($classFileName)) {
-            $lastModifiedDateTime = new \DateTime();
-            $lastModifiedDateTime->setTimestamp(\filemtime($classFileName));
-        }
-
-        return $lastModifiedDateTime;
     }
 
     /**
@@ -142,36 +113,6 @@ class FixtureLiteUtility
     }
 
     /**
-     * Determine if the Fixtures that define a database backup have been
-     * modified since the backup was made.
-     *
-     * @param array  $classNames The fixture classnames to check
-     * @param string $backup     The fixture backup SQLite database file path
-     *
-     * @return boolean TRUE if the backup was made since the modifications to the
-     *              fixtures; FALSE otherwise
-     * @throws \Exception
-     */
-    protected function isBackupUpToDate(array $classNames, string $backup): bool
-    {
-        $backupLastModifiedDateTime = new \DateTime();
-        $backupLastModifiedDateTime->setTimestamp(\filemtime($backup));
-
-        /** @var \Symfony\Bridge\Doctrine\DataFixtures\ContainerAwareLoader $loader */
-        $loader = $this->getFixtureLoader($this->container, $classNames);
-
-        // Use loader in order to fetch all the dependencies fixtures.
-        foreach ($loader->getFixtures() as $className) {
-            $fixtureLastModifiedDateTime = $this->getFixtureLastModified($className);
-            if ($backupLastModifiedDateTime < $fixtureLastModifiedDateTime) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    /**
      * Set the database to the provided fixtures.
      *
      * Drops the current database and then loads fixtures using the specified
@@ -209,23 +150,6 @@ class FixtureLiteUtility
             $cacheDriver->deleteAll();
         }
 
-        $connection = $om->getConnection();
-        if (!($connection->getDriver() instanceof SqliteDriver)) {
-            throw new \Exception(\sprintf('%s not supported !', \get_class($connection->getDriver())));
-        }
-
-        $params = $connection->getParams();
-        if (isset($params['master'])) {
-            $params = $params['master'];
-        }
-
-        $name = isset($params['path']) ? $params['path'] : false;
-        if (!$name) {
-            throw new \InvalidArgumentException(
-                "Connection does not contain a 'path' parameter"
-            );
-        }
-
         if (!isset(self::$cachedMetadatas['default'])) {
             self::$cachedMetadatas['default'] = $om->getMetadataFactory()->getAllMetadata();
             \usort(
@@ -237,29 +161,6 @@ class FixtureLiteUtility
         }
 
         $metadatas = self::$cachedMetadatas['default'];
-
-        $backup = $container->getParameter('kernel.cache_dir') . '/test_' . $this->getHash($classNames) . '.db';
-
-        if (\file_exists($backup) && \file_exists($backup . '.ser') && $this->isBackupUpToDate($classNames, $backup)) {
-            /** @var Connection $connection */
-            $connection = $container->get('doctrine.orm.entity_manager')->getConnection();
-
-            if (null !== $connection) {
-                $connection->close();
-            }
-
-            $om->flush();
-            $om->clear();
-
-            \copy($backup, $name);
-
-            $executor = new ORMExecutor($om, new ORMPurger());
-            $executor->setReferenceRepository($referenceRepository);
-            /** @noinspection PhpUndefinedMethodInspection */
-            $executor->getReferenceRepository()->load($backup);
-
-            return $executor;
-        }
 
         // TODO: handle case when using persistent connections. Fail loudly?
         $schemaTool = new SchemaTool($om);
@@ -275,13 +176,6 @@ class FixtureLiteUtility
         $loader = $this->getFixtureLoader($container, $classNames);
 
         $executor->execute($loader->getFixtures(), $append);
-
-        if (isset($name) && isset($backup)) {
-            /** @noinspection PhpUndefinedMethodInspection */
-            $executor->getReferenceRepository()->save($backup);
-
-            \copy($name, $backup);
-        }
 
         return $executor;
     }

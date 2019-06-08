@@ -55,10 +55,6 @@ class FixtureLiteUtilityTest extends MockeryTestCase
      */
     public function testLoadClass()
     {
-        $referenceRepository = \Mockery::mock(ReferenceRepository::class);
-        $referenceRepository->shouldReceive('save')
-            ->once();
-
         $schemaTool = \Mockery::mock('overload:Doctrine\ORM\Tools\SchemaTool');
         $schemaTool->shouldReceive('dropDatabase')
             ->once();
@@ -68,19 +64,6 @@ class FixtureLiteUtilityTest extends MockeryTestCase
             ->once();
         $ormexecutor->shouldReceive('execute')
             ->once();
-        $ormexecutor->shouldReceive('getReferenceRepository')
-            ->once()
-            ->andReturn($referenceRepository);
-
-        $sqliteDriver = \Mockery::mock(SqliteDriver::class);
-
-        $connection = \Mockery::mock(Connection::class);
-        $connection->shouldReceive('getDriver')
-            ->once()
-            ->andReturn($sqliteDriver);
-        $connection->shouldReceive('getParams')
-            ->once()
-            ->andReturn(['path' => __FILE__]);
 
         $classMetadataFactory = \Mockery::mock(ClassMetadataFactory::class);
         $classMetadataFactory->shouldReceive('getCacheDriver')
@@ -94,9 +77,6 @@ class FixtureLiteUtilityTest extends MockeryTestCase
         $manager->shouldReceive('getMetadataFactory')
             ->twice()
             ->andReturn($classMetadataFactory);
-        $manager->shouldReceive('getConnection')
-            ->once()
-            ->andReturn($connection);
 
         $om = \Mockery::mock(ObjectManager::class);
         $om->shouldReceive('getManager')
@@ -109,10 +89,6 @@ class FixtureLiteUtilityTest extends MockeryTestCase
             ->once()
             ->with('doctrine')
             ->andReturn($om);
-        $container->shouldReceive('getParameter')
-            ->once()
-            ->with('kernel.cache_dir')
-            ->andReturn('');
 
         $fixture = FixtureLiteUtility::getInstance($container);
 
