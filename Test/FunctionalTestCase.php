@@ -77,6 +77,11 @@ class FunctionalTestCase extends WebTestCase
     /**
      * @var array
      */
+    private static $servicesToMock;
+
+    /**
+     * @var array
+     */
     private static $userRoles = [];
 
     /**
@@ -180,8 +185,13 @@ class FunctionalTestCase extends WebTestCase
 
         static::mockServices(static::$container);
 
-        static::loadFixtures();
-        static::loadUserRoles();
+        if (!self::$databaseLoaded || self::$reloadDatabase) {
+            static::loadFixtures();
+        }
+
+        if (self::$userRoles === null) {
+            static::loadUserRoles();
+        }
 
         /** @var EntityManagerInterface $em */
         $em = static::$container
@@ -497,10 +507,6 @@ class FunctionalTestCase extends WebTestCase
      */
     public static function loadFixtures(): void
     {
-        if (self::$databaseLoaded && !self::$reloadDatabase) {
-            return;
-        }
-
         $defaultNamespace = static::getDefaultFixturesNamespace();
 
         if ($defaultNamespace === null) {
@@ -509,8 +515,12 @@ class FunctionalTestCase extends WebTestCase
 
         if (!self::$reloadDatabase) {
             echo Output::info("Database initialization...\n\n");
-            Timer::start();
         }
+        else {
+            echo Output::info("Database reloading...\n\n");
+        }
+
+        Timer::start();
 
         try {
             $namespaceUtility = new NamespaceUtility(static::$kernel);
@@ -526,12 +536,10 @@ class FunctionalTestCase extends WebTestCase
             echo Output::danger($e->getMessage() . "\n\n");
         }
 
-        if (!self::$reloadDatabase) {
-            try {
-                echo \sprintf(" Done %s (%s)\n\n", Output::success(Output::CHAR_CHECK), Timer::toString(Timer::stop()));
-            } catch (\Exception $e) {
-                // Timer not started : not a big issue
-            }
+        try {
+            echo \sprintf(" Done %s (%s)\n\n", Output::success(Output::CHAR_CHECK), Timer::toString(Timer::stop()));
+        } catch (\Exception $e) {
+            // Timer not started : not a big issue
         }
 
         self::$databaseLoaded = true;
@@ -558,23 +566,23 @@ class FunctionalTestCase extends WebTestCase
      */
     private static function mockServices(ContainerInterface $container)
     {
-        $servicesToOverride = [];
+        if (self::$servicesToMock === null) {
+            self::$servicesToMock = static::getOtherMockedServices($container);
 
-        if (\class_exists('Knp\Bundle\SnappyBundle\Snappy\LoggableGenerator')) {
-            $pdf = \file_get_contents(__DIR__ . '/../Resources/pdf.pdf');
+            if (\class_exists('Knp\Bundle\SnappyBundle\Snappy\LoggableGenerator')) {
+                $pdf = \file_get_contents(__DIR__ . '/../Resources/pdf.pdf');
 
-            $knpPdf = \Mockery::mock('Knp\Bundle\SnappyBundle\Snappy\LoggableGenerator');
-            $knpPdf->shouldReceive('getOutputFromHtml')
-                ->andReturn($pdf);
-            $knpPdf->shouldReceive('getOutput')
-                ->andReturn($pdf);
+                $knpPdf = \Mockery::mock('Knp\Bundle\SnappyBundle\Snappy\LoggableGenerator');
+                $knpPdf->shouldReceive('getOutputFromHtml')
+                    ->andReturn($pdf);
+                $knpPdf->shouldReceive('getOutput')
+                    ->andReturn($pdf);
 
-            $servicesToOverride['knp_snappy.pdf'] = $knpPdf;
+                self::$servicesToMock['knp_snappy.pdf'] = $knpPdf;
+            }
         }
 
-        $servicesToOverride = \array_merge($servicesToOverride, static::getOtherMockedServices($container));
-
-        foreach ($servicesToOverride as $service => $mock) {
+        foreach (self::$servicesToMock as $service => $mock) {
             $container->set($service, $mock);
         }
 

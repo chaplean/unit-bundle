@@ -47,14 +47,14 @@ class NamespaceUtility
             throw new \Exception($e->getMessage());
         }
 
-        if (is_dir($pathDatafixtures)) {
+        if (\is_dir($pathDatafixtures)) {
             $files = Finder::create()
                 ->files()
                 ->in($pathDatafixtures);
 
             /** @var SplFileInfo $file */
             foreach ($files as $file) {
-                $defaultFixtures[] = $namespaceContext . str_replace('.php', '', $file->getFilename());
+                $defaultFixtures[] = $namespaceContext . \str_replace('.php', '', $file->getFilename());
             }
         }
 

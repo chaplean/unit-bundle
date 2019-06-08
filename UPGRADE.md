@@ -24,6 +24,7 @@
 * Possible side effects:
     * `self` calls for protected/public functions and properties have been replaced by `static` calls in `FunctionalTestCase` may overwrite some of your variables.
     * `FunctionalTestCase::getDefaultFixturesNamespace` now use `App` namespace by default
+    * On database reload, you now see a message "Database reloading..." like on initialization
 
 ## From 7.x to 8.x
 

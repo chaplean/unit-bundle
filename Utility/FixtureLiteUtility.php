@@ -152,6 +152,7 @@ class FixtureLiteUtility
 
         if (!isset(self::$cachedMetadatas['default'])) {
             self::$cachedMetadatas['default'] = $om->getMetadataFactory()->getAllMetadata();
+
             \usort(
                 self::$cachedMetadatas['default'],
                 function ($a, $b) {
