@@ -70,11 +70,6 @@ class FunctionalTestCase extends WebTestCase
     protected static $kernel;
 
     /**
-     * @var boolean
-     */
-    private static $reloadDatabase = false;
-
-    /**
      * @var array
      */
     private static $servicesToMock;
@@ -185,7 +180,7 @@ class FunctionalTestCase extends WebTestCase
 
         static::mockServices(static::$container);
 
-        if (!self::$databaseLoaded || self::$reloadDatabase) {
+        if (!self::$databaseLoaded) {
             static::loadFixtures();
         }
 
@@ -513,12 +508,7 @@ class FunctionalTestCase extends WebTestCase
             return;
         }
 
-        if (!self::$reloadDatabase) {
-            echo Output::info("Database initialization...\n\n");
-        }
-        else {
-            echo Output::info("Database reloading...\n\n");
-        }
+        echo Output::info("Database initialization...\n\n");
 
         Timer::start();
 
@@ -543,7 +533,6 @@ class FunctionalTestCase extends WebTestCase
         }
 
         self::$databaseLoaded = true;
-        self::$reloadDatabase = false;
     }
 
     /**
