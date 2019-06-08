@@ -7,6 +7,6 @@ if (!\function_exists('xdebug_set_filter')) {
     \XDEBUG_FILTER_CODE_COVERAGE,
     \XDEBUG_PATH_WHITELIST,
     [
-        '/var/www/symfony/src/'
+        '/var/www/symfony/'
     ]
 );
