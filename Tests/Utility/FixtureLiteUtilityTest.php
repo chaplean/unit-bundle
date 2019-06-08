@@ -17,10 +17,10 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 /**
  * Class FixtureLiteUtilityTest.
  *
- * @package   Tests\Chaplean\Bundle\UnitBundle\Utility
- * @author    Valentin - Chaplean <valentin@chaplean.coop>
- * @copyright 2014 - 2017 Chaplean (https://www.chaplean.coop)
- * @since     7.0.0
+ * @package             Tests\Chaplean\Bundle\UnitBundle\Utility
+ * @author              Valentin - Chaplean <valentin@chaplean.coop>
+ * @copyright           2014 - 2017 Chaplean (https://www.chaplean.coop)
+ * @since               7.0.0
  *
  * @runTestsInSeparateProcesses
  * @preserveGlobalState disabled
@@ -48,10 +48,10 @@ class FixtureLiteUtilityTest extends MockeryTestCase
     }
 
     /**
+     * @covers \Chaplean\Bundle\UnitBundle\Utility\FixtureLiteUtility
+     *
      * @return void
      * @throws \Exception
-     *
-     * @covers \Chaplean\Bundle\UnitBundle\Utility\FixtureLiteUtility
      */
     public function testLoadClass()
     {
@@ -80,7 +80,7 @@ class FixtureLiteUtilityTest extends MockeryTestCase
             ->andReturn($sqliteDriver);
         $connection->shouldReceive('getParams')
             ->once()
-            ->andReturn(['path' => 'custompath']);
+            ->andReturn(['path' => __FILE__]);
 
         $classMetadataFactory = \Mockery::mock(ClassMetadataFactory::class);
         $classMetadataFactory->shouldReceive('getCacheDriver')
