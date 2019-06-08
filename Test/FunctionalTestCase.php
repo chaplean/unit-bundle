@@ -19,6 +19,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Exception\ServiceNotFoundException;
 use Symfony\Component\Form\Form;
 use Symfony\Component\HttpFoundation\Session\Session;
+use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
 
 /**
@@ -64,6 +65,11 @@ class FunctionalTestCase extends WebTestCase
     private static $hasReferenceLoaded = false;
 
     /**
+     * @var KernelInterface
+     */
+    protected static $kernel;
+
+    /**
      * @var boolean
      */
     private static $reloadDatabase = false;
@@ -93,14 +99,18 @@ class FunctionalTestCase extends WebTestCase
      * $client matches the expected code. If not, raises an error with more
      * information.
      *
+     * @param        $expectedStatusCode
+     * @param Client $client
+     *
      * @deprecated since ChapleanUnitBundle v9. Use assertEquals() with getStatusCode() instead.
      *
-     * @param $expectedStatusCode
-     * @param Client $client
      */
     public static function assertStatusCode($expectedStatusCode, Client $client)
     {
-        @trigger_error(sprintf('Assertion "%s::assertStatusCode()" is deprecated since ChapleanUnitBundle v9. Use assertEquals() with getStatusCode() instead.', __CLASS__), E_USER_DEPRECATED);
+        @trigger_error(
+            sprintf('Assertion "%s::assertStatusCode()" is deprecated since ChapleanUnitBundle v9. Use assertEquals() with getStatusCode() instead.', __CLASS__),
+            E_USER_DEPRECATED
+        );
 
         $helpfulErrorMessage = '';
         /** @var \Symfony\Component\BrowserKit\Response $response */
@@ -154,12 +164,15 @@ class FunctionalTestCase extends WebTestCase
      * @param array $options
      *
      * @return \Symfony\Component\HttpKernel\KernelInterface|void
-     * @throws \Exception
      */
     protected static function bootKernel(array $options = [])
     {
-        $options['environment'] = 'test';
-        parent::bootKernel($options);
+        if (static::$kernel === null) {
+            $options['environment'] = 'test';
+
+            static::$kernel = static::createKernel($options);
+            static::$kernel->boot();
+        }
 
         if (static::$container === null) {
             static::$container = static::$kernel->getContainer();
@@ -175,9 +188,51 @@ class FunctionalTestCase extends WebTestCase
             ->get('doctrine')
             ->getManager();
 
-        static::enableTransactions($em);
+        try {
+            static::enableTransactions($em);
+        } catch (\Exception $e) {
+            dump(sprintf('Database transactions could not be enabled: %s', $e->getMessage()));
+        }
 
         return static::$kernel;
+    }
+
+    /**
+     * Reset all non-important services (Important service: kernel, doctrine (+ related service) and orm (+ related service))
+     *
+     * @return void
+     */
+    private static function clearContainer()
+    {
+        try {
+            $reflectionClass = new \ReflectionClass(get_class(static::$container));
+            $aliasesProperty = $reflectionClass->getProperty('aliases');
+            $servicesProperty = $reflectionClass->getProperty('services');
+
+            $aliasesProperty->setAccessible(true);
+            $servicesProperty->setAccessible(true);
+
+            $containerServices = $servicesProperty->getValue(static::$container);
+
+            $keepingAliases = $aliasesProperty->getValue(static::$container);
+            $keepingServices = $containerServices;
+
+            // We remove all services that are not in our selection to container
+            foreach ($containerServices as $serviceId => $serviceName) {
+                if (!preg_match_all('/(kernel|doctrine|[^f]orm|service_container|test)/', $serviceId)) {
+                    if (array_key_exists($serviceId, $keepingAliases)) {
+                        unset($keepingAliases[$serviceId]);
+                    }
+
+                    unset($keepingServices[$serviceId]);
+                }
+            }
+
+            $aliasesProperty->setValue(static::$container, $keepingAliases);
+            $servicesProperty->setValue(static::$container, $keepingServices);
+        } catch (\ReflectionException $e) {
+            dump(sprintf('Clear container error: %s', $e->getMessage()));
+        }
     }
 
     /**
@@ -185,8 +240,6 @@ class FunctionalTestCase extends WebTestCase
      * @param array $server
      *
      * @return Client
-     * @throws \Doctrine\DBAL\ConnectionException
-     * @throws \Doctrine\DBAL\DBALException
      */
     protected static function createClient(array $options = [], array $server = []): Client
     {
@@ -206,7 +259,12 @@ class FunctionalTestCase extends WebTestCase
             ->get('doctrine')
             ->getManager();
 
-        static::enableTransactions($em);
+        try {
+            static::enableTransactions($em);
+        } catch (\Exception $e) {
+            dump(sprintf('Database transactions could not be enabled for client: %s', $e->getMessage()));
+        }
+
         static::mockServices(static::$client->getContainer());
 
         return static::$client;
@@ -237,10 +295,7 @@ class FunctionalTestCase extends WebTestCase
      */
     public function createCommandTester(string $commandName): CommandTester
     {
-        $application = new Application(
-            $this->getContainer()
-                ->get('kernel')
-        );
+        $application = new Application(static::$kernel);
 
         /** @var Command $command */
         $command = $application->find($commandName);
@@ -295,30 +350,6 @@ class FunctionalTestCase extends WebTestCase
     }
 
     /**
-     * Get the default Entity Manager: from client container if exist, otherwise from current container.
-     *
-     * @return EntityManagerInterface|null
-     * @throws \Exception
-     */
-    private static function getDefaultEntityManager(): ?EntityManagerInterface
-    {
-        if (static::$client !== null) {
-            return static::$client
-                ->getContainer()
-                ->get('doctrine')
-                ->getManager();
-        } else {
-            if (static::$container !== null) {
-                return static::$container
-                    ->get('doctrine')
-                    ->getManager();
-            }
-        }
-
-        return null;
-    }
-
-    /**
      * @param string $formClass
      * @param Client $client
      *
@@ -345,6 +376,30 @@ class FunctionalTestCase extends WebTestCase
         }
 
         return $fields['_token']->vars['value'];
+    }
+
+    /**
+     * Get the default Entity Manager: from client container if exist, otherwise from current container.
+     *
+     * @return EntityManagerInterface|null
+     * @throws \Exception
+     */
+    private static function getDefaultEntityManager(): ?EntityManagerInterface
+    {
+        if (static::$client !== null) {
+            return static::$client
+                ->getContainer()
+                ->get('doctrine')
+                ->getManager();
+        } else {
+            if (static::$container !== null) {
+                return static::$container
+                    ->get('doctrine')
+                    ->getManager();
+            }
+        }
+
+        return null;
     }
 
     /**
@@ -441,7 +496,7 @@ class FunctionalTestCase extends WebTestCase
         }
 
         try {
-            $namespaceUtility = new NamespaceUtility(static::$container->get('kernel'));
+            $namespaceUtility = new NamespaceUtility(static::$kernel);
 
             if (self::$fixtureUtility === null) {
                 self::$fixtureUtility = FixtureLiteUtility::getInstance(static::$container);
@@ -597,6 +652,9 @@ class FunctionalTestCase extends WebTestCase
             static::rollbackTransactions($this->em);
         }
 
-        parent::tearDown();
+        static::clearContainer();
+
+        // Do NOT teardown, otherwise kernel will be rebooted
+//        parent::tearDown();
     }
 }
