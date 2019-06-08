@@ -20,10 +20,11 @@ class Configuration implements ConfigurationInterface
      */
     public function getConfigTreeBuilder(): TreeBuilder
     {
-        $treeBuilder = new TreeBuilder('chaplean_unit');
+        $treeBuilder = new TreeBuilder();
+        // Needs to stay like this otherwise it breaks with SF < 4.X
+        $rootNode = $treeBuilder->root('chaplean_unit');
 
-        $treeBuilder
-            ->getRootNode()
+        $$rootNode
             ->children()
                 ->scalarNode('data_fixtures_namespace')
                     ->defaultValue('App\\')
