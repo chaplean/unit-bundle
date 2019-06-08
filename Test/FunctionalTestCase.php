@@ -89,6 +89,31 @@ class FunctionalTestCase extends WebTestCase
     }
 
     /**
+     * Asserts that the HTTP response code of the last request performed by
+     * $client matches the expected code. If not, raises an error with more
+     * information.
+     *
+     * @deprecated since ChapleanUnitBundle v9. Use assertEquals() with getStatusCode() instead.
+     *
+     * @param $expectedStatusCode
+     * @param Client $client
+     */
+    public static function assertStatusCode($expectedStatusCode, Client $client)
+    {
+        @trigger_error(sprintf('Assertion "%s::assertStatusCode()" is deprecated since ChapleanUnitBundle v9. Use assertEquals() with getStatusCode() instead.', __CLASS__), E_USER_DEPRECATED);
+
+        $helpfulErrorMessage = '';
+        /** @var \Symfony\Component\BrowserKit\Response $response */
+        $response = $client->getResponse();
+
+        if ($expectedStatusCode !== $response->getStatusCode()) {
+            $helpfulErrorMessage = substr($response, 0, 200);
+        }
+
+        self::assertEquals($expectedStatusCode, $response->getStatusCode(), $helpfulErrorMessage);
+    }
+
+    /**
      * @param string|object $user
      * @param Client        $client
      *

@@ -5,7 +5,9 @@
 * `nelmio/alice` dependency had been removed. You CAN'T use datafixtures.yml now.
 * `liip/LiipFunctionalTestBundle` dependency had been removed too (not necessary to use this bundle).
 
-* Deprecated removed:
+* Deprecated:
+    * Function `FunctionalTestCase::assertStatusCode`
+* Removed:
     * Class `Client`
     * Class `RestClient`
     * Function `FunctionalTestCase::createRestClient`
