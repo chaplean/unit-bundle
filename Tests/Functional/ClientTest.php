@@ -36,43 +36,39 @@ class ClientTest extends FunctionalTestCase
         $this->assertSame($client->getContainer()->get('doctrine')->getManager(), $this->em);
     }
 
-//    /**
-//     * @covers \Chaplean\Bundle\UnitBundle\Test\FunctionalTestCase::tearDown
-//     * @covers \Chaplean\Bundle\UnitBundle\Test\FunctionalTestCase::rollbackTransactions
-//     *
-//     * @return void
-//     * @throws \ReflectionException
-//     * @throws \Exception
-//     */
-//    public function testRollbackTransactionOnTearDownAndEnsureShutdownClient(): void
-//    {
-//        $reflectionParent = new \ReflectionClass(FunctionalTestCase::class);
-//        $staticClient = $reflectionParent->getProperty('client');
-//        $staticClient->setAccessible(true);
-//
-//        $client = self::createClient();
-//
-//        $this->assertNotNull($staticClient->getValue(FunctionalTestCase::class));
-//
-//        $this->tearDown();
-//
-//        $this->assertNull($client->getContainer());
-//        $this->assertNull($staticClient->getValue(FunctionalTestCase::class));
-//    }
+    /**
+     * @covers \Chaplean\Bundle\UnitBundle\Test\FunctionalTestCase::tearDown
+     * @covers \Chaplean\Bundle\UnitBundle\Test\FunctionalTestCase::rollbackTransactions
+     *
+     * @return void
+     * @throws \ReflectionException
+     * @throws \Exception
+     */
+    public function testRollbackTransactionOnTearDownAndEnsureShutdownClient(): void
+    {
+        $client = self::createClient();
 
-//    /**
-//     * @covers \Chaplean\Bundle\UnitBundle\Test\FunctionalTestCase::getContainer
-//     *
-//     * @return void
-//     * @throws \Exception
-//     */
-//    public function testOverrideSelfGetContainer(): void
-//    {
-//        $client = self::createClient();
-//
-//        $this->assertSame($this->getContainer(), $client->getContainer());
-//        $this->assertNotSame($this->getContainer(), self::$container);
-//    }
+        $this->assertNotNull(static::$client);
+
+        $this->tearDown();
+
+        $this->assertNull($client->getContainer());
+        $this->assertNull(static::$client);
+    }
+
+    /**
+     * @covers \Chaplean\Bundle\UnitBundle\Test\FunctionalTestCase::getContainer
+     *
+     * @return void
+     * @throws \Exception
+     */
+    public function testOverrideSelfGetContainer(): void
+    {
+        $client = self::createClient();
+
+        $this->assertSame($this->getContainer(), $client->getContainer());
+        $this->assertNotSame($this->getContainer(), self::$container);
+    }
 
     /**
      * @covers \Chaplean\Bundle\UnitBundle\Test\FunctionalTestCase::createClient

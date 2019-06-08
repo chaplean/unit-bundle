@@ -252,7 +252,19 @@ class FunctionalTestCase extends WebTestCase
             throw new \RuntimeException('You must create client before the first getReference in your test');
         }
 
+        // We save those values cause createClient will erase them
+        $kernel = static::$kernel;
+        $container = static::$container;
+
+        // We reset them cause otherwise bootKernel will not boot anything
+        static::$kernel = null;
+        static::$container = null;
+
         static::$client = parent::createClient($options, $server);
+
+        // We restore those values as wanted
+        static::$kernel = $kernel;
+        static::$container = $container;
 
         /** @var EntityManagerInterface $em */
         $em = static::$client->getContainer()
@@ -645,6 +657,7 @@ class FunctionalTestCase extends WebTestCase
                 static::rollbackTransactions($em);
             }
 
+            static::$client->getKernel()->shutdown();
             static::$client = null;
         }
 
