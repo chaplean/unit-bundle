@@ -2,7 +2,9 @@
 
 ## From 8.x to 9.x
 
-* `nelmio/alice` is deleted. You CAN'T use datafixtures.yml now.
+* `nelmio/alice` dependency had been removed. You CAN'T use datafixtures.yml now.
+* `liip/LiipFunctionalTestBundle` dependency had been removed too (not necessary to use this bundle).
+
 * Deprecated removed:
     * Class `Client`
     * Class `RestClient`

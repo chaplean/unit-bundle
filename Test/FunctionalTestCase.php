@@ -39,6 +39,11 @@ namespace Chaplean\Bundle\UnitBundle\Test {
         protected static $client;
 
         /**
+         * @var ContainerInterface
+         */
+        protected static $container;
+
+        /**
          * @var boolean
          */
         private static $databaseLoaded = false;
