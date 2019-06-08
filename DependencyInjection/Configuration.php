@@ -24,7 +24,7 @@ class Configuration implements ConfigurationInterface
         // Needs to stay like this otherwise it breaks with SF < 4.X
         $rootNode = $treeBuilder->root('chaplean_unit');
 
-        $$rootNode
+        $rootNode
             ->children()
                 ->scalarNode('data_fixtures_namespace')
                     ->defaultValue('App\\')
