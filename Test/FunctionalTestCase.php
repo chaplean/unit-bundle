@@ -204,6 +204,11 @@ class FunctionalTestCase extends WebTestCase
      */
     private static function clearContainer()
     {
+        // When using createClient(), we don't need to clearContainer cause we will shutdown kernel
+        if (static::$container === null) {
+            return;
+        }
+
         try {
             $reflectionClass = new \ReflectionClass(get_class(static::$container));
             $aliasesProperty = $reflectionClass->getProperty('aliases');
